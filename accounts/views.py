@@ -1,3 +1,76 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.forms import UserCreationForm
+from django.contrib.auth import login
+from django.contrib.auth.views import LoginView, LogoutView
 
-# Create your views here.
+
+# ---------- Auth ----------
+def signup_view(request):
+    if request.method == "POST":
+        form = UserCreationForm(request.POST)
+        if form.is_valid():
+            user = form.save()
+            login(request, user)  # log the user in right after signup
+            return redirect("redirect_dashboard")
+    else:
+        form = UserCreationForm()
+    return render(request, "accounts/signup.html", {"form": form})
+
+
+class CustomLoginView(LoginView):
+    template_name = "accounts/login.html"
+
+
+class CustomLogoutView(LogoutView):
+    template_name = "accounts/logout.html"
+
+
+# ---------- Redirect ----------
+@login_required
+def redirect_dashboard(request):
+    # Here, make sure your User model has a "role" field
+    if hasattr(request.user, "role"):
+        if request.user.role == "student":
+            return redirect("student_dashboard")
+        elif request.user.role == "teacher":
+            return redirect("teacher_dashboard")
+        elif request.user.role == "admin":
+            return redirect("admin_dashboard")
+    return redirect("login")  # fallback
+
+
+# ---------- Dashboards ----------
+@login_required
+def student_dashboard(request):
+    return render(request, "accounts/student_dashboard.html")
+
+@login_required
+def teacher_dashboard(request):
+    return render(request, "accounts/teacher_dashboard.html")
+
+@login_required
+def admin_dashboard(request):
+    return render(request, "accounts/admin_dashboard.html")
+
+
+# ---------- Common Pages ----------
+@login_required
+def profile_view(request):
+    return render(request, "accounts/profile.html")
+
+@login_required
+def edit_profile_view(request):
+    return render(request, "accounts/edit_profile.html")
+
+@login_required
+def notifications_view(request):
+    return render(request, "accounts/notifications.html")
+
+@login_required
+def settings_view(request):
+    return render(request, "accounts/settings.html")
+
+@login_required
+def help_view(request):
+    return render(request, "accounts/help.html")
