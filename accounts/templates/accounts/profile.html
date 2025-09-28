@@ -7,8 +7,19 @@
   <link rel="stylesheet" href="{% static 'accounts/css/base.css' %}">
   <link rel="stylesheet" href="{% static 'accounts/css/style.css' %}">
 </head>
+
 <body class="profile-body">
   <div class="profile-container">
+          <div class="back-dashboard">
+      {% if user.role == "student" %}
+        <a href="{% url 'student_dashboard' %}" class="btn btn-secondary">← Back to Dashboard</a>
+      {% elif user.role == "teacher" %}
+        <a href="{% url 'teacher_dashboard' %}" class="btn btn-secondary">← Back to Dashboard</a>
+      {% elif user.role == "admin" %}
+        <a href="{% url 'admin_dashboard' %}" class="btn btn-secondary">← Back to Dashboard</a>
+      {% endif %}
+    </div>
+
     <div class="profile-header">
       <h2>My Profile</h2>
     </div>
