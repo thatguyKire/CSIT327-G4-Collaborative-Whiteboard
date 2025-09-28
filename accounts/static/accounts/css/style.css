@@ -17,10 +17,12 @@ body {
 
 /* Centered pages (signup, login, profile) */
 .auth-body, .profile-body {
+  position: relative; 
   display: flex;
   justify-content: center;
   align-items: center;
   height: 100vh;
+ 
 }
 
 /* Card look */
@@ -188,6 +190,7 @@ a:hover {
   border: 3px solid #333;
   box-shadow: 6px 6px 0 #333;
   animation: floaty 3s ease-in-out infinite;
+  padding-top: 90px; 
 }
 
 /* Header */
@@ -258,3 +261,12 @@ a:hover {
   0%, 100% { transform: translateY(0); }
   50% { transform: translateY(-6px); }
 }
+
+
+.back-dashboard {
+  position: absolute;
+  top: 30px;
+  left: 30px;
+  z-index: 10;
+}
+
