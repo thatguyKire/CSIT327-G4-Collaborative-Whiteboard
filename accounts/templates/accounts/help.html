@@ -1,0 +1,51 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Help & Support</title>
+  <link rel="stylesheet" href="{% static 'accounts/css/base.css' %}">
+  <link rel="stylesheet" href="{% static 'accounts/css/style.css' %}">
+  <script src="{% static 'accounts/js/main.js' %}"></script>
+</head>
+<body>
+  <div class="layout">
+    <!-- Sidebar -->
+    <div class="sidebar">
+      <h3>Menu</h3>
+      <a href="{% url 'student_dashboard' %}">My Dashboard</a>
+      <a href="#">My Session</a>
+      <a href="{% url 'profile' %}">My Profile</a>
+      <a href="#">Chat</a>
+      <a href="#">Saved Sessions</a>
+      <a href="{% url 'help' %}">Help & Support</a>
+    </div>
+
+    <!-- Content -->
+    <div class="content">
+      <!-- Topbar -->
+      <div class="topbar">
+        <h2>Help & Support</h2>
+        <div class="icons">
+          <span>🔔</span>
+          <span>👤</span>
+        </div>
+      </div>
+
+      <!-- Help Section -->
+      <div class="help-section">
+        <h3>Get the help you need</h3>
+        <div class="search-box">
+          <input type="text" placeholder="Search articles...">
+          <button>🔍</button>
+        </div>
+
+        <div class="articles">
+          <h4>Top Articles</h4>
+          <p>Coming soon...</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

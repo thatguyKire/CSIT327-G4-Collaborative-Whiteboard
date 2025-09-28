@@ -1,0 +1,107 @@
+/* Reset */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: "Comic Sans MS", "Segoe UI", Roboto, sans-serif;
+}
+
+body {
+  background: #fefefe url("https://www.transparenttextures.com/patterns/graphy.png");
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
+
+/* Card container */
+.auth-card {
+  background: #fffbe6;
+  border: 3px solid #333;
+  border-radius: 20px;
+  padding: 30px;
+  width: 380px;
+  box-shadow: 6px 6px 0px #333;
+  text-align: center;
+  animation: floaty 3s ease-in-out infinite;
+}
+
+@keyframes floaty {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+
+.auth-card h2 {
+  font-size: 2rem;
+  font-weight: bold;
+  color: #2c3e50;
+  margin-bottom: 20px;
+  text-shadow: 2px 2px #ffe066;
+}
+
+/* Form fields */
+.form-group {
+  margin-bottom: 18px;
+  text-align: left;
+}
+
+.form-group label {
+  display: block;
+  font-size: 14px;
+  margin-bottom: 6px;
+  font-weight: bold;
+  color: #444;
+}
+
+.form-group input {
+  width: 100%;
+  padding: 12px;
+  border: 2px dashed #333;
+  border-radius: 12px;
+  font-size: 1rem;
+  background: #fff;
+  outline: none;
+  transition: 0.2s;
+}
+
+.form-group input:focus {
+  border-color: #ff6b6b;
+  background: #fff0f0;
+}
+
+/* Button */
+.btn {
+  width: 100%;
+  padding: 12px;
+  background: #6bcB77;
+  color: #fff;
+  border: 3px solid #333;
+  border-radius: 15px;
+  font-size: 1.1rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: 0.2s;
+  box-shadow: 4px 4px 0px #333;
+}
+
+.btn:hover {
+  background: #51a65d;
+  transform: translate(-2px, -2px);
+  box-shadow: 6px 6px 0px #333;
+}
+
+/* Switch link */
+.switch-auth {
+  margin-top: 15px;
+  font-size: 14px;
+}
+
+.switch-auth a {
+  color: #3498db;
+  font-weight: bold;
+  text-decoration: none;
+}
+
+.switch-auth a:hover {
+  text-decoration: underline;
+}

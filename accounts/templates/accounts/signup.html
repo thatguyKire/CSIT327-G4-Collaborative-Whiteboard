@@ -1,17 +1,44 @@
 {% load static %}
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Sign Up</title>
-    <link rel="stylesheet" href="{% static 'accounts/css/style.css' %}">
+  <meta charset="UTF-8">
+  <title>Student Signup</title>
+  <link rel="stylesheet" href="{% static 'accounts/css/auth.css' %}">
+  <script src="{% static 'accounts/js/main.js' %}"></script>
 </head>
 <body>
-    <h2>Create an Account</h2>
+  <div class="auth-card">
+    <h2>Sign Up</h2>
     <form method="post">
-        {% csrf_token %}
-        {{ form.as_p }}
-        <button type="submit">Sign Up</button>
+      {% csrf_token %}
+
+      <div class="form-group">
+        <label for="id_email">Institutional Email</label>
+        {{ form.email }}
+      </div>
+
+      <div class="form-group">
+        <label for="id_student_id">Student ID Number</label>
+        {{ form.student_id }}
+      </div>
+
+      <div class="form-group">
+        <label for="id_password1">Password</label>
+        {{ form.password1 }}
+      </div>
+
+      <div class="form-group">
+        <label for="id_password2">Confirm Password</label>
+        {{ form.password2 }}
+      </div>
+
+      <button type="submit" class="btn">Create Account</button>
     </form>
-    <p>Already have an account? <a href="{% url 'login' %}">Login</a></p>
+
+    <p class="switch-auth">
+      Already have an account? <a href="{% url 'login' %}">Login here</a>
+    </p>
+  </div>
 </body>
 </html>
