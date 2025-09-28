@@ -18,7 +18,7 @@ urlpatterns = [
 
     # Other pages
     path("profile/", views.profile_view, name="profile"),
-    path("edit-profile/", views.edit_profile_view, name="edit_profile"),
+    path("profile/edit/", views.edit_profile, name="edit_profile"),
     path("notifications/", views.notifications_view, name="notifications"),
     path("settings/", views.settings_view, name="settings"),
     path("help/", views.help_view, name="help"),

@@ -1,0 +1,18 @@
+/* base.css - reset + shared tokens */
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --accent:#3498db;
+  --accent-dark:#2980b9;
+  --card-bg:#fff;
+  --muted:#666;
+  --surface:#f5f7fa;
+  --sketch-border: #333;
+}
+body{
+  font-family: "Segoe UI", Roboto, sans-serif;
+  background:var(--surface);
+  color:#222;
+}
+.container{max-width:1200px;margin:0 auto;padding:0 16px}
+.btn{display:inline-block;padding:10px 14px;border-radius:8px;border:none;cursor:pointer}
+.text-muted{color:var(--muted);font-size:.9rem}
