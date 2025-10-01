@@ -4,48 +4,86 @@
 <head>
   <meta charset="UTF-8">
   <title>Help & Support</title>
+
+  <!-- CSS files -->
   <link rel="stylesheet" href="{% static 'accounts/css/base.css' %}">
   <link rel="stylesheet" href="{% static 'accounts/css/style.css' %}">
-  <script src="{% static 'accounts/js/main.js' %}"></script>
+  <link rel="stylesheet" href="{% static 'accounts/css/help.css' %}">
+  <link rel="stylesheet" href="{% static 'accounts/css/notifications.css' %}">
+
+  <!-- JS -->
+  <script src="{% static 'accounts/js/main.js' %}" defer></script>
 </head>
 <body>
   <div class="layout">
     <!-- Sidebar -->
-    <div class="sidebar">
+    <aside class="sidebar">
       <h3>Menu</h3>
       <a href="{% url 'student_dashboard' %}">My Dashboard</a>
-      <a href="#">My Session</a>
       <a href="{% url 'profile' %}">My Profile</a>
-      <a href="#">Chat</a>
-      <a href="#">Saved Sessions</a>
-      <a href="{% url 'help' %}">Help & Support</a>
-    </div>
+      <a href="#">Chats</a>
+      <a href="#">Join Session!</a>
+    </aside>
 
     <!-- Content -->
     <div class="content">
       <!-- Topbar -->
       <div class="topbar">
-        <h2>Help & Support</h2>
-        <div class="icons">
-          <span>🔔</span>
-          <span>👤</span>
+        <div class="logo">COLLABoard</div>
+
+        <!-- Search bar -->
+        <div class="search-box">
+          <input type="text" placeholder="Search">
+          <button>🔍</button>
+        </div>
+
+        <!-- Icons -->
+        <div class="topbar-icons">
+          <!-- Notification bell -->
+          <button class="icon" id="notifBell">🔔</button>
+
+          <!-- Account dropdown -->
+          <div class="account-dropdown">
+            <button class="icon">👤</button>
+            <div class="dropdown-content">
+              <a href="{% url 'profile' %}">Profile</a>
+              <a href="{% url 'settings' %}">Settings</a>
+              <a href="{% url 'logout' %}">Logout</a>
+            </div>
+          </div>
         </div>
       </div>
 
       <!-- Help Section -->
       <div class="help-section">
-        <h3>Get the help you need</h3>
-        <div class="search-box">
-          <input type="text" placeholder="Search articles...">
-          <button>🔍</button>
+        <h2>Get the help you need</h2>
+        <div class="help-search">
+          <input type="text" placeholder="Search help topics">
+          <button>Search</button>
         </div>
-
         <div class="articles">
-          <h4>Top Articles</h4>
-          <p>Coming soon...</p>
+          <h3>Top Articles</h3>
+          <p>No articles yet. Content coming soon!</p>
         </div>
       </div>
     </div>
   </div>
+
+  <!-- Notifications Panel -->
+  <div class="notifications-panel" id="notificationsPanel">
+    <h3>Notifications</h3>
+    <div class="notif-list">
+      <div class="notif-item">
+        <p>Welcome to COLLABoard 🎉</p>
+        <small>Today at 12:30 PM</small>
+      </div>
+      <div class="notif-item">
+        <p>Your profile was updated</p>
+        <small>Yesterday at 3:45 PM</small>
+      </div>
+    </div>
+    <a href="{% url 'notifications' %}" class="btn-secondary">See all</a>
+  </div>
+
 </body>
 </html>
