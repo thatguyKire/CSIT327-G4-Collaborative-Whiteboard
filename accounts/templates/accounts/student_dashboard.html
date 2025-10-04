@@ -1,0 +1,10 @@
+{% extends "accounts/base.html" %}
+
+{% block title %}Dashboard - COLLABoard{% endblock %}
+
+{% block content %}
+  <h1>Hello there, {{ user.username }}!</h1>
+  <p>This is your dashboard, all of your sessions will be saved and viewed here</p>
+
+  <div class="session-card">+</div>
+{% endblock %}

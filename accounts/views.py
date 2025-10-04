@@ -51,7 +51,7 @@ def redirect_dashboard(request):
 
 
 # ---------- Dashboards ----------
-@login_required
+#@login_required  # for debugging
 def student_dashboard(request):
     return render(request, "accounts/student_dashboard.html")
 
