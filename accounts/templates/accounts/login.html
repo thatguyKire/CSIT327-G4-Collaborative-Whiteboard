@@ -1,0 +1,50 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Student Login</title>
+  
+  <link rel="stylesheet" href="{% static 'accounts/css/auth.css' %}">
+  <script src="{% static 'accounts/js/main.js' %}"></script>
+</head>
+<body>
+ <div class="page-container">
+  <!-- Curved SVG Title -->
+  <svg viewBox="0 0 2000 300" class="curved-title">
+    <path id="curve" d="M 100 200 Q 1000 50 1900 200" fill="transparent"/>
+    <text width="2000">
+      <textPath xlink:href="#curve" startOffset="50%" text-anchor="middle">
+        COLLABORATIVE WHITEBOARD
+      </textPath>
+    </text>
+  </svg>
+
+  <!-- Your login card -->
+  <div class="auth-card">
+    <h2>Login</h2>
+    <form method="post">
+      {% csrf_token %}
+      <div class="form-group">
+        <label for="id_username">Institutional Email / Student ID</label>
+        {{ form.username }}
+      </div>
+
+      <div class="form-group">
+        <label for="id_password">Password</label>
+        {{ form.password }}
+      </div>
+
+      <button type="submit" class="btn">Login</button>
+    </form>
+
+    <p class="switch-auth">
+      Don’t have an account? <a href="{% url 'signup' %}">Sign up here</a>
+    </p>
+  </div>
+</div>
+
+</body>
+
+</html>
+
