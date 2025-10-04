@@ -1,0 +1,39 @@
+
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}COLLABoard{% endblock %}</title>
+  <link rel="stylesheet" href="{% static 'accounts/css/student-dashboard.css' %}">
+</head>
+<body>
+  <!-- Sidebar -->
+  <div class="sidebar collapsed" id="sidebar">
+    <div class="toggle-btn" id="toggleBtn">&lt;</div>
+    <div class="menu">
+      <button>My dashboard</button>
+      <button>My profile</button>
+      <button>Chats</button>
+      <button>Join Session!</button>
+    </div>
+  </div>
+
+  <!-- Main content -->
+  <div class="main">
+    <div class="topbar">
+      <div class="logo">COLLABoard</div>
+      <div class="search">
+        <input type="text" placeholder="Search">
+      </div>
+      <div class="icons">🔔 👤</div>
+    </div>
+
+    <!-- Each page will insert its own content here -->
+    {% block content %}{% endblock %}
+  </div>
+
+  <script src="{% static 'js/student-dashboard.js' %}"></script>
+</body>
+</html>
