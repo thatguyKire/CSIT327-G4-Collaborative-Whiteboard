@@ -1,0 +1,59 @@
+/* === Notifications Panel === */
+.notifications-panel {
+  display: none;
+  position: absolute;
+  top: 60px;
+  right: 20px;
+  width: 300px;
+  background: #fffbe6;
+  border: 2px solid #333;
+  border-radius: 10px;
+  box-shadow: 4px 4px 0 #333;
+  z-index: 20;
+}
+
+.notifications-panel.active {
+  display: block;
+}
+
+.notifications-panel h3 {
+  margin: 10px;
+  font-size: 16px;
+  color: #2c3e50;
+}
+
+.notification-item {
+  padding: 10px;
+  border-bottom: 1px solid #ddd;
+  font-size: 14px;
+}
+
+.notification-item:last-child {
+  border-bottom: none;
+}
+
+.notification-item time {
+  display: block;
+  font-size: 12px;
+  color: #555;
+  margin-top: 4px;
+}
+
+.notifications-panel .btn-secondary {
+  display: block;
+  text-align: center;
+  text-decoration: none;
+  background: #3498db;
+  color: #fff !important;   
+  border: 2px solid #333;
+  border-radius: 8px;
+  padding: 10px;
+  font-weight: bold;
+  box-shadow: 3px 3px 0 #333;
+  transition: background 0.2s, transform 0.2s;
+}
+
+.notifications-panel .btn-secondary:hover {
+  background: #2980b9;
+  transform: translateY(-2px);
+}
