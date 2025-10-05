@@ -1,9 +1,11 @@
 from django.shortcuts import render, redirect
+from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import login
 from django.contrib.auth.views import LoginView, LogoutView
 
-from .forms import CustomSignupForm  # import our custom signup form
+from .models import CustomUser
+from .forms import CustomSignupForm
 
 
 # ---------- Auth ----------
@@ -11,15 +13,28 @@ def signup_view(request):
     if request.method == "POST":
         form = CustomSignupForm(request.POST)
         if form.is_valid():
-            user = form.save(commit=False)
+            email = form.cleaned_data.get("email")
+            student_id = form.cleaned_data.get("student_id")
+            role = form.cleaned_data.get("role")
 
-            # Extra validation: student must provide student_id
-            if user.role == "student" and not form.cleaned_data.get("student_id"):
-                form.add_error("student_id", "Student ID is required for students.")
+            # Check for duplicate email
+            if CustomUser.objects.filter(email=email).exists():
+                messages.error(request, "This email is already registered.")
                 return render(request, "accounts/signup.html", {"form": form})
 
-            user.save()
-            login(request, user)  # log the user in right after signup
+            # Check for duplicate student ID (only for students)
+            if role == "student" and CustomUser.objects.filter(student_id=student_id).exists():
+                messages.error(request, "This Student ID is already in use.")
+                return render(request, "accounts/signup.html", {"form": form})
+
+            # Student must provide student_id
+            if role == "student" and not student_id:
+                messages.error(request, "Student ID is required for students.")
+                return render(request, "accounts/signup.html", {"form": form})
+
+            # Save and log in
+            user = form.save()
+            login(request, user)
             return redirect("redirect_dashboard")
     else:
         form = CustomSignupForm()
@@ -37,9 +52,6 @@ class CustomLogoutView(LogoutView):
 # ---------- Redirect ----------
 @login_required
 def redirect_dashboard(request):
-    """
-    Redirect users to their dashboard based on role.
-    """
     if hasattr(request.user, "role"):
         if request.user.role == "student":
             return redirect("student_dashboard")
@@ -47,7 +59,7 @@ def redirect_dashboard(request):
             return redirect("teacher_dashboard")
         elif request.user.role == "admin":
             return redirect("admin_dashboard")
-    return redirect("login")  # fallback if no role
+    return redirect("login")
 
 
 # ---------- Dashboards ----------
@@ -83,6 +95,7 @@ def edit_profile(request):
         user.save()
         return redirect("profile")
     return render(request, "accounts/edit_profile.html")
+
 
 @login_required
 def notifications_view(request):

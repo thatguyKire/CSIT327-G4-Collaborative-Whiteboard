@@ -45,7 +45,7 @@
 }
 
 .topbar {
-  background: #27ae60; /* green like wireframe */
+  background: #27ae60;
   padding: 15px 20px;
   display: flex;
   justify-content: space-between;
@@ -125,3 +125,52 @@
   border: 2px solid #333;
   box-shadow: 3px 3px 0 #333;
 }
+
+.topbar-icons {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.icon-btn {
+  background: none;
+  border: none;
+  color: white;
+  font-size: 22px;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+.icon-btn:hover {
+  transform: scale(1.2);
+}
+
+.account-menu {
+  position: relative;
+}
+
+.account-dropdown {
+  position: absolute;
+  right: 0;
+  top: 40px;
+  display: none;
+  background: #fffbe6;
+  border: 2px solid #333;
+  border-radius: 8px;
+  box-shadow: 4px 4px 0 #333;
+  min-width: 160px;
+  z-index: 1000;
+}
+
+.account-dropdown a {
+  display: block;
+  padding: 10px;
+  text-decoration: none;
+  color: #2c3e50;
+  font-weight: bold;
+}
+
+.account-dropdown a:hover {
+  background: #ffeaa7;
+}
+

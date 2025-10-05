@@ -10,7 +10,7 @@
   <link rel="stylesheet" href="{% static 'accounts/css/style.css' %}">
   <link rel="stylesheet" href="{% static 'accounts/css/help.css' %}">
   <link rel="stylesheet" href="{% static 'accounts/css/notifications.css' %}">
-
+  
   <!-- JS -->
   <script src="{% static 'accounts/js/main.js' %}" defer></script>
 </head>
@@ -39,16 +39,23 @@
 
         <!-- Icons -->
         <div class="topbar-icons">
-          <!-- Notification bell -->
-          <button class="icon" id="notifBell">🔔</button>
+          <!-- Notification Bell -->
+          <button class="icon-btn" id="notifBell" title="Notifications">🔔</button>
 
-          <!-- Account dropdown -->
-          <div class="account-dropdown">
-            <button class="icon">👤</button>
-            <div class="dropdown-content">
+          <!-- Account Menu -->
+          <div class="account-menu">
+            <button class="icon-btn" id="accountIcon" title="Account">👤</button>
+            <div class="account-dropdown" id="accountDropdown">
               <a href="{% url 'profile' %}">Profile</a>
               <a href="{% url 'settings' %}">Settings</a>
-              <a href="{% url 'logout' %}">Logout</a>
+              
+              <!-- ✅ POST Logout Form -->
+              <form action="{% url 'logout' %}" method="post" style="margin: 0;">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-secondary" style="width: 100%; text-align: left; border: none; background: none; color: #2c3e50; font-weight: bold; padding: 10px; cursor: pointer;">
+                  Logout
+                </button>
+              </form>
             </div>
           </div>
         </div>
@@ -84,6 +91,5 @@
     </div>
     <a href="{% url 'notifications' %}" class="btn-secondary">See all</a>
   </div>
-
 </body>
 </html>

@@ -1,56 +1,48 @@
-  // Show/hide student ID field based on role selection
-  document.addEventListener('DOMContentLoaded', function() {
-    const roleSelect = document.getElementById('role');
-    const studentIdGroup = document.getElementById('student-id-group');
+document.addEventListener('DOMContentLoaded', () => {
+  // ===== Toggle Student ID Field =====
+  const roleSelect = document.getElementById('role');
+  const studentIdGroup = document.getElementById('student-id-group');
 
-    function toggleStudentId() {
-      if (roleSelect.value === 'student') {
-        studentIdGroup.style.display = 'block';
-      } else {
-        studentIdGroup.style.display = 'none';
-      }
-    }
-
+  if (roleSelect && studentIdGroup) {
+    const toggleStudentId = () => {
+      studentIdGroup.style.display = roleSelect.value === 'student' ? 'block' : 'none';
+    };
     roleSelect.addEventListener('change', toggleStudentId);
-    toggleStudentId(); // Initial check
-  });
+    toggleStudentId(); // Initial call
+  }
 
-  // Dropdown menu for account options
-  document.addEventListener("DOMContentLoaded", () => {
-  const accountBtn = document.querySelector(".account-dropdown .icon");
-  const dropdown = document.querySelector(".account-dropdown .dropdown-content");
+  // ===== Notifications & Account Dropdown =====
+  const notifBell = document.getElementById('notifBell');
+  const notifPanel = document.getElementById('notificationsPanel');
+  const accountIcon = document.getElementById('accountIcon');
+  const accountDropdown = document.getElementById('accountDropdown');
 
-  accountBtn.addEventListener("click", () => {
-    dropdown.style.display = dropdown.style.display === "block" ? "none" : "block";
-  });
-
-  // close if clicked outside
-  document.addEventListener("click", (e) => {
-    if (!e.target.closest(".account-dropdown")) {
-      dropdown.style.display = "none";
-    }
-  });
-});
-
-
-// Toggle notifications panel
-document.addEventListener("DOMContentLoaded", () => {
-  const notifBell = document.getElementById("notifBell");
-  const notifPanel = document.getElementById("notificationsPanel");
-
+  // Toggle Notifications Panel
   if (notifBell && notifPanel) {
-    notifBell.addEventListener("click", () => {
-      notifPanel.classList.toggle("active");
+    notifBell.addEventListener('click', (e) => {
+      e.stopPropagation();
+      notifPanel.classList.toggle('active');
+      if (accountDropdown) accountDropdown.style.display = 'none';
     });
   }
 
-  // Optional: close notifications if clicked outside
-  document.addEventListener("click", (e) => {
-    if (notifPanel && notifBell) {
-      if (!notifPanel.contains(e.target) && e.target !== notifBell) {
-        notifPanel.classList.remove("active");
-      }
+  // Toggle Account Dropdown
+  if (accountIcon && accountDropdown) {
+    accountIcon.addEventListener('click', (e) => {
+      e.stopPropagation();
+      accountDropdown.style.display =
+        accountDropdown.style.display === 'block' ? 'none' : 'block';
+      if (notifPanel) notifPanel.classList.remove('active');
+    });
+  }
+
+  // Close both when clicking outside
+  document.addEventListener('click', (e) => {
+    if (notifPanel && !notifPanel.contains(e.target) && e.target !== notifBell) {
+      notifPanel.classList.remove('active');
+    }
+    if (accountDropdown && !accountDropdown.contains(e.target) && e.target !== accountIcon) {
+      accountDropdown.style.display = 'none';
     }
   });
 });
-
