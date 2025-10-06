@@ -1,10 +1,25 @@
-const sidebar = document.getElementById("sidebar");
-const toggleBtn = document.getElementById("toggleBtn");
+document.addEventListener("DOMContentLoaded", () => {
+  const sidebar = document.getElementById("sidebar");
+  const toggleBtn = document.getElementById("toggleBtn");
+  const toggleIcon = toggleBtn.querySelector(".toggle-icon");
 
-toggleBtn.addEventListener("click", () => {
-  sidebar.classList.toggle("collapsed");
-  sidebar.classList.toggle("expanded");
+  // Initialize correct icon on load
+  updateIcon();
 
-  // Change arrow direction depending on state
-  toggleBtn.innerHTML = sidebar.classList.contains("collapsed") ? "&lt;" : "&gt;";
+  toggleBtn.addEventListener("click", () => {
+    sidebar.classList.toggle("collapsed");
+    sidebar.classList.toggle("expanded");
+
+    updateIcon();
+  });
+
+  function updateIcon() {
+    if (sidebar.classList.contains("collapsed")) {
+      toggleIcon.src = "/static/accounts/icons/right - arrow.png";
+      toggleIcon.alt = "Expand sidebar";
+    } else {
+      toggleIcon.src = "/static/accounts/icons/left - arrow.png";
+      toggleIcon.alt = "Collapse sidebar";
+    }
+  }
 });
