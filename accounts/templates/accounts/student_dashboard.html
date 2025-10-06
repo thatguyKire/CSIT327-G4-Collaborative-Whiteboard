@@ -1,10 +1,21 @@
 {% extends "accounts/base.html" %}
+{% load static %}
 
 {% block title %}Dashboard - COLLABoard{% endblock %}
 
 {% block content %}
-  <h1>Hello there, {{ user.username }}!</h1>
-  <p>This is your dashboard, all of your sessions will be saved and viewed here</p>
+  <section class="dashboard-wrapper">
+    <div class="dashboard-intro">
+      <h1>Hello there, {{ user.username|default:"" }}!</h1>
+      <p>This is your dashboard, all of your sessions will be saved and viewed here</p>
+    </div>
 
-  <div class="session-card">+</div>
+    <div class="sessions-row">
+      <!-- Add session card -->
+      <div class="session-card" role="button" aria-label="Add session">
+        <img src="{% static 'accounts/icons/plus.png' %}" alt="plus" class="icon-plus">
+      </div>
+
+    </div>
+  </section>
 {% endblock %}
