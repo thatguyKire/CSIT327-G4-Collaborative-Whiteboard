@@ -1,0 +1,55 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Settings - COLLABoard</title>
+    <link rel="stylesheet" href="{% static 'accounts/css/settings.css' %}">
+</head>
+<body>
+    <!-- Top Bar -->
+    <header class="topbar">
+        <div class="topbar-left">
+            <div class="logo">COLLABoard</div>
+        </div>
+
+        <div class="topbar-center">
+            <div class="search">
+                <img src="{% static 'accounts/icons/search.png' %}" class="tb-search-icon" alt="Search">
+                <input type="search" placeholder="Search">
+            </div>
+        </div>
+
+        <div class="topbar-right">
+            <img src="{% static 'accounts/icons/notification.png' %}" class="tb-icon" alt="Notifications">
+            <img src="{% static 'accounts/icons/profile.png' %}" class="tb-icon" alt="Profile">
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main">
+        <!-- ✅ Back Button -->
+        <a href="{% url 'student_dashboard' %}" class="back-button">
+            <img src="{% static 'accounts/icons/chevron-left.png' %}" alt="Back">
+            <span>Settings</span>
+        </a>
+
+        <div class="settings-options">
+            <div class="setting-item">
+                <img src="{% static 'accounts/icons/profile_mgmt.png' %}" alt="Profile">
+                <span>Profile Management</span>
+            </div>
+            <div class="setting-item">
+                <img src="{% static 'accounts/icons/privacy.png' %}" alt="Privacy">
+                <span>Privacy Settings</span>
+            </div>
+            <div class="setting-item logout">
+                <img src="{% static 'accounts/icons/logout.png' %}" alt="Logout">
+                <span>Logout</span>
+            </div>
+        </div>
+    </main>
+</body>
+</html>

@@ -1,0 +1,146 @@
+/* ---------- Reset ---------- */
+* {
+  box-sizing: border-box;
+}
+
+html, body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  font-family: "Segoe UI", Roboto, Arial, sans-serif;
+  background-color: #FFFAE7;
+}
+
+/* ---------- Topbar ---------- */
+.topbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 72px;
+  background: #2ca866;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 24px;
+  z-index: 1000;
+}
+
+.topbar-left .logo {
+  color: #fff;
+  font-weight: 700;
+  font-size: 22px;
+}
+
+.topbar-center {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+}
+
+.search {
+  width: min(700px, 70%);
+  display: flex;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.18);
+  border-radius: 40px;
+  padding: 8px 14px;
+}
+
+.search input[type="search"] {
+  flex: 1;
+  border: none;
+  background: transparent;
+  outline: none;
+  color: rgba(255, 255, 255, 0.95);
+  font-size: 16px;
+  padding-left: 8px;
+}
+
+.tb-search-icon {
+  width: 22px;
+  height: 22px;
+  opacity: 0.95;
+}
+
+.topbar-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.tb-icon {
+  width: 28px;
+  height: 28px;
+  object-fit: contain;
+}
+
+/* ---------- Main Container ---------- */
+.main {
+  margin-top: 72px;
+  padding: 60px 40px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  background-color: #FFFAE7;
+  min-height: calc(100vh - 72px);
+}
+
+/* ---------- Back Button ---------- */
+.back-button {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 600;
+  font-size: 1.3rem;
+  color: #000;
+  margin-bottom: 35px;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.back-button img {
+  width: 26px;
+  height: 26px;
+  object-fit: contain;
+}
+
+/* ---------- Settings Options ---------- */
+.settings-options {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  width: 100%;
+  max-width: 420px;
+}
+
+.setting-item {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  background-color: #ECE7C6;
+  padding: 16px 20px;
+  border-radius: 12px;
+  font-size: 1rem;
+  color: #000;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.setting-item:hover {
+  background-color: #e3dec2;
+  transform: translateY(-2px);
+}
+
+.setting-item img {
+  width: 34px;
+  height: 34px;
+  object-fit: contain;
+}
+
+/* ---------- Logout ---------- */
+.logout {
+  color: #2ca866;
+  font-weight: 600;
+}

@@ -89,7 +89,7 @@ def notifications_view(request):
     return render(request, "accounts/notifications.html")
 
 
-@login_required
+#@login_required #for debugging only
 def settings_view(request):
     return render(request, "accounts/settings.html")
 
