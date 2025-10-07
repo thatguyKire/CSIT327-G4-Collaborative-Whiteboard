@@ -1,176 +1,95 @@
-/* === HELP & SUPPORT SCREEN === */
-.layout {
+/* ==== HELP PAGE ==== */
+.help-wrapper {
   display: flex;
-  height: 100vh;
+  justify-content: center;
+  align-items: flex-start; /* keep it near the top but centered horizontally */
+  min-height: calc(100vh - 100px); /* adjust based on topbar height */
+  padding: 40px 20px;
+  box-sizing: border-box;
 }
 
-/* Sidebar */
-.sidebar {
-  width: 220px;
-  background: #ecf0f1;
-  padding: 20px;
-  display: flex;
-  flex-direction: column;
-  border-right: 3px solid #333;
-}
-
-.sidebar h3 {
-  margin-bottom: 15px;
-  font-size: 18px;
-  color: #2c3e50;
-}
-
-.sidebar a {
-  text-decoration: none;
-  color: #2c3e50;
-  padding: 10px;
-  border-radius: 6px;
-  margin-bottom: 8px;
-  border: 2px solid transparent;
-  transition: background 0.2s, transform 0.2s;
-}
-
-.sidebar a:hover {
-  background: #ffeaa7;
-  border-color: #333;
-  transform: translateX(3px);
-}
-
-/* Content + Topbar */
-.content {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  background: #fefefe;
-}
-
-.topbar {
-  background: #27ae60;
-  padding: 15px 20px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  border-bottom: 3px solid #333;
-  color: white;
-  font-weight: bold;
-}
-
-.topbar .logo {
-  font-size: 20px;
-  font-weight: bold;
-}
-
-.topbar .search-box {
-  display: flex;
-  flex: 1;
-  max-width: 400px;
-  margin: 0 20px;
-}
-
-.topbar .search-box input {
-  flex: 1;
-  padding: 8px;
-  border: none;
-  border-radius: 6px 0 0 6px;
-}
-
-.topbar .search-box button {
-  padding: 8px 12px;
-  border: none;
-  background: #2c3e50;
-  color: #fff;
-  cursor: pointer;
-  border-radius: 0 6px 6px 0;
-}
-
-/* Help Section */
 .help-section {
-  padding: 20px;
+  background: #fffdf3;
+  border-radius: 12px;
+  box-shadow: 4px 4px 0 #333;
+  border: 2px solid #333;
+  padding: 30px;
+  max-width: 900px;
+  width: 100%;
+  margin: 0 auto;
 }
 
+.help-section h1 {
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 0.3em;
+  color: #222;
+  text-shadow: 1px 1px #fff;
+}
+
+.help-section p {
+  color: #333;
+  font-size: 1rem;
+  margin-bottom: 1em;
+}
+
+/* ==== Search Box ==== */
 .help-search {
   display: flex;
-  margin: 15px 0;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+  margin: 20px auto;
   max-width: 500px;
 }
 
 .help-search input {
   flex: 1;
-  padding: 10px;
+  padding: 12px 14px;
   border: 2px solid #333;
-  border-radius: 6px 0 0 6px;
+  border-radius: 12px 0 0 12px;
   font-size: 1rem;
+  background: #fffbe6;
+  outline: none;
+  transition: 0.2s;
+}
+
+.help-search input:focus {
+  border-color: #2ca866;
+  background: #fff;
 }
 
 .help-search button {
-  padding: 10px 15px;
+  padding: 12px 20px;
+  background: #2ca866;
   border: 2px solid #333;
-  background: #27ae60;
-  color: #fff;
+  border-left: none;
+  color: white;
   font-weight: bold;
+  font-size: 1rem;
+  border-radius: 0 12px 12px 0;
   cursor: pointer;
-  border-radius: 0 6px 6px 0;
-  transition: background 0.2s;
+  box-shadow: 3px 3px 0 #333;
+  transition: background 0.2s, transform 0.2s;
 }
 
 .help-search button:hover {
-  background: #219150;
+  background: #239257;
+  transform: translate(-1px, -1px);
 }
 
+/* ==== Articles ==== */
 .articles {
-  margin-top: 20px;
-  padding: 15px;
-  background: #fff;
-  border-radius: 8px;
+  margin-top: 25px;
+  background: #fffbe6;
+  border-radius: 12px;
   border: 2px solid #333;
+  padding: 20px;
   box-shadow: 3px 3px 0 #333;
 }
 
-.topbar-icons {
-  display: flex;
-  align-items: center;
-  gap: 15px;
+.articles h3 {
+  font-size: 1.4rem;
+  margin-bottom: 10px;
+  color: #111;
 }
-
-.icon-btn {
-  background: none;
-  border: none;
-  color: white;
-  font-size: 22px;
-  cursor: pointer;
-  transition: transform 0.2s ease;
-}
-
-.icon-btn:hover {
-  transform: scale(1.2);
-}
-
-.account-menu {
-  position: relative;
-}
-
-.account-dropdown {
-  position: absolute;
-  right: 0;
-  top: 40px;
-  display: none;
-  background: #fffbe6;
-  border: 2px solid #333;
-  border-radius: 8px;
-  box-shadow: 4px 4px 0 #333;
-  min-width: 160px;
-  z-index: 1000;
-}
-
-.account-dropdown a {
-  display: block;
-  padding: 10px;
-  text-decoration: none;
-  color: #2c3e50;
-  font-weight: bold;
-}
-
-.account-dropdown a:hover {
-  background: #ffeaa7;
-}
-

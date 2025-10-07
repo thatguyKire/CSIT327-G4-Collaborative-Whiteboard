@@ -9,7 +9,6 @@ document.addEventListener("DOMContentLoaded", () => {
   toggleBtn.addEventListener("click", () => {
     sidebar.classList.toggle("collapsed");
     sidebar.classList.toggle("expanded");
-
     updateIcon();
   });
 

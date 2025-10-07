@@ -239,3 +239,19 @@ img { max-width: 100%; height: auto; display: inline-block; }
 .sidebar.collapsed .toggle-btn {
   align-self: center;
 }
+
+/* === Dashboard Greeting Style === */
+.dashboard-intro h1 {
+  font-size: 38px;
+  font-weight: 700;
+  color: #2c3e50; /* deep gray to match dropdown text */
+  font-family: "Segoe UI", Roboto, Arial, sans-serif;
+  margin-bottom: 10px;
+}
+
+.dashboard-intro p {
+  font-size: 18px;
+  color: #333;
+  opacity: 0.9;
+}
+

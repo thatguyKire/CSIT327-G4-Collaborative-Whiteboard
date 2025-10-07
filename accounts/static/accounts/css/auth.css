@@ -111,22 +111,27 @@ body {
 }
 
 .alert {
-  background: #ffeaa7;
+  padding: 10px;
   border: 2px solid #333;
   border-radius: 10px;
-  padding: 10px;
+  margin-bottom: 10px;
   font-weight: bold;
-  color: #2c3e50;
-  text-align: center;
-  box-shadow: 3px 3px 0 #333;
 }
 
 .alert.error {
-  background: #ffb6b6;
-  color: #222;
+  color: #e74c3c;
+  background: #ffeaea;
+  border-color: #e74c3c;
 }
 
 .alert.success {
-  background: #b6ffba;
-  color: #222;
+  color: #27ae60;
+  background: #e8f8f5;
+  border-color: #27ae60;
+}
+
+.error-text {
+  color: #e74c3c;
+  font-size: 0.9rem;
+  margin-top: 5px;
 }

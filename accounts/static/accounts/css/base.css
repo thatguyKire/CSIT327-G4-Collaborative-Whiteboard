@@ -1,18 +1,228 @@
-/* base.css - reset + shared tokens */
-*{box-sizing:border-box;margin:0;padding:0}
-:root{
-  --accent:#3498db;
-  --accent-dark:#2980b9;
-  --card-bg:#fff;
-  --muted:#666;
-  --surface:#f5f7fa;
-  --sketch-border: #333;
+/* === Base.css (reset + layout consistency) === */
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
 }
-body{
+
+:root {
+  --accent: #27ae60;
+  --accent-dark: #219150;
+  --card-bg: #fff;
+  --muted: #666;
+  --surface: #fffbe6;
+  --border: #333;
+}
+
+html, body {
+  height: 100%;
+  margin: 0;
+  background-color: var(--surface);
   font-family: "Segoe UI", Roboto, sans-serif;
-  background:var(--surface);
-  color:#222;
+  color: #222;
 }
-.container{max-width:1200px;margin:0 auto;padding:0 16px}
-.btn{display:inline-block;padding:10px 14px;border-radius:8px;border:none;cursor:pointer}
-.text-muted{color:var(--muted);font-size:.9rem}
+
+/* Layout fix — remove white gap */
+.layout, .main, .content {
+  min-height: 100vh;
+  background-color: var(--surface);
+}
+
+/* === Topbar === */
+.topbar {
+  background: var(--accent);
+  padding: 12px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: #fff;
+  font-weight: bold;
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+}
+
+.logo {
+  font-size: 20px;
+  font-weight: bold;
+}
+
+.search {
+  display: flex;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.25);
+  border-radius: 50px;
+  padding: 5px 10px;
+  width: 400px;
+}
+
+.search input {
+  flex: 1;
+  border: none;
+  outline: none;
+  background: transparent;
+  padding: 6px 10px;
+  color: #fff;
+  font-size: 14px;
+}
+
+.tb-search-icon {
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+}
+
+/* Topbar icons */
+.topbar-right {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.tb-icon {
+  width: 22px;
+  height: 22px;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+.tb-icon:hover {
+  transform: scale(1.2);
+}
+
+/* === Account Dropdown === */
+.account-menu {
+  position: relative;
+}
+
+.account-dropdown {
+  position: absolute;
+  top: 40px;
+  right: 0;
+  display: none;
+  background: #fffbe6;
+  border: 2px solid var(--border);
+  border-radius: 8px;
+  box-shadow: 4px 4px 0 var(--border);
+  min-width: 160px;
+  overflow: hidden;
+  z-index: 1000;
+}
+/* Make logout button match dropdown links */
+.logout-form {
+  margin: 0;
+  padding: 0;
+}
+
+.logout-form .logout-btn {
+  all: unset;
+  display: block;
+  width: 100%;
+  padding: 10px 14px;
+  font-weight: bold;
+  color: #2c3e50;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.logout-form .logout-btn:hover {
+  background: #ffeaa7;
+  color: #c0392b;
+}
+
+
+
+.dropdown-item {
+  display: block;
+  width: 100%;
+  padding: 10px 14px;
+  text-align: left;
+  text-decoration: none;
+  font-weight: bold;
+  color: #2c3e50;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.dropdown-item:hover {
+  background-color: #ffeaa7;
+}
+
+/* Logout button styling */
+.logout-btn {
+  color: #c0392b;
+}
+.logout-btn:hover {
+  background-color: #f8c7c7;
+}
+
+/* === Sidebar === */
+.sidebar {
+  width: 220px;
+  background: #253444;
+  color: white;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 20px;
+  position: fixed;
+  height: 100vh;
+}
+
+.menu {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.menu-btn {
+  color: white;
+  text-decoration: none;
+  padding: 10px;
+  border-radius: 6px;
+  border: 2px solid transparent;
+  transition: all 0.2s ease;
+}
+
+.menu-btn:hover {
+  background: #34495e;
+  border-color: #fff;
+}
+
+.sidebar-bottom {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.join-btn {
+  background: var(--accent);
+  color: #fff;
+  font-weight: bold;
+  border: 2px solid var(--border);
+  border-radius: 6px;
+  padding: 8px 12px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.join-btn:hover {
+  background: var(--accent-dark);
+}
+
+/* === Toggle Sidebar Button === */
+.toggle-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  margin-bottom: 15px;
+}
+
+.toggle-icon {
+  width: 18px;
+  height: 18px;
+}
