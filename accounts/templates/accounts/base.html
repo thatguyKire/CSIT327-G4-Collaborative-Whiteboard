@@ -1,0 +1,59 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>{% block title %}COLLABoard{% endblock %}</title>
+
+  <!-- main stylesheet -->
+  <link rel="stylesheet" href="{% static 'accounts/css/student-dashboard.css' %}">
+</head>
+<body>
+  <!-- TOPBAR (full width) -->
+  <header class="topbar">
+    <div class="topbar-left">
+      <div class="logo">COLLABoard</div>
+    </div>
+
+    <div class="topbar-center">
+      <div class="search">
+        <img src="{% static 'accounts/icons/search (1).png' %}" alt="search" class="tb-search-icon">
+        <input type="search" placeholder="Search" aria-label="Search">
+      </div>
+    </div>
+
+    <div class="topbar-right">
+      <img src="{% static 'accounts/icons/bell.png' %}" alt="notifications" class="tb-icon">
+      <img src="{% static 'accounts/icons/user (1).png' %}" alt="profile" class="tb-icon">
+    </div>
+  </header>
+
+  <!-- SIDEBAR (below topbar) -->
+  <!-- default: expanded. JS toggles between .expanded and .collapsed -->
+  <aside id="sidebar" class="sidebar expanded" aria-expanded="true">
+    <button id="toggleBtn" class="toggle-btn" aria-label="Toggle sidebar">
+      <img src="{% static 'accounts/icons/left - arrow.png' %}" alt="Collapse sidebar" class="toggle-icon">
+    </button>
+
+    <nav class="menu">
+      <button class="menu-btn">My dashboard</button>
+      <button class="menu-btn">My profile</button>
+      <button class="menu-btn">Chats</button>
+    </nav>
+
+    <div class="sidebar-bottom">
+      <button class="join-btn">Join Session!</button>
+      <img src="{% static 'accounts/icons/settings.png' %}" alt="settings" class="sidebar-settings">
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main">
+    {% block content %}{% endblock %}
+  </main>
+
+  <!-- script (placed at bottom) -->
+  <script src="{% static 'accounts/js/student-dashboard.js' %}"></script>
+</body>
+</html>

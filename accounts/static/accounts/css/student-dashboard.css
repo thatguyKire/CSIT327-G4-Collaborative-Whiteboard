@@ -1,0 +1,241 @@
+/* ---------- Reset & basics ---------- */
+* { box-sizing: border-box; }
+html,body { height:100%; margin:0; padding:0; font-family: "Segoe UI", Roboto, Arial, sans-serif; }
+
+/* Force images to obey CSS sizes globally (very important for big PNGs) */
+img { max-width: 100%; height: auto; display: inline-block; }
+
+/* ---------- Topbar (full width fixed) ---------- */
+.topbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 72px;
+  background: #2ca866; /* green */
+  display: flex;
+  align-items: center;
+  padding: 0 24px;
+  z-index: 1000;
+}
+
+.topbar-left .logo {
+  color: #fff;
+  font-weight: 700;
+  font-size: 22px;
+}
+
+.topbar-center {
+  flex: 1;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+}
+
+.search {
+  width: min(760px, 70%);
+  max-width: 760px;
+  display:flex;
+  align-items:center;
+  background: rgba(255,255,255,0.18);
+  border-radius: 40px;
+  padding: 8px 14px;
+  box-shadow: none;
+}
+
+.search input[type="search"]{
+  flex:1;
+  border:none;
+  background:transparent;
+  outline:none;
+  color: rgba(255,255,255,0.95);
+  font-size:16px;
+  padding-left:8px;
+}
+
+.tb-search-icon { width:22px; height:22px; opacity:0.95; }
+
+/* topbar right icons */
+.topbar-right { display:flex; align-items:center; gap:12px; }
+.tb-icon { width:28px; height:28px; object-fit:contain; }
+
+/* ---------- Sidebar (fixed under topbar) ---------- */
+:root {
+  --sidebar-expanded: 220px;
+  --sidebar-collapsed: 64px;
+  --topbar-height: 72px;
+}
+
+.sidebar {
+  position: fixed;
+  top: var(--topbar-height);
+  left: 0;
+  bottom: 0;
+  width: var(--sidebar-expanded);
+  background: #253444; /* dark blue/gray */
+  color: #fff;
+  display:flex;
+  flex-direction:column;
+  justify-content:space-between;
+  padding: 12px 12px;
+  transition: width 0.28s ease;
+  overflow:hidden;
+  z-index: 900;
+}
+
+/* collapsed state */
+.sidebar.collapsed { width: var(--sidebar-collapsed); }
+
+/* --- Toggle Button (handles 512px arrow icons) --- */
+.toggle-btn {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  align-self: flex-end;
+  margin: 4px 6px 10px auto;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  transition: transform 0.25s ease;
+}
+
+.toggle-icon {
+  width: 28px !important;
+  height: 28px !important;
+  max-width: 28px !important;
+  max-height: 28px !important;
+  object-fit: contain !important;
+  filter: none !important; /* stop color inversion */
+  transition: transform 0.25s ease;
+}
+
+/* When sidebar is collapsed, swap the arrow image */
+.sidebar.collapsed .toggle-icon {
+  content: url("../icons/right - arrow.png");
+}
+
+/* menu list */
+.menu { margin-top: 6px; display:flex; flex-direction:column; gap:12px; padding: 8px 4px; }
+
+.menu-btn {
+  background: rgba(255,255,255,0.08);
+  border: none;
+  color: #e6eef6;
+  padding: 10px 12px;
+  border-radius: 10px;
+  text-align:left;
+  cursor:pointer;
+  width:100%;
+}
+.menu-btn:hover { background: rgba(255,255,255,0.12); }
+
+/* bottom area */
+.sidebar-bottom { padding:12px 6px; display:flex; flex-direction:column; gap:10px; align-items: flex-start; }
+.join-btn { background:#74808a; color:white; border:none; padding:10px 18px; border-radius:12px; cursor:pointer; width:90%; }
+.sidebar-settings { width:26px; height:26px; object-fit:contain;
+  filter: none !important; /* stop color inversion */; align-self: flex-end;
+  margin-right: 6px; margin-top: 6px;}
+
+/* ---------- MAIN content area ---------- */
+/* default main margin-left = expanded sidebar */
+.main {
+  margin-top: var(--topbar-height);
+  margin-left: var(--sidebar-expanded);
+  padding: 36px;
+  min-height: calc(100vh - var(--topbar-height));
+  background: #FFFAE7; /* page background */
+  transition: margin-left 0.28s ease;
+  overflow:auto;
+}
+
+/* when sidebar collapsed, reduce margin */
+.sidebar.collapsed ~ .main { margin-left: var(--sidebar-collapsed); }
+
+/* ---------- Dashboard content blocks ---------- */
+.dashboard-wrapper { max-width:1200px; margin: 0 auto; padding-top: 8px; }
+.dashboard-intro h1 { font-size: 40px; margin: 6px 0 12px 0; color:#111; }
+.dashboard-intro p { font-size: 18px; color:#222; margin-bottom: 28px; }
+
+/* Sessions row */
+.sessions-row { display:flex; gap:28px; align-items:flex-start; }
+
+/* session card */
+.session-card {
+  width: 360px;           /* size like your reference */
+  height: 200px;
+  background: #e9e9e9;
+  border-radius: 16px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.06);
+  transition: transform .18s ease;
+}
+
+
+/* important: force icon sizes (absolute) */
+.session-card img,
+.icon-plus,
+.icon-small,
+.tb-icon,
+.toggle-icon,
+.sidebar-settings {
+  width: 56px !important;   /* for main large card icon */
+  height: 56px !important;
+  max-width: 56px !important;
+  max-height: 56px !important;
+  object-fit: contain !important;
+}
+
+/* override for smaller icons (sidebar, topbar) */
+.tb-icon, .toggle-icon, .sidebar-settings {
+  width: 22px !important;
+  height: 22px !important;
+  max-width: 22px !important;
+  max-height: 22px !important;
+}
+
+
+/* when hovered */
+.session-card:hover { transform: translateY(-6px); box-shadow: 0 10px 30px rgba(0,0,0,0.08); }
+
+/* ---------- Responsive ---------- */
+@media (max-width: 900px) {
+  :root { --sidebar-expanded: 180px; }
+  .session-card { width: 260px; height:160px; }
+  .dashboard-intro h1 { font-size: 32px; }
+}
+
+@media (max-width: 640px) {
+  .topbar-center { display:none; } /* hide big search on tiny screens */
+  .sidebar { display:none; }
+  .main { margin-left: 0; }
+  .session-card { width: 200px; height: 140px; }
+}
+
+/* Smooth sidebar transition */
+.sidebar {
+  transition: width 0.3s ease;
+  overflow: hidden;
+}
+
+.sidebar.collapsed {
+  width: 70px; /* collapsed width */
+}
+
+/* Hide all menu and join buttons when collapsed */
+.sidebar.collapsed .menu,
+.sidebar.collapsed .join-btn {
+  display: none;
+}
+
+/* Keep settings icon visible and centered */
+.sidebar.collapsed .sidebar-settings {
+  display: block;
+  margin: 0 auto 15px auto; /* center horizontally */
+}
+
+/* Optional: center toggle button when collapsed */
+.sidebar.collapsed .toggle-btn {
+  align-self: center;
+}
