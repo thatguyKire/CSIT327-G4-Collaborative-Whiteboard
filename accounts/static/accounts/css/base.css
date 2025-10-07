@@ -226,3 +226,14 @@ html, body {
   width: 18px;
   height: 18px;
 }
+
+/* === Force consistent icon sizes globally === */
+.tb-icon,
+.tb-search-icon,
+.toggle-icon {
+  width: 28px !important;
+  height: 28px !important;
+  max-width: 28px !important;
+  max-height: 28px !important;
+  object-fit: contain !important;
+}

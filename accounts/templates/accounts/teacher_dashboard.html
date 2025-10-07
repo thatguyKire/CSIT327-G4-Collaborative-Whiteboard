@@ -1,0 +1,37 @@
+{% extends "accounts/base.html" %}
+{% load static %}
+
+{% block title %}Teacher Dashboard - COLLABoard{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'accounts/css/dashboard-shared.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="main">
+  <section class="dashboard-section">
+    <h1>Welcome, {{ user.username }}</h1>
+    <p class="subtitle">Manage your classes, monitor sessions, and interact with your students.</p>
+
+    <div class="dashboard-grid">
+      <div class="card">
+        <h3>My Classes</h3>
+        <p>You have <strong>3 active</strong> classes.</p>
+        <a href="#" class="btn">View Classes</a>
+      </div>
+
+      <div class="card">
+        <h3>Active Sessions</h3>
+        <p>2 collaborative whiteboards are currently live.</p>
+        <a href="#" class="btn">Join Session</a>
+      </div>
+
+      <div class="card">
+        <h3>Student Performance</h3>
+        <p>Analyze progress and participation in real-time.</p>
+        <a href="#" class="btn">View Analytics</a>
+      </div>
+    </div>
+  </section>
+</div>
+{% endblock %}

@@ -10,6 +10,8 @@
   <!-- CSS -->
   <link rel="stylesheet" href="{% static 'accounts/css/base.css' %}">
   <link rel="stylesheet" href="{% static 'accounts/css/student-dashboard.css' %}">
+  <link rel="stylesheet" href="{% static 'accounts/css/style.css' %}">
+
 
   <!-- JS -->
   <script src="{% static 'accounts/js/main.js' %}" defer></script>
@@ -26,14 +28,14 @@
     <div class="topbar-center">
       <div class="search">
         <input type="search" placeholder="Search" />
-        <img src="{% static 'accounts/icons/search (1).png' %}" class="tb-search-icon" alt="Search" />
+        <img src="{% static 'accounts/icons/search.png' %}" class="tb-search-icon" alt="Search" />
       </div>
     </div>
 
     <div class="topbar-right">
       <img src="{% static 'accounts/icons/bell.png' %}" id="notifBell" class="tb-icon" alt="Notifications" />
       <div class="account-menu">
-        <img src="{% static 'accounts/icons/user (1).png' %}" id="accountIcon" class="tb-icon" alt="Account" />
+        <img src="{% static 'accounts/icons/usertopbar.png' %}" id="accountIcon" class="tb-icon" alt="Account" />
         <div class="account-dropdown" id="accountDropdown">
           <a href="{% url 'profile' %}" class="dropdown-item">Profile</a>
           <a href="{% url 'settings' %}" class="dropdown-item">Settings</a>

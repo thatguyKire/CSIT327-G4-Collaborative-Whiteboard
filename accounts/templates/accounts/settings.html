@@ -1,55 +1,48 @@
+{% extends "accounts/base.html" %}
 {% load static %}
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Settings - COLLABoard</title>
-    <link rel="stylesheet" href="{% static 'accounts/css/settings.css' %}">
-</head>
-<body>
-    <!-- Top Bar -->
-    <header class="topbar">
-        <div class="topbar-left">
-            <div class="logo">COLLABoard</div>
-        </div>
+{% block title %}Settings - COLLABoard{% endblock %}
 
-        <div class="topbar-center">
-            <div class="search">
-                <img src="{% static 'accounts/icons/search.png' %}" class="tb-search-icon" alt="Search">
-                <input type="search" placeholder="Search">
-            </div>
-        </div>
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'accounts/css/settings.css' %}">
+<link rel="stylesheet" href="{% static 'accounts/css/style.css' %}">
+{% endblock %}
 
-        <div class="topbar-right">
-            <img src="{% static 'accounts/icons/notification.png' %}" class="tb-icon" alt="Notifications">
-            <img src="{% static 'accounts/icons/profile.png' %}" class="tb-icon" alt="Profile">
-        </div>
-    </header>
+{% block content %}
+<main class="main">
+    <!-- ✅ Back Button -->
+    <a href="{% url 'student_dashboard' %}" class="back-button">
+        <img src="{% static 'accounts/icons/chevron-left.png' %}" alt="Back">
+        <span>Settings</span>
+    </a>
 
-    <!-- Main Content -->
-    <main class="main">
-        <!-- ✅ Back Button -->
-        <a href="{% url 'student_dashboard' %}" class="back-button">
-            <img src="{% static 'accounts/icons/chevron-left.png' %}" alt="Back">
-            <span>Settings</span>
+    <div class="settings-options">
+        <!-- Profile Management -->
+        <a href="{% url 'profile' %}" class="setting-item">
+            <img src="{% static 'accounts/icons/profile.png' %}" alt="Profile Management">
+            <span>Profile Management</span>
         </a>
 
-        <div class="settings-options">
-            <div class="setting-item">
-                <img src="{% static 'accounts/icons/profile_mgmt.png' %}" alt="Profile">
-                <span>Profile Management</span>
-            </div>
-            <div class="setting-item">
-                <img src="{% static 'accounts/icons/privacy.png' %}" alt="Privacy">
-                <span>Privacy Settings</span>
-            </div>
-            <div class="setting-item logout">
-                <img src="{% static 'accounts/icons/logout.png' %}" alt="Logout">
-                <span>Logout</span>
-            </div>
-        </div>
-    </main>
-</body>
-</html>
+        <!-- Account -->
+        <a href="{% url 'edit_profile' %}" class="setting-item">
+            <img src="{% static 'accounts/icons/account.png' %}" alt="Account">
+            <span>Account</span>
+        </a>
+
+        <!-- Help & Support -->
+        <a href="{% url 'help' %}" class="setting-item">
+            <img src="{% static 'accounts/icons/customer-support.png' %}" alt="Help & Support">
+            <span>Help & Support</span>
+        </a>
+
+        <!-- ✅ Logout Form -->
+            <form method="post" action="{% url 'logout' %}" class="setting-item logout-form">
+                {% csrf_token %}
+                <button type="submit" class="logout-btn">
+                    <img src="{% static 'accounts/icons/logout.png' %}" alt="Logout">
+                    <span>Logout</span>
+                </button>
+            </form>
+    </div>
+</main>
+{% endblock %}
