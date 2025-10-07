@@ -4,9 +4,8 @@
 <head>
   <meta charset="UTF-8">
   <title>Student Login</title>
-  
   <link rel="stylesheet" href="{% static 'accounts/css/auth.css' %}">
-  <script src="{% static 'accounts/js/main.js' %}"></script>
+  <script src="{% static 'accounts/js/main.js' %}" defer></script>
 </head>
 <body>
  <div class="page-container">
@@ -20,19 +19,47 @@
     </text>
   </svg>
 
-  <!-- Your login card -->
+  <!-- Login Card -->
   <div class="auth-card">
     <h2>Login</h2>
-    <form method="post">
+
+    <!-- ✅ Display messages (like invalid credentials) -->
+    {% if messages %}
+      <div class="alert-box">
+        {% for message in messages %}
+          <div class="alert {{ message.tags }}">{{ message }}</div>
+        {% endfor %}
+      </div>
+    {% endif %}
+
+    <!-- ✅ If form has non-field errors (like wrong password) -->
+    {% if form.non_field_errors %}
+      <div class="alert-box">
+        {% for error in form.non_field_errors %}
+          <div class="alert error">{{ error }}</div>
+        {% endfor %}
+      </div>
+    {% endif %}
+
+    <form method="post" novalidate>
       {% csrf_token %}
+
+      <!-- Username Field -->
       <div class="form-group">
-        <label for="id_username">Institutional Email / Student ID</label>
+        <label for="id_username">Username / Institutional Email</label>
         {{ form.username }}
+        {% if form.username.errors %}
+          <p class="error-text">{{ form.username.errors.0 }}</p>
+        {% endif %}
       </div>
 
+      <!-- Password Field -->
       <div class="form-group">
         <label for="id_password">Password</label>
         {{ form.password }}
+        {% if form.password.errors %}
+          <p class="error-text">{{ form.password.errors.0 }}</p>
+        {% endif %}
       </div>
 
       <button type="submit" class="btn">Login</button>
@@ -45,6 +72,4 @@
 </div>
 
 </body>
-
 </html>
-

@@ -1,95 +1,45 @@
+{% extends "accounts/base.html" %}
 {% load static %}
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>Help & Support</title>
 
-  <!-- CSS files -->
-  <link rel="stylesheet" href="{% static 'accounts/css/base.css' %}">
-  <link rel="stylesheet" href="{% static 'accounts/css/style.css' %}">
-  <link rel="stylesheet" href="{% static 'accounts/css/help.css' %}">
-  <link rel="stylesheet" href="{% static 'accounts/css/notifications.css' %}">
-  
-  <!-- JS -->
-  <script src="{% static 'accounts/js/main.js' %}" defer></script>
-</head>
-<body>
-  <div class="layout">
-    <!-- Sidebar -->
-    <aside class="sidebar">
-      <h3>Menu</h3>
-      <a href="{% url 'student_dashboard' %}">My Dashboard</a>
-      <a href="{% url 'profile' %}">My Profile</a>
-      <a href="#">Chats</a>
-      <a href="#">Join Session!</a>
-    </aside>
+{% block title %}Help & Support - COLLABoard{% endblock %}
 
-    <!-- Content -->
-    <div class="content">
-      <!-- Topbar -->
-      <div class="topbar">
-        <div class="logo">COLLABoard</div>
+{% block content %}
 
-        <!-- Search bar -->
-        <div class="search-box">
-          <input type="text" placeholder="Search">
-          <button>🔍</button>
-        </div>
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'accounts/css/help.css' %}">
+{% endblock %}
 
-        <!-- Icons -->
-        <div class="topbar-icons">
-          <!-- Notification Bell -->
-          <button class="icon-btn" id="notifBell" title="Notifications">🔔</button>
+<div class="help-wrapper">
+  <section class="help-section">
+    <h1>Help & Support</h1>
+    <p>Search for guides or contact support below.</p>
 
-          <!-- Account Menu -->
-          <div class="account-menu">
-            <button class="icon-btn" id="accountIcon" title="Account">👤</button>
-            <div class="account-dropdown" id="accountDropdown">
-              <a href="{% url 'profile' %}">Profile</a>
-              <a href="{% url 'settings' %}">Settings</a>
-              
-              <!-- ✅ POST Logout Form -->
-              <form action="{% url 'logout' %}" method="post" style="margin: 0;">
-                {% csrf_token %}
-                <button type="submit" class="btn btn-secondary" style="width: 100%; text-align: left; border: none; background: none; color: #2c3e50; font-weight: bold; padding: 10px; cursor: pointer;">
-                  Logout
-                </button>
-              </form>
-            </div>
-          </div>
-        </div>
-      </div>
+    <!-- ✅ Styled search box -->
+    <div class="help-search">
+      <input type="text" placeholder="Search help topics..." />
+      <button type="button">Search</button>
+    </div>
 
-      <!-- Help Section -->
-      <div class="help-section">
-        <h2>Get the help you need</h2>
-        <div class="help-search">
-          <input type="text" placeholder="Search help topics">
-          <button>Search</button>
-        </div>
-        <div class="articles">
-          <h3>Top Articles</h3>
-          <p>No articles yet. Content coming soon!</p>
-        </div>
-      </div>
+    <div class="articles">
+      <h3>Top Articles</h3>
+      <p>No articles yet — content coming soon!</p>
+    </div>
+  </section>
+</div>
+
+<!-- ✅ Notification panel -->
+<div class="notifications-panel" id="notificationsPanel">
+  <h3>Notifications</h3>
+  <div class="notif-list">
+    <div class="notif-item">
+      <p>Welcome to COLLABoard 🎉</p>
+      <small>Today at 12:30 PM</small>
+    </div>
+    <div class="notif-item">
+      <p>Your profile was updated</p>
+      <small>Yesterday at 3:45 PM</small>
     </div>
   </div>
-
-  <!-- Notifications Panel -->
-  <div class="notifications-panel" id="notificationsPanel">
-    <h3>Notifications</h3>
-    <div class="notif-list">
-      <div class="notif-item">
-        <p>Welcome to COLLABoard 🎉</p>
-        <small>Today at 12:30 PM</small>
-      </div>
-      <div class="notif-item">
-        <p>Your profile was updated</p>
-        <small>Yesterday at 3:45 PM</small>
-      </div>
-    </div>
-    <a href="{% url 'notifications' %}" class="btn-secondary">See all</a>
-  </div>
-</body>
-</html>
+  <a href="{% url 'notifications' %}" class="btn-secondary">See all</a>
+</div>
+{% endblock %}

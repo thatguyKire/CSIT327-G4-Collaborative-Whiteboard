@@ -79,9 +79,33 @@
   50% { transform: translateY(-6px); }
 }
 
+/* Back Arrow Button */
 .back-dashboard {
   position: absolute;
-  top: 30px;
-  left: 30px;
+  top: 25px;
+  left: 25px;
   z-index: 10;
+}
+
+.back-arrow {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: #007bff; /* bright blue */
+  border: 2px solid #004a99; /* darker blue border */
+  border-radius: 10px;
+  box-shadow: 3px 3px 0 #004a99;
+  padding: 6px;
+  transition: transform 0.2s, background 0.2s;
+}
+
+.back-arrow:hover {
+  background: #339dff; /* lighter blue on hover */
+  transform: translateX(-3px);
+}
+
+.back-icon {
+  width: 26px;
+  height: 26px;
+  filter: brightness(0) invert(1); /* makes icon white and visible on blue */
 }

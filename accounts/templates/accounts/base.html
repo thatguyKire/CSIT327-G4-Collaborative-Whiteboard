@@ -1,16 +1,23 @@
 {% load static %}
+{% block extra_css %}{% endblock %}
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta charset="UTF-8">
   <title>{% block title %}COLLABoard{% endblock %}</title>
 
-  <!-- main stylesheet -->
+  <!-- CSS -->
+  <link rel="stylesheet" href="{% static 'accounts/css/base.css' %}">
   <link rel="stylesheet" href="{% static 'accounts/css/student-dashboard.css' %}">
+
+  <!-- JS -->
+  <script src="{% static 'accounts/js/main.js' %}" defer></script>
+  <script src="{% static 'accounts/js/student-dashboard.js' %}" defer></script>
 </head>
 <body>
-  <!-- TOPBAR (full width) -->
+
+  <!-- Topbar -->
   <header class="topbar">
     <div class="topbar-left">
       <div class="logo">COLLABoard</div>
@@ -18,42 +25,50 @@
 
     <div class="topbar-center">
       <div class="search">
-        <img src="{% static 'accounts/icons/search (1).png' %}" alt="search" class="tb-search-icon">
-        <input type="search" placeholder="Search" aria-label="Search">
+        <input type="search" placeholder="Search" />
+        <img src="{% static 'accounts/icons/search (1).png' %}" class="tb-search-icon" alt="Search" />
       </div>
     </div>
 
     <div class="topbar-right">
-      <img src="{% static 'accounts/icons/bell.png' %}" alt="notifications" class="tb-icon">
-      <img src="{% static 'accounts/icons/user (1).png' %}" alt="profile" class="tb-icon">
+      <img src="{% static 'accounts/icons/bell.png' %}" id="notifBell" class="tb-icon" alt="Notifications" />
+      <div class="account-menu">
+        <img src="{% static 'accounts/icons/user (1).png' %}" id="accountIcon" class="tb-icon" alt="Account" />
+        <div class="account-dropdown" id="accountDropdown">
+          <a href="{% url 'profile' %}" class="dropdown-item">Profile</a>
+          <a href="{% url 'settings' %}" class="dropdown-item">Settings</a>
+
+          <form action="{% url 'logout' %}" method="post" class="logout-form">
+            {% csrf_token %}
+            <button type="submit" class="dropdown-item logout-btn">Logout</button>
+          </form>
+        </div>
+      </div>
     </div>
   </header>
 
-  <!-- SIDEBAR (below topbar) -->
-  <!-- default: expanded. JS toggles between .expanded and .collapsed -->
-  <aside id="sidebar" class="sidebar expanded" aria-expanded="true">
-    <button id="toggleBtn" class="toggle-btn" aria-label="Toggle sidebar">
-      <img src="{% static 'accounts/icons/left - arrow.png' %}" alt="Collapse sidebar" class="toggle-icon">
+  <!-- Sidebar -->
+  <aside class="sidebar" id="sidebar">
+    <button class="toggle-btn" id="toggleBtn">
+      <img src="{% static 'accounts/icons/left - arrow.png' %}" class="toggle-icon" alt="Toggle Sidebar" />
     </button>
 
     <nav class="menu">
-      <button class="menu-btn">My dashboard</button>
-      <button class="menu-btn">My profile</button>
-      <button class="menu-btn">Chats</button>
+      <a href="{% url 'student_dashboard' %}" class="menu-btn">My Dashboard</a>
+      <a href="{% url 'profile' %}" class="menu-btn">My Profile</a>
+      <a href="#" class="menu-btn">Chats</a>
+      <a href="{% url 'help' %}" class="menu-btn">Help</a>
     </nav>
 
     <div class="sidebar-bottom">
       <button class="join-btn">Join Session!</button>
-      <img src="{% static 'accounts/icons/settings.png' %}" alt="settings" class="sidebar-settings">
     </div>
   </aside>
 
-  <!-- MAIN -->
+  <!-- ✅ Move your content block INSIDE the body -->
   <main class="main">
     {% block content %}{% endblock %}
   </main>
 
-  <!-- script (placed at bottom) -->
-  <script src="{% static 'accounts/js/student-dashboard.js' %}"></script>
 </body>
 </html>
