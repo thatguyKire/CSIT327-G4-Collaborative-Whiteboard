@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', () => {
-  /* ===== Toggle Student ID Field ===== */
+  /* ===== Toggle Student ID Field (Sign Up Page) ===== */
   const roleSelect = document.getElementById('role');
   const studentIdGroup = document.getElementById('student-id-group');
 
@@ -46,7 +46,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  /* ===== Real-Time Clock for Notifications (optional) ===== */
+  /* ===== Optional: Real-Time Timestamps for Notifications ===== */
   const updateNotifTimes = () => {
     const timeElements = document.querySelectorAll('.notif-item small');
     const now = new Date();
@@ -68,7 +68,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   };
 
-  // Run every 30 seconds (only if there are notifications)
   if (document.querySelector('.notif-item')) {
     updateNotifTimes();
     setInterval(updateNotifTimes, 30000);
