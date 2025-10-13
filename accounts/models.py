@@ -11,7 +11,7 @@ class CustomUser(AbstractUser):
     student_id = models.CharField(max_length=50, blank=True, null=True)
 
     def save(self, *args, **kwargs):
-        # Automatically assign admin role for superusers
+        
         if self.is_superuser:
             self.role = 'admin'
         super().save(*args, **kwargs)

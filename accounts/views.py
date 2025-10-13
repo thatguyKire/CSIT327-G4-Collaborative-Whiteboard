@@ -10,7 +10,7 @@ from .models import CustomUser
 from .forms import CustomSignupForm
 
 
-# ---------- AUTH ----------
+
 def signup_view(request):
     """
     Handles new user registration with validation for duplicate emails,
@@ -45,7 +45,7 @@ def signup_view(request):
             return redirect("redirect_dashboard")
 
         else:
-            # Validation errors (password mismatch, etc.)
+            
             messages.error(request, "⚠️ Please correct the errors below.")
     else:
         form = CustomSignupForm()
@@ -65,7 +65,7 @@ class CustomLogoutView(LogoutView):
     """
     Logs out the user and redirects to login page automatically.
     """
-    next_page = "login"  # Redirect to login after logout
+    next_page = "login"  
 
 
 # ---------- REDIRECT ----------

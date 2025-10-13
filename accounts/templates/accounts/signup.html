@@ -11,7 +11,7 @@
   <div class="auth-card">
     <h2>Sign Up</h2>
 
-    <!-- ✅ Global messages -->
+    
     {% if messages %}
       <div class="alert-box">
         {% for message in messages %}
@@ -23,7 +23,7 @@
     <form method="post" novalidate>
       {% csrf_token %}
 
-      <!-- Username -->
+      
       <div class="form-group">
         <label for="id_username">Username</label>
         {{ form.username }}
@@ -32,7 +32,7 @@
         {% endif %}
       </div>
 
-      <!-- Institutional Email -->
+     
       <div class="form-group">
         <label for="id_email">Institutional Email</label>
         {{ form.email }}
@@ -41,7 +41,7 @@
         {% endif %}
       </div>
 
-      <!-- Student ID -->
+      
       <div class="form-group" id="student-id-group">
         <label for="id_student_id">Student ID Number</label>
         {{ form.student_id }}
@@ -50,7 +50,7 @@
         {% endif %}
       </div>
 
-      <!-- Role -->
+    
       <div class="form-group">
         <label for="role">Role:</label>
         <select name="role" id="role" required>
@@ -60,7 +60,7 @@
         </select>
       </div>
 
-      <!-- Password -->
+      
       <div class="form-group">
         <label for="id_password1">Password</label>
         {{ form.password1 }}
@@ -69,7 +69,7 @@
         {% endif %}
       </div>
 
-      <!-- Confirm Password -->
+      
       <div class="form-group">
         <label for="id_password2">Confirm Password</label>
         {{ form.password2 }}
@@ -78,7 +78,7 @@
         {% endif %}
       </div>
 
-      <!-- Submit Button -->
+      <
       <button type="submit" class="btn">Create Account</button>
     </form>
 

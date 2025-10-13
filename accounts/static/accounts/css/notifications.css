@@ -1,4 +1,4 @@
-/* === Notifications Panel === */
+
 .notifications-panel {
   display: none;
   position: absolute;
@@ -76,7 +76,6 @@
   background: #23915a;
 }
 
-/* === Notifications Page === */
 .notifications-page {
   padding: 40px;
   background: #fffbe6;

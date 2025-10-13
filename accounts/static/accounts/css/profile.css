@@ -1,4 +1,4 @@
-/* ========== Profile Screen Styles ========== */
+
 .profile-container {
   width: 420px;
   background: #fffbe6;
@@ -10,7 +10,7 @@
   padding-top: 90px; 
 }
 
-/* Header */
+
 .profile-header {
   text-align: center;
   margin-bottom: 20px;
@@ -22,7 +22,7 @@
   text-shadow: 2px 2px #f9d342;
 }
 
-/* Info fields */
+
 .profile-info {
   display: flex;
   flex-direction: column;
@@ -48,7 +48,6 @@
   box-sizing: border-box;
 }
 
-/* Action buttons */
 .profile-actions {
   display: flex;
   justify-content: space-between;
@@ -73,13 +72,13 @@
   transform: translateY(-2px);
 }
 
-/* Floating animation */
+
 @keyframes floaty {
   0%, 100% { transform: translateY(0); }
   50% { transform: translateY(-6px); }
 }
 
-/* Back Arrow Button */
+
 .back-dashboard {
   position: absolute;
   top: 25px;
@@ -91,8 +90,8 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: #007bff; /* bright blue */
-  border: 2px solid #004a99; /* darker blue border */
+  background: #007bff; 
+  border: 2px solid #004a99; 
   border-radius: 10px;
   box-shadow: 3px 3px 0 #004a99;
   padding: 6px;
@@ -100,12 +99,12 @@
 }
 
 .back-arrow:hover {
-  background: #339dff; /* lighter blue on hover */
+  background: #339dff; 
   transform: translateX(-3px);
 }
 
 .back-icon {
   width: 26px;
   height: 26px;
-  filter: brightness(0) invert(1); /* makes icon white and visible on blue */
+  filter: brightness(0) invert(1); 
 }

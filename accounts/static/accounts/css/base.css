@@ -1,4 +1,4 @@
-/* === Base.css (reset + layout consistency) === */
+
 
 * {
   box-sizing: border-box;
@@ -23,13 +23,13 @@ html, body {
   color: #222;
 }
 
-/* Layout fix — remove white gap */
+
 .layout, .main, .content {
   min-height: 100vh;
   background-color: var(--surface);
 }
 
-/* === Topbar === */
+
 .topbar {
   background: var(--accent);
   padding: 12px 20px;
@@ -73,7 +73,7 @@ html, body {
   cursor: pointer;
 }
 
-/* Topbar icons */
+
 .topbar-right {
   display: flex;
   align-items: center;
@@ -91,7 +91,6 @@ html, body {
   transform: scale(1.2);
 }
 
-/* === Account Dropdown === */
 .account-menu {
   position: relative;
 }
@@ -109,7 +108,7 @@ html, body {
   overflow: hidden;
   z-index: 1000;
 }
-/* Make logout button match dropdown links */
+
 .logout-form {
   margin: 0;
   padding: 0;
@@ -151,7 +150,6 @@ html, body {
   background-color: #ffeaa7;
 }
 
-/* Logout button styling */
 .logout-btn {
   color: #c0392b;
 }
@@ -159,7 +157,6 @@ html, body {
   background-color: #f8c7c7;
 }
 
-/* === Sidebar === */
 .sidebar {
   width: 220px;
   background: #253444;
@@ -214,7 +211,6 @@ html, body {
   background: var(--accent-dark);
 }
 
-/* === Toggle Sidebar Button === */
 .toggle-btn {
   background: none;
   border: none;
@@ -227,7 +223,6 @@ html, body {
   height: 18px;
 }
 
-/* === Force consistent icon sizes globally === */
 .tb-icon,
 .tb-search-icon,
 .toggle-icon {
