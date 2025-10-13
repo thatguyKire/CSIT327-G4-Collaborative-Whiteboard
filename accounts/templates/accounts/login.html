@@ -19,11 +19,11 @@
     </text>
   </svg>
 
-  <!-- Login Card -->
+ 
   <div class="auth-card">
     <h2>Login</h2>
 
-    <!-- ✅ Display messages (like invalid credentials) -->
+    
     {% if messages %}
       <div class="alert-box">
         {% for message in messages %}
@@ -32,7 +32,7 @@
       </div>
     {% endif %}
 
-    <!-- ✅ If form has non-field errors (like wrong password) -->
+    
     {% if form.non_field_errors %}
       <div class="alert-box">
         {% for error in form.non_field_errors %}
@@ -44,7 +44,7 @@
     <form method="post" novalidate>
       {% csrf_token %}
 
-      <!-- Username Field -->
+    
       <div class="form-group">
         <label for="id_username">Username / Institutional Email</label>
         {{ form.username }}
@@ -53,7 +53,7 @@
         {% endif %}
       </div>
 
-      <!-- Password Field -->
+      
       <div class="form-group">
         <label for="id_password">Password</label>
         {{ form.password }}

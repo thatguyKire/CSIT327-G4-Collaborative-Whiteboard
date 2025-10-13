@@ -7,17 +7,19 @@
   <meta charset="UTF-8">
   <title>{% block title %}COLLABoard{% endblock %}</title>
 
-  <!-- CSS -->
+ 
   <link rel="stylesheet" href="{% static 'accounts/css/base.css' %}">
   <link rel="stylesheet" href="{% static 'accounts/css/student-dashboard.css' %}">
+  <link rel="stylesheet" href="{% static 'accounts/css/style.css' %}">
+  <link rel="stylesheet" href="{% static 'accounts/css/notifications.css' %}">
 
-  <!-- JS -->
+
   <script src="{% static 'accounts/js/main.js' %}" defer></script>
   <script src="{% static 'accounts/js/student-dashboard.js' %}" defer></script>
 </head>
 <body>
 
-  <!-- Topbar -->
+  
   <header class="topbar">
     <div class="topbar-left">
       <div class="logo">COLLABoard</div>
@@ -26,14 +28,33 @@
     <div class="topbar-center">
       <div class="search">
         <input type="search" placeholder="Search" />
-        <img src="{% static 'accounts/icons/search (1).png' %}" class="tb-search-icon" alt="Search" />
+        <img src="{% static 'accounts/icons/search.png' %}" class="tb-search-icon" alt="Search" />
       </div>
     </div>
 
     <div class="topbar-right">
+     
       <img src="{% static 'accounts/icons/bell.png' %}" id="notifBell" class="tb-icon" alt="Notifications" />
+
+      
+      <div class="notifications-panel" id="notificationsPanel">
+        <h3>Notifications</h3>
+        <div class="notif-list">
+          <div class="notification-item">
+            <p>Welcome to COLLABoard 🎉</p>
+            <time>Just now</time>
+          </div>
+          <div class="notification-item">
+            <p>New feature: Whiteboard sessions now exportable as PDF!</p>
+            <time>10 mins ago</time>
+          </div>
+        </div>
+        <a href="{% url 'notifications' %}" class="btn-secondary">See all</a>
+      </div>
+
+     
       <div class="account-menu">
-        <img src="{% static 'accounts/icons/user (1).png' %}" id="accountIcon" class="tb-icon" alt="Account" />
+        <img src="{% static 'accounts/icons/usertopbar.png' %}" id="accountIcon" class="tb-icon" alt="Account" />
         <div class="account-dropdown" id="accountDropdown">
           <a href="{% url 'profile' %}" class="dropdown-item">Profile</a>
           <a href="{% url 'settings' %}" class="dropdown-item">Settings</a>
@@ -47,7 +68,7 @@
     </div>
   </header>
 
-  <!-- Sidebar -->
+ 
   <aside class="sidebar" id="sidebar">
     <button class="toggle-btn" id="toggleBtn">
       <img src="{% static 'accounts/icons/left - arrow.png' %}" class="toggle-icon" alt="Toggle Sidebar" />
@@ -65,7 +86,7 @@
     </div>
   </aside>
 
-  <!-- ✅ Move your content block INSIDE the body -->
+  
   <main class="main">
     {% block content %}{% endblock %}
   </main>

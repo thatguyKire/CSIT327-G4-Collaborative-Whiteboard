@@ -1,0 +1,37 @@
+{% extends "accounts/base.html" %}
+{% load static %}
+
+{% block title %}Admin Dashboard - COLLABoard{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'accounts/css/dashboard-shared.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="main">
+  <section class="dashboard-section">
+    <h1>Admin Dashboard</h1>
+    <p class="subtitle">Monitor system usage, manage users, and oversee all activities.</p>
+
+    <div class="dashboard-grid">
+      <div class="card">
+        <h3>Total Users</h3>
+        <p>Students: <strong>120</strong> | Teachers: <strong>15</strong></p>
+        <a href="#" class="btn">Manage Users</a>
+      </div>
+
+      <div class="card">
+        <h3>Active Sessions</h3>
+        <p>5 active whiteboards across the platform.</p>
+        <a href="#" class="btn">View Sessions</a>
+      </div>
+
+      <div class="card">
+        <h3>Reports</h3>
+        <p>Generate performance, usage, or activity logs.</p>
+        <a href="#" class="btn">Generate Reports</a>
+      </div>
+    </div>
+  </section>
+</div>
+{% endblock %}
