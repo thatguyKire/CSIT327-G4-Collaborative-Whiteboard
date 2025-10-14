@@ -1,0 +1,53 @@
+.whiteboard-wrapper {
+  padding: 40px;
+  text-align: center;
+}
+
+.session-title {
+  font-size: 1.8rem;
+  margin-bottom: 15px;
+  color: #2c3e50;
+}
+
+.whiteboard-container {
+  position: relative;
+  display: inline-block;
+  border: 3px solid #333;
+  background: #fff;
+  box-shadow: 4px 4px 0 #333;
+}
+
+canvas {
+  display: block;
+  border-radius: 10px;
+  background: #fffbe6;
+  cursor: crosshair;
+  width: 1000px;
+  height: 600px;
+}
+
+.toolbar {
+  margin-top: 10px;
+}
+
+.btn {
+  border: 2px solid #333;
+  border-radius: 8px;
+  padding: 8px 14px;
+  font-weight: 600;
+  box-shadow: 2px 2px 0 #333;
+}
+
+.btn-primary {
+  background-color: #27ae60;
+  color: white;
+}
+
+.btn-secondary {
+  background-color: #ecf0f1;
+  color: #2c3e50;
+}
+
+.btn:hover {
+  transform: translateY(-2px);
+}

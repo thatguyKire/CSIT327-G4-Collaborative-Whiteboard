@@ -1,0 +1,21 @@
+{% extends "accounts/base.html" %}
+{% load static %}
+{% block title %}Whiteboard - COLLABoard{% endblock %}
+{% block content %}
+<link rel="stylesheet" href="{% static 'session/css/whiteboard.css' %}">
+
+<div class="whiteboard-wrapper">
+  <h2 class="session-title">{{ session.name|default:"Whiteboard Session" }}</h2>
+
+  <div class="whiteboard-container">
+    <canvas id="whiteboardCanvas"></canvas>
+
+    <div class="toolbar">
+      <button id="clearBtn" class="btn btn-secondary">Clear</button>
+      <button id="exportBtn" class="btn btn-primary">Export</button>
+    </div>
+  </div>
+</div>
+
+<script src="{% static 'session/js/whiteboard.js' %}"></script>
+{% endblock %}

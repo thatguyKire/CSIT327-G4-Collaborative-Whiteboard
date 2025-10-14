@@ -1,0 +1,27 @@
+{% extends "accounts/base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="main">
+  <section class="dashboard-wrapper">
+    <h1>Manage Sessions</h1>
+    <form method="post" action="{% url 'create_session' %}">
+      {% csrf_token %}
+      <input type="text" name="title" placeholder="Session Title" required>
+      <button type="submit" class="btn">Create Session</button>
+    </form>
+
+    <h3>Your Sessions</h3>
+    <ul>
+      {% for s in sessions %}
+        <li>
+          {{ s.title }} — Code: <strong>{{ s.code }}</strong>
+          <a href="{% url 'whiteboard' s.id %}">Open</a>
+        </li>
+      {% empty %}
+        <li>No sessions yet.</li>
+      {% endfor %}
+    </ul>
+  </section>
+</div>
+{% endblock %}
