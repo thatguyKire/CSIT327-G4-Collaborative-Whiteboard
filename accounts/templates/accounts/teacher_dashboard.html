@@ -16,14 +16,52 @@
     <div class="dashboard-grid">
       <div class="card">
         <h3>My Classes</h3>
-        <p>You have <strong>3 active</strong> classes.</p>
-        <a href="#" class="btn">View Classes</a>
+        <p>
+          You have
+          <strong>
+            {{ active_classes_count }}
+            {% if active_classes_count == 1 %}active class{% else %}active classes{% endif %}
+          </strong>.
+        </p>
+        <a href="{% url 'session_list' %}" class="btn">View Classes</a>
       </div>
 
       <div class="card">
-        <h3>Active Sessions</h3>
-        <p>2 collaborative whiteboards are currently live.</p>
-        <a href="#" class="btn">Join Session</a>
+        <div class="card-header">
+          <h3 class="card-title">Active Sessions</h3>
+        </div>
+
+        {% if open_sessions %}
+          <ul class="session-list">
+            {% for session in open_sessions %}
+              <li class="session-row">
+                <div>
+                  <strong>
+                    {% if session.title %}{{ session.title }}
+                    {% elif session.name %}{{ session.name }}
+                    {% else %}Untitled Session{% endif %}
+                  </strong>
+                  <div class="session-meta">Code: {{ session.code|default:"—" }}</div>
+                </div>
+
+                <div class="session-actions">
+                  <a href="{% url 'whiteboard' session.id %}" class="btn">View</a>
+                  <a href="{% url 'session_list' %}" class="btn">Manage</a>
+                  <a href="{% url 'whiteboard' session.id %}" class="btn btn-primary">Join Whiteboard</a>
+                </div>
+              </li>
+            {% endfor %}
+          </ul>
+        {% else %}
+          <div class="empty-state">
+            <p>No active sessions right now.</p>
+          </div>
+        {% endif %}
+
+        <!-- Card-level action: consistent position with other cards -->
+        <div class="card-footer" style="margin-top:16px;">
+          <a href="{% url 'session_list' %}" class="btn">Manage Sessions</a>
+        </div>
       </div>
 
       <div class="card">

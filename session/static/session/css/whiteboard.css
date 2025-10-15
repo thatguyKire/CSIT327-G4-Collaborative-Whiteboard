@@ -1,3 +1,7 @@
+*, *::before, *::after { box-sizing: border-box; }
+html, body { height: 100%; margin: 0; font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial; }
+
+/* Wrapper */
 .whiteboard-wrapper {
   padding: 20px;
   background-color: #fffbe6;
@@ -5,6 +9,7 @@
   display: flex;
   flex-direction: column;
   align-items: center;
+  /* Keep content clipped inside the whiteboard container, but avoid hiding the page scrollbar globally */
   overflow: hidden;
 }
 
@@ -62,6 +67,12 @@ canvas#whiteboardCanvas {
   border-bottom-right-radius: 12px;
   background-color: #fff;
   cursor: crosshair;
+
+  /* Prevent browser touch gestures while drawing */
+  touch-action: none;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
 }
 
 /* Buttons */
@@ -73,6 +84,8 @@ canvas#whiteboardCanvas {
   cursor: pointer;
   box-shadow: 2px 2px 0 #333;
   transition: transform 0.1s ease, background 0.2s ease;
+  background: #fff;
+  color: #222;
 }
 
 .btn:hover {
@@ -99,18 +112,35 @@ canvas#whiteboardCanvas {
   color: #fff;
 }
 
-/* Ensure it fits even when sidebar collapses */
-body, html {
-  overflow: hidden;
-}
-
+/* Ensure main page can scroll if needed; avoid hiding global overflow */
 .main {
   height: 100vh;
   overflow: auto;
   background-color: #fffbe6;
 }
 
+/* Responsive adjustments when sidebar collapsed */
 .sidebar.collapsed + .main .whiteboard-wrapper {
   width: calc(100% - 60px);
   transition: width 0.3s ease;
 }
+
+.toolbar {
+  position: relative;
+  z-index: 3;
+  align-items: center;
+}
+
+#backBtn {
+  display: inline-flex;
+  align-items: center;
+  z-index: 4;
+  order: -1;       /* keep the back button at the far left of the toolbar */
+  margin-right: auto;
+  padding: 6px 10px;
+  min-width: 44px; /* makes it easier to see/tap */
+}
+
+/* If something else hides it, force visibility */
+#backBtn[hidden] { display: inline-flex !important; }
+#backBtn { visibility: visible !important; opacity: 1 !important; }
