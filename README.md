@@ -72,7 +72,7 @@ Start the local development server:
 bash
 Copy code
 python manage.py runserver
-
+ 
 👥 Team Members
 Name	Role	Email
 Bien, Erik Samuel Legaspi	Lead Developer	eriksamuel.bien@cit.edu
