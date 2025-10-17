@@ -1,0 +1,95 @@
+{% load static %}
+{% block extra_css %}{% endblock %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>{% block title %}COLLABoard{% endblock %}</title>
+
+ 
+  <link rel="stylesheet" href="{% static 'accounts/css/base.css' %}">
+  <link rel="stylesheet" href="{% static 'accounts/css/student-dashboard.css' %}">
+  <link rel="stylesheet" href="{% static 'accounts/css/style.css' %}">
+  <link rel="stylesheet" href="{% static 'accounts/css/notifications.css' %}">
+
+
+  <script src="{% static 'accounts/js/main.js' %}" defer></script>
+  <script src="{% static 'accounts/js/student-dashboard.js' %}" defer></script>
+</head>
+<body>
+
+  
+  <header class="topbar">
+    <div class="topbar-left">
+      <div class="logo">COLLABoard</div>
+    </div>
+
+    <div class="topbar-center">
+      <div class="search">
+        <input type="search" placeholder="Search" />
+        <img src="{% static 'accounts/icons/search.png' %}" class="tb-search-icon" alt="Search" />
+      </div>
+    </div>
+
+    <div class="topbar-right">
+     
+      <img src="{% static 'accounts/icons/bell.png' %}" id="notifBell" class="tb-icon" alt="Notifications" />
+
+      
+      <div class="notifications-panel" id="notificationsPanel">
+        <h3>Notifications</h3>
+        <div class="notif-list">
+          <div class="notification-item">
+            <p>Welcome to COLLABoard 🎉</p>
+            <time>Just now</time>
+          </div>
+          <div class="notification-item">
+            <p>New feature: Whiteboard sessions now exportable as PDF!</p>
+            <time>10 mins ago</time>
+          </div>
+        </div>
+        <a href="{% url 'notifications' %}" class="btn-secondary">See all</a>
+      </div>
+
+     
+      <div class="account-menu">
+        <img src="{% static 'accounts/icons/usertopbar.png' %}" id="accountIcon" class="tb-icon" alt="Account" />
+        <div class="account-dropdown" id="accountDropdown">
+          <a href="{% url 'profile' %}" class="dropdown-item">Profile</a>
+          <a href="{% url 'settings' %}" class="dropdown-item">Settings</a>
+
+          <form action="{% url 'logout' %}" method="post" class="logout-form">
+            {% csrf_token %}
+            <button type="submit" class="dropdown-item logout-btn">Logout</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </header>
+
+ 
+  <aside class="sidebar" id="sidebar">
+    <button class="toggle-btn" id="toggleBtn">
+      <img src="{% static 'accounts/icons/left - arrow.png' %}" class="toggle-icon" alt="Toggle Sidebar" />
+    </button>
+
+    <nav class="menu">
+      <a href="{% url 'student_dashboard' %}" class="menu-btn">My Dashboard</a>
+      <a href="{% url 'profile' %}" class="menu-btn">My Profile</a>
+      <a href="#" class="menu-btn">Chats</a>
+      <a href="{% url 'help' %}" class="menu-btn">Help</a>
+    </nav>
+
+    <div class="sidebar-bottom">
+      <button class="join-btn">Join Session!</button>
+    </div>
+  </aside>
+
+  
+  <main class="main">
+    {% block content %}{% endblock %}
+  </main>
+
+</body>
+</html>

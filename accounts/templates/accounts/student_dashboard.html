@@ -1,0 +1,38 @@
+{% extends "accounts/base.html" %}
+{% load static %}
+
+{% block title %}Student Dashboard - COLLABoard{% endblock %}
+
+{% block content %}
+<section class="dashboard-wrapper">
+  <div class="dashboard-intro">
+    <h1>Hello there, {{ user.username|default:"" }}!</h1>
+    <p>Welcome to your student dashboard. You can join a session using a code or invitation link.</p>
+  </div>
+
+  <div class="sessions-row">
+
+    <!-- ✅ Join session card -->
+    <a href="{% url 'join_session' %}" class="session-card" aria-label="Join a session">
+      <img src="{% static 'accounts/icons/plus.png' %}" alt="Join session" class="icon-plus">
+      <p class="session-label">Join Session</p>
+    </a>
+
+  </div>
+
+  <!-- Optional: list of sessions the student joined -->
+  {% if joined_sessions %}
+  <h2 style="margin-top:20px;">Your Joined Sessions</h2>
+  <ul class="session-list">
+    {% for s in joined_sessions %}
+      <li>
+        <strong>{{ s.session.title }}</strong> — Code: {{ s.session.code }}
+        <a href="{% url 'whiteboard' s.session.id %}" class="btn btn-primary">Open</a>
+      </li>
+    {% empty %}
+      <li>No active sessions yet. Join one to get started!</li>
+    {% endfor %}
+  </ul>
+  {% endif %}
+</section>
+{% endblock %}

@@ -1,0 +1,221 @@
+.main {
+  margin-left: 240px;
+  padding: 40px;
+  min-height: 100vh;
+  background: #fffbe6;
+}
+
+.dashboard-section h1 {
+  font-size: 2rem;
+  color: #253444;
+  margin-bottom: 8px;
+}
+
+.subtitle {
+  color: #555;
+  font-size: 1.1rem;
+  margin-bottom: 25px;
+}
+
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 20px;
+}
+
+.card {
+  background: #fff;
+  border: 2px solid #333;
+  border-radius: 10px;
+  box-shadow: 4px 4px 0 #333;
+  padding: 20px;
+  transition: transform 0.2s ease;
+}
+
+.card:hover {
+  transform: translateY(-5px);
+}
+
+.card h3 {
+  margin-bottom: 10px;
+  color: #2c3e50;
+}
+
+.card p {
+  margin-bottom: 15px;
+  color: #444;
+}
+
+/* Buttons: spacing and responsive stacking */
+.card .btn {
+  background: #27ae60;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 8px 12px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: background 0.2s;
+  margin-right: 10px; /* space between buttons */
+  white-space: nowrap;
+}
+
+.card .btn:last-child {
+  margin-right: 0;
+}
+
+.card .btn:hover {
+  background: #219150;
+}
+
+/* Secondary / danger variants keep spacing */
+.card .btn.btn-secondary,
+.card .btn.btn-danger,
+.card .btn.btn-primary {
+  margin-right: 10px;
+}
+
+/* If you have a container for multiple actions, prefer using a flex gap:
+   .card .actions { display:flex; gap:12px; flex-wrap:wrap; align-items:center; } */
+
+/* Small screens: stack buttons full width for easier tapping */
+@media (max-width: 600px) {
+  .card .btn {
+    display: block;
+    width: 100%;
+    margin-right: 0;
+    margin-bottom: 8px;
+    text-align: center;
+  }
+  .card .btn:last-child {
+    margin-bottom: 0;
+  }
+}
+
+/* New / override rules to space header action buttons */
+.card-header { width: 100%; }
+.card-actions {
+  display: flex;
+  gap: 12px;        /* space between buttons */
+  align-items: center;
+}
+
+/* Avoid double margins: header action buttons should not use the .card .btn right margin */
+.card .card-actions .btn {
+  margin-right: 0;
+}
+
+/* Keep general button spacing elsewhere */
+.card .btn { margin-right: 10px; }
+
+/* Responsive: if narrow, stack action buttons */
+@media (max-width: 520px) {
+  .card-actions {
+    flex-direction: column;
+    gap: 8px;
+    align-items: stretch;
+  }
+  .card-actions .btn { width: 100%; }
+}
+
+/* Add / override rules to ensure header actions don't hang off-screen or overlap sidebar */
+.card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* title left, actions on the right */
+.card-title { margin: 0; font-size: 1.15rem; }
+
+/* actions container: won't shrink and will wrap if space is tight */
+.card-actions {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  margin-left: 12px;
+  flex-shrink: 0;      /* keep buttons readable */
+  flex-wrap: wrap;     /* wrap to next line on small widths */
+  justify-content: flex-end;
+}
+
+/* ensure card buttons in header don't get the global right-margin doubled */
+.card .card-actions .btn { margin-right: 0; }
+
+/* Reduce button visual overflow (box-shadow) so they don't appear to hang */
+.card .btn {
+  box-shadow: 2px 2px 0 rgba(0,0,0,0.35);
+  white-space: nowrap;
+}
+
+/* If the sidebar reduces available width, ensure the main content accounts for it */
+@media (min-width: 980px) {
+  .main { margin-left: 240px; } /* sidebar width */
+}
+
+/* For narrower screens or when sidebar overlays, let actions wrap and stack */
+@media (max-width: 520px) {
+  .card-header { flex-direction: column; align-items: flex-start; gap: 8px; }
+  .card-actions { width: 100%; justify-content: flex-start; }
+  .card-actions .btn { width: auto; }
+}
+
+/* Optional: ensure session rows layout tolerates smaller widths */
+.session-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.session-row .session-actions { display:flex; gap:8px; flex-wrap:wrap; }
+
+/* Fix header action overflow when sidebar is expanded:
+   - allow the title to shrink (min-width:0) so actions don't escape the card
+   - keep actions wrapped and able to shrink instead of overflowing
+*/
+.card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* Title takes remaining space but can shrink */
+.card-title {
+  flex: 1 1 0;
+  min-width: 0; /* allow ellipsis / wrapping when space is tight */
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Actions stay on the right, wrap and don't force overflow */
+.card-actions {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  flex: 0 1 auto;
+  flex-wrap: wrap;
+  margin-left: 12px;
+  justify-content: flex-end;
+  box-sizing: border-box;
+}
+
+/* Ensure buttons inside actions don't overflow card */
+.card-actions .btn {
+  white-space: nowrap;
+  max-width: 100%;
+}
+
+/* If available width is very small, stack actions under title */
+@media (max-width: 720px) {
+  .card-header { flex-direction: column; align-items: flex-start; }
+  .card-actions { width: 100%; justify-content: flex-start; }
+  .card-actions .btn { width: auto; }
+}
+
+/* Keep session rows responsive */
+.session-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.session-row .session-actions { display: flex; gap: 8px; flex-wrap: wrap; }

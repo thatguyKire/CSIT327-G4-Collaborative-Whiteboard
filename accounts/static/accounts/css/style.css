@@ -1,0 +1,81 @@
+
+
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: "Comic Sans MS", "Segoe UI", Roboto, sans-serif;
+}
+
+
+body {
+  background: #fefefe url("https://www.transparenttextures.com/patterns/graphy.png");
+  color: #2c3e50;
+  min-height: 100vh;
+}
+
+
+.auth-body, .profile-body {
+  position: relative; 
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
+
+
+.card {
+  background: #fff;
+  padding: 25px;
+  border: 3px solid #333;
+  border-radius: 12px;
+  box-shadow: 4px 4px 0 #333;
+  margin-bottom: 20px;
+}
+
+
+h1, h2, h3 {
+  font-weight: bold;
+  color: #2c3e50;
+  text-align: center;
+  margin-bottom: 15px;
+  text-shadow: 1px 1px #f9d342;
+}
+
+
+.btn {
+  display: inline-block;
+  background: #27ae60;
+  color: #fff;
+  border: 2px solid #222;
+  border-radius: 8px;
+  padding: 10px 14px;
+  cursor: pointer;
+  box-shadow: 3px 3px 0 #222;
+  transition: transform 0.2s, background 0.2s;
+}
+
+.btn:hover {
+  background: #219150;
+  transform: translateY(-2px);
+}
+
+.btn-secondary {
+  background: #3498db;
+}
+
+.btn-secondary:hover {
+  background: #2980b9;
+}
+
+
+a {
+  color: #d35400;
+  font-weight: bold;
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}

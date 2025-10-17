@@ -1,0 +1,55 @@
+{% extends "accounts/base.html" %}
+{% load static %}
+
+{% block title %}Notifications - COLLABoard{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'accounts/css/notifications.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="main notifications-page">
+  <section class="notifications-container">
+    <h1 class="page-title">📢 Notifications</h1>
+    <p class="page-subtitle">All your latest alerts, updates, and announcements.</p>
+
+    <div class="notifications-list">
+      <!-- Example Notification -->
+      <div class="notif-card">
+        <div class="notif-icon">🎨</div>
+        <div class="notif-content">
+          <h3>New Whiteboard Session Created</h3>
+          <p>Your teacher started a new collaborative session. Join now to participate!</p>
+          <time datetime="2025-10-04T18:30">5 minutes ago</time>
+        </div>
+      </div>
+
+      <div class="notif-card">
+        <div class="notif-icon">🗓️</div>
+        <div class="notif-content">
+          <h3>Session Scheduled</h3>
+          <p>You have an upcoming whiteboard session tomorrow at 9:00 AM.</p>
+          <time datetime="2025-10-03T22:00">2 hours ago</time>
+        </div>
+      </div>
+
+      <div class="notif-card">
+        <div class="notif-icon">📢</div>
+        <div class="notif-content">
+          <h3>Announcement</h3>
+          <p>Don’t forget to upload your activity file before 5 PM today!</p>
+          <time datetime="2025-10-02T14:00">Yesterday</time>
+        </div>
+      </div>
+
+      <div class="notif-card">
+        <div class="notif-icon">✅</div>
+        <div class="notif-content">
+          <h3>Profile Updated</h3>
+          <p>Your account settings were successfully updated.</p>
+          <time datetime="2025-10-01T10:30">2 days ago</time>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+{% endblock %}

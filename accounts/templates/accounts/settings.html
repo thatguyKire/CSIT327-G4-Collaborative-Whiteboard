@@ -1,0 +1,46 @@
+{% extends "accounts/base.html" %}
+{% load static %}
+
+{% block title %}Settings - COLLABoard{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'accounts/css/settings.css' %}">
+<link rel="stylesheet" href="{% static 'accounts/css/style.css' %}">
+{% endblock %}
+
+{% block content %}
+<main class="main">
+   
+    <a href="{% url 'student_dashboard' %}" class="back-button">
+        <img src="{% static 'accounts/icons/chevron-left.png' %}" alt="Back">
+        <span>Settings</span>
+    </a>
+
+    <div class="settings-options">
+        
+        <a href="{% url 'profile' %}" class="setting-item">
+            <img src="{% static 'accounts/icons/profile.png' %}" alt="Profile Management">
+            <span>Profile Management</span>
+        </a>
+
+      
+        <a href="{% url 'edit_profile' %}" class="setting-item">
+            <img src="{% static 'accounts/icons/account.png' %}" alt="Account">
+            <span>Account</span>
+        </a>
+
+        
+        <a href="{% url 'help' %}" class="setting-item">
+            <img src="{% static 'accounts/icons/customer-support.png' %}" alt="Help & Support">
+            <span>Help & Support</span>
+        </a>
+            <form method="post" action="{% url 'logout' %}" class="setting-item logout-form">
+                {% csrf_token %}
+                <button type="submit" class="logout-btn">
+                    <img src="{% static 'accounts/icons/logout.png' %}" alt="Logout">
+                    <span>Logout</span>
+                </button>
+            </form>
+    </div>
+</main>
+{% endblock %}
