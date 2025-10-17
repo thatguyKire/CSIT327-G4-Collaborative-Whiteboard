@@ -29,40 +29,42 @@ The system supports **real-time synchronization**, **user role management** (tea
 #### 1️⃣ Clone the repository
 ```bash
 git clone https://github.com/yourusername/CSIT327-G4-CollaborativeWhiteboard.git
+
+
 2️⃣ Navigate to the project directory
-
+```bash
 cd CSIT327-G4-CollaborativeWhiteboard
+
+
 3️⃣ Create a virtual environment
-On macOS and Linux
-
-
-python3 -m venv env
-source env/bin/activate
 On Windows
 
-
+```bash
 python -m venv env
 .\env\Scripts\activate
 4️⃣ Install dependencies
 
+```bash
 pip install -r requirements.txt
+
 🗄️ Database Configuration (Supabase / PostgreSQL)
 1️⃣ Create a .env file in the project root directory
 2️⃣ Add your credentials inside the file
 
+```bash
 SUPABASE_URL=your_supabase_url
 SUPABASE_KEY=your_supabase_api_key
 DATABASE_URL=postgresql://[user]:[password]@[host]:[port]/[dbname]
 3️⃣ Apply database migrations
-
+```bash
 python manage.py migrate
 4️⃣ Create a Superuser/Admin
-
+```bash
 python manage.py createsuperuser
 🚀 Run the Server
 Start the local development server:
 
-
+```bash
 python manage.py runserver
  
 👥 Team Members
