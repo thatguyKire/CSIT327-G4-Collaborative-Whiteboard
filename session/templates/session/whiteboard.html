@@ -1,0 +1,49 @@
+{% extends "accounts/base.html" %}
+{% load static %}
+{% block title %}Whiteboard - COLLABoard{% endblock %}
+{% block content %}
+<link rel="stylesheet" href="{% static 'session/css/whiteboard.css' %}">
+
+<div class="whiteboard-wrapper">
+  <h2 class="session-title">{{ session_title }}</h2>
+
+  <div class="whiteboard-container">
+    <div class="toolbar" role="toolbar" aria-label="Whiteboard tools">
+      <button id="backBtn" class="btn btn-secondary" data-back-url="{{ back_url }}">← Back</button>
+
+
+      {% if can_draw %}
+        <label for="colorPicker" title="Choose color">
+          🖍️ Color:
+          <input type="color" id="colorPicker" value="#000000" />
+        </label>
+
+        <label for="sizePicker" title="Brush size">
+          ✏️ Size:
+          <input type="range" id="sizePicker" min="1" max="20" value="3" />
+        </label>
+
+        <button id="penBtn" class="btn btn-secondary active" aria-pressed="true">Pen</button>
+        <button id="eraserBtn" class="btn btn-secondary" aria-pressed="false">Eraser</button>
+        <button id="clearBtn" class="btn btn-danger">Clear</button>
+        <button id="saveBtn" class="btn btn-success" data-save-url="{% url 'save_snapshot' session.id %}">Save</button>
+        <button id="exportBtn" class="btn btn-primary">Export</button>
+      {% else %}
+        <span style="margin-left:12px; color:#555;">👀 View-only mode</span>
+      {% endif %}
+    </div>
+
+    {% if snapshot_url %}
+      <img id="snapshotImg" src="{{ snapshot_url }}" alt="snapshot" style="display:none;" />
+    {% endif %}
+
+    <canvas id="whiteboardCanvas" role="application" aria-label="Collaborative whiteboard"></canvas>
+  </div>
+</div>
+
+{% if can_draw %}
+  <script src="{% static 'session/js/whiteboard.js' %}"></script>
+{% else %}
+  <script src="{% static 'session/js/student_whiteboard.js' %}"></script>
+{% endif %}
+{% endblock %}
