@@ -65,13 +65,14 @@ def create_session(request):
 def join_session(request):
     """Join an existing session by code."""
     if request.method == "POST":
-        code = (request.POST.get("code") or "").strip()
+        code = (request.POST.get("code") or "").strip().upper()
         session = Session.objects.filter(code__iexact=code).first()
         if session:
             Participant.objects.get_or_create(user=request.user, session=session)
-            return redirect(reverse("whiteboard", kwargs={"session_id": session.id}))
+            return redirect(reverse("student_whiteboard", kwargs={"session_id": session.id}))
         return render(request, "session/join_session.html", {"error": "Invalid session code"})
     return render(request, "session/join_session.html")
+
 
 
 @login_required
@@ -79,34 +80,68 @@ def join_session(request):
 def whiteboard_view(request, session_id):
     session = get_object_or_404(Session, id=session_id)
 
-    # safe title
-    display_title = None
-    if getattr(session, "title", None):
-        display_title = session.title
-    elif getattr(session, "name", None):
-        display_title = session.name
-    else:
-        display_title = getattr(session, "code", None) or str(getattr(session, "id", session))
+    # Determine display title safely
+    display_title = (
+        getattr(session, "title", None)
+        or getattr(session, "name", None)
+        or getattr(session, "code", None)
+        or str(getattr(session, "id", session))
+    )
 
-    # determine snapshot URL if a saved snapshot exists
+    # --- Determine if user can draw ---
+    participant = session.participants.filter(user=request.user).first()
+    can_draw = participant.can_draw if participant else (session.created_by == request.user)
+
+    # --- Determine snapshot URL if it exists ---
     snapshot_url = None
-    # prefer a stored FileField on the model if present
     try:
         if hasattr(session, "snapshot") and getattr(session, "snapshot"):
             snapshot_url = session.snapshot.url
         else:
-            # fallback to storage path
             path = f"session_snapshots/{session_id}.png"
             if default_storage.exists(path):
                 snapshot_url = default_storage.url(path)
     except Exception:
         snapshot_url = None
 
+    # --- NEW: Dynamic back URL based on role ---
+    if request.user == session.created_by:
+        back_url = reverse("session_list")  # teacher side
+    else:
+        back_url = reverse("student_dashboard")  # student side
+
     return render(request, "session/whiteboard.html", {
         "session": session,
         "session_title": display_title,
         "snapshot_url": snapshot_url,
+        "can_draw": can_draw,
+        "back_url": back_url,  # pass to template
     })
+
+
+
+@login_required
+@safe_view
+def student_whiteboard_view(request, session_id):
+    """
+    Student version of the whiteboard.
+    Verifies that the user joined the session before granting access.
+    """
+    session = get_object_or_404(Session, id=session_id)
+
+    # Make sure this user has joined
+    participant = Participant.objects.filter(session=session, user=request.user).first()
+    if not participant:
+        messages.error(request, "You are not part of this session. Please join first.")
+        return redirect("join_session")
+
+    # Reuse the same template, but pass a flag
+    return render(request, "session/whiteboard.html", {
+        "session": session,
+        "session_title": f"{session.title} (Student View)",
+        "can_draw": participant.can_draw,
+    })
+
 
 
 @login_required

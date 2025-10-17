@@ -197,20 +197,31 @@
       .catch(e => { console.error("Save failed", e); alert("Save failed"); });
   }
 
-  // Back button: offer to save before leaving
-  if (backBtn) {
-    backBtn.addEventListener("click", () => {
-      if (isDirty) {
-        if (confirm("You have unsaved changes. Save now?")) {
-          if (saveBtn) { saveBtn.click(); setTimeout(() => { const backUrl = backBtn.dataset.backUrl || document.referrer || ""; if (backUrl) window.location.href = backUrl; else history.back(); }, 900); return; }
-        } else {
-          if (!confirm("Leave without saving?")) return;
-        }
+if (backBtn) {
+  backBtn.addEventListener("click", () => {
+    const backUrl = backBtn.dataset.backUrl || document.referrer || "";
+
+    if (isDirty) {
+      const saveAndExit = confirm("You have unsaved changes. Save before leaving?");
+      if (saveAndExit && saveBtn) {
+        saveBtn.click();
+        // Give time for save to complete, then go back
+        setTimeout(() => {
+          if (backUrl) window.location.href = backUrl;
+          else history.back();
+        }, 900);
+        return;
+      } else if (!saveAndExit) {
+        const leaveAnyway = confirm("Leave without saving?");
+        if (!leaveAnyway) return; // cancel navigation
       }
-      const backUrl = backBtn.dataset.backUrl || document.referrer || "";
-      if (backUrl) window.location.href = backUrl; else history.back();
-    });
-  }
+    }
+
+    // If no unsaved changes, or user chose to leave
+    if (backUrl) window.location.href = backUrl;
+    else history.back();
+  });
+}
 
   // Pointer events
   canvas.addEventListener("pointerdown", startDraw);

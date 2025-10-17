@@ -8,6 +8,7 @@ from .decorators import role_required
 
 from .models import CustomUser
 from .forms import CustomSignupForm
+from session.models import Participant
 
 logger = logging.getLogger(__name__)
 
@@ -91,9 +92,11 @@ def redirect_dashboard(request):
 
 # ---------- DASHBOARDS ----------
 @login_required
-@role_required(['student'])
 def student_dashboard(request):
-    return render(request, "accounts/student_dashboard.html")
+    joined_sessions = Participant.objects.filter(user=request.user).select_related('session')
+    return render(request, 'accounts/student_dashboard.html', {
+        'joined_sessions': joined_sessions
+    })
 
 
 @login_required

@@ -9,29 +9,30 @@
 
   <div class="whiteboard-container">
     <div class="toolbar" role="toolbar" aria-label="Whiteboard tools">
-      <button id="backBtn" class="btn btn-secondary" data-back-url="{% url 'session_list' %}">← Back</button>
+      <button id="backBtn" class="btn btn-secondary" data-back-url="{{ back_url }}">← Back</button>
 
-      <label for="colorPicker" title="Choose color">
-        🖍️ Color:
-        <input type="color" id="colorPicker" value="#000000" />
-      </label>
 
-      <label for="sizePicker" title="Brush size">
-        ✏️ Size:
-        <input type="range" id="sizePicker" min="1" max="20" value="3" />
-      </label>
+      {% if can_draw %}
+        <label for="colorPicker" title="Choose color">
+          🖍️ Color:
+          <input type="color" id="colorPicker" value="#000000" />
+        </label>
 
-      <button id="penBtn" class="btn btn-secondary active" aria-pressed="true">Pen</button>
-      <button id="eraserBtn" class="btn btn-secondary" aria-pressed="false">Eraser</button>
-      <button id="clearBtn" class="btn btn-danger">Clear</button>
+        <label for="sizePicker" title="Brush size">
+          ✏️ Size:
+          <input type="range" id="sizePicker" min="1" max="20" value="3" />
+        </label>
 
-      <!-- Save button posts PNG to server -->
-      <button id="saveBtn" class="btn btn-success" data-save-url="{% url 'save_snapshot' session.id %}">Save</button>
-
-      <button id="exportBtn" class="btn btn-primary">Export</button>
+        <button id="penBtn" class="btn btn-secondary active" aria-pressed="true">Pen</button>
+        <button id="eraserBtn" class="btn btn-secondary" aria-pressed="false">Eraser</button>
+        <button id="clearBtn" class="btn btn-danger">Clear</button>
+        <button id="saveBtn" class="btn btn-success" data-save-url="{% url 'save_snapshot' session.id %}">Save</button>
+        <button id="exportBtn" class="btn btn-primary">Export</button>
+      {% else %}
+        <span style="margin-left:12px; color:#555;">👀 View-only mode</span>
+      {% endif %}
     </div>
 
-    <!-- hidden snapshot image (if exists) - drawn onto canvas by JS on load -->
     {% if snapshot_url %}
       <img id="snapshotImg" src="{{ snapshot_url }}" alt="snapshot" style="display:none;" />
     {% endif %}
@@ -40,5 +41,9 @@
   </div>
 </div>
 
-<script src="{% static 'session/js/whiteboard.js' %}"></script>
+{% if can_draw %}
+  <script src="{% static 'session/js/whiteboard.js' %}"></script>
+{% else %}
+  <script src="{% static 'session/js/student_whiteboard.js' %}"></script>
+{% endif %}
 {% endblock %}
