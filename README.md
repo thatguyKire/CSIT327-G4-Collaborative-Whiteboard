@@ -9,7 +9,7 @@ It supports real-time synchronization, user role management (teachers as hosts a
 **Frontend:** HTML, CSS, JavaScript  
 **Backend:** Django  
 **Database:** Supabase  
-**Other Tools/Services:** GitHub, Render, Figma, Visual Studio Code  
+**Other Tools/Services:** GitHub, Visual Studio Code  
 
 ---
 
@@ -26,7 +26,7 @@ It supports real-time synchronization, user role management (teachers as hosts a
 
     i. Navigate to project root directory.  
     ```bash
-    cd CSIT327-G4-CollaborativeWhiteboard
+    cd Collaborative-Whiteboard-Backend
     ```
 
     ii. Create a virtual environment.  
