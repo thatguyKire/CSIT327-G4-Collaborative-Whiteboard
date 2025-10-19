@@ -14,22 +14,45 @@
     <div class="profile-header">
       <h2>Edit Profile</h2>
     </div>
+
+    {% if messages %}
+      <div class="alert-box">
+        {% for message in messages %}
+          <div class="alert {{ message.tags }}">{{ message }}</div>
+        {% endfor %}
+      </div>
+    {% endif %}
+
     <form method="post">
       {% csrf_token %}
+      
+      <!-- Username -->
       <div class="profile-info">
         <label for="username">Username</label>
         <input type="text" id="username" name="username" value="{{ user.username }}">
       </div>
+
+      <!-- Email -->
       <div class="profile-info">
         <label for="email">Email</label>
         <input type="email" id="email" name="email" value="{{ user.email }}">
       </div>
+
+      <!-- Student ID -->
       {% if user.role == "student" %}
-      <div class="profile-info">
-        <label for="student_id">Student ID</label>
-        <input type="text" id="student_id" name="student_id" value="{{ user.student_id }}">
-      </div>
+        <div class="profile-info">
+          <label for="student_id">Student ID</label>
+          <input type="text" id="student_id" name="student_id" value="{{ user.student_id }}" readonly style="background-color:#f3f3f3; color:#555; cursor:not-allowed;">
+          <small class="text-muted">Student ID cannot be changed once registered.</small>
+        </div>
+      {% else %}
+        <div class="profile-info">
+          <label for="student_id">Student ID</label>
+          <input type="text" id="student_id" name="student_id" value="{{ user.student_id }}">
+        </div>
       {% endif %}
+
+      <!-- Buttons -->
       <div class="profile-actions">
         <button type="submit" class="btn">Save Changes</button>
         <a href="{% url 'profile' %}" class="btn btn-secondary">Cancel</a>

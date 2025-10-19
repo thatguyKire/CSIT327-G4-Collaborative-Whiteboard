@@ -5,6 +5,7 @@ from django.contrib.auth import login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.views import LoginView, LogoutView
 from .decorators import role_required
+from django.db import IntegrityError
 
 from .models import CustomUser
 from .forms import CustomSignupForm
@@ -20,10 +21,6 @@ except Exception:
 
 
 def signup_view(request):
-    """
-    Handles new user registration with validation for duplicate emails,
-    student ID enforcement, and login after signup.
-    """
     if request.method == "POST":
         form = CustomSignupForm(request.POST)
         if form.is_valid():
@@ -31,34 +28,26 @@ def signup_view(request):
             student_id = form.cleaned_data.get("student_id")
             role = form.cleaned_data.get("role")
 
-            # Duplicate email check
-            if CustomUser.objects.filter(email=email).exists():
-                messages.error(request, "⚠️ This email is already registered.")
-                return render(request, "accounts/signup.html", {"form": form})
-
-            # Duplicate Student ID (for students)
-            if role == "student" and CustomUser.objects.filter(student_id=student_id).exists():
-                messages.error(request, "⚠️ This Student ID is already in use.")
-                return render(request, "accounts/signup.html", {"form": form})
-
-            # Missing Student ID
+            # Student must provide an ID
             if role == "student" and not student_id:
                 messages.error(request, "⚠️ Student ID is required for students.")
                 return render(request, "accounts/signup.html", {"form": form})
 
-            # Save and login the user
-            user = form.save()
-            login(request, user)
-            messages.success(request, f"✅ Welcome, {user.email}! Your account has been created successfully.")
-            return redirect("redirect_dashboard")
+            try:
+                user = form.save()
+                login(request, user)
+                messages.success(request, f"✅ Welcome, {user.email}! Your account has been created.")
+                return redirect("redirect_dashboard")
 
+            except IntegrityError:
+                messages.error(request, "⚠️ That Student ID or email is already in use.")
+                return render(request, "accounts/signup.html", {"form": form})
         else:
             messages.error(request, "⚠️ Please correct the errors below.")
     else:
         form = CustomSignupForm()
 
     return render(request, "accounts/signup.html", {"form": form})
-
 
 class CustomLoginView(LoginView):
     template_name = "accounts/login.html"
@@ -216,15 +205,20 @@ def profile_view(request):
 
 @login_required
 def edit_profile(request):
+    user = request.user
+
     if request.method == "POST":
-        user = request.user
         user.username = request.POST.get("username")
         user.email = request.POST.get("email")
-        if getattr(user, "role", None) == "student":
+
+        # Only allow editing student_id for non-students
+        if user.role != "student":
             user.student_id = request.POST.get("student_id")
+
         user.save()
-        messages.success(request, "✅ Profile updated successfully!")
+        messages.success(request, "✅ Profile updated successfully.")
         return redirect("profile")
+
     return render(request, "accounts/edit_profile.html")
 
 
