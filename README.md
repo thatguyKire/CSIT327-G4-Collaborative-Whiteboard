@@ -19,7 +19,7 @@ It supports real-time synchronization, user role management (teachers as hosts a
 
 1. **Clone the repository.**
     ```bash
-    git clone https://github.com/thatguyKire/CSIT327-G4-CollaborativeWhiteboard.git
+    git clone https://github.com/thatguyKire/CSIT327-G4-Collaborative-Whiteboard.git
     ```
 
 2. **Setup the virtual environment.**
