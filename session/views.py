@@ -10,6 +10,8 @@ from django.urls import reverse
 from django.contrib import messages
 from django.utils.text import slugify
 from .models import Session, Participant
+from time import time
+
 
 # optional libs (install qrcode and pillow)
 try:
@@ -116,6 +118,7 @@ def whiteboard_view(request, session_id):
         "snapshot_url": snapshot_url,
         "can_draw": can_draw,
         "back_url": back_url,  # pass to template
+        "timestamp": int(time()),
     })
 
 
@@ -175,44 +178,38 @@ def export_session(request, session_id):
 def save_snapshot(request, session_id):
     """
     Accepts POST with form-data 'image' (PNG blob). Saves to default_storage
-    at session_snapshots/<session_id>.png and also to Session.snapshot if the model has that FileField.
-    Returns JSON {ok: true, url: <url>}
+    at session_snapshots/<session_id>.png and overwrites old image.
+    Returns JSON {ok: true, url: <new_url>}
     """
     if request.method != "POST":
         return HttpResponseBadRequest("POST required")
 
     session = get_object_or_404(Session, id=session_id)
 
-    # permission: only owner or staff allowed
-    owner_field = getattr(session, "created_by", None) or getattr(session, "teacher", None)
-    if not (request.user == owner_field or request.user.is_staff):
+    # Only teacher/owner can save
+    if request.user != session.created_by and not request.user.is_staff:
         return JsonResponse({"ok": False, "error": "permission"}, status=403)
 
     img_file = request.FILES.get("image")
     if not img_file:
-        return JsonResponse({"ok": False, "error": "no image"}, status=400)
+        return JsonResponse({"ok": False, "error": "no_image"}, status=400)
 
     try:
         path = f"session_snapshots/{session_id}.png"
-        # overwrite existing
+
+        # Delete old file to avoid cache issues
         if default_storage.exists(path):
             default_storage.delete(path)
+
         saved_path = default_storage.save(path, ContentFile(img_file.read()))
-
-        # if model has a FileField named 'snapshot' (optional), save to it
-        try:
-            if hasattr(session, "snapshot"):
-                # reopen saved file and assign
-                with default_storage.open(saved_path, "rb") as f:
-                    session.snapshot.save(f"session_{session_id}.png", ContentFile(f.read()), save=True)
-        except Exception:
-            logger.debug("Session model has no snapshot field or failed to save there; using storage path only.")
-
         url = default_storage.url(saved_path)
-        return JsonResponse({"ok": True, "url": url})
+        url += f"?t={int(time())}"  # Add cache buster
+
+        return JsonResponse({"ok": True, "url": url})  # ✅ consistent format
     except Exception as e:
         logger.exception("Failed to save snapshot for session %s: %s", session_id, e)
-        return JsonResponse({"ok": False, "error": "save_failed"}, status=500)
+        return JsonResponse({"ok": False, "error": str(e)}, status=500)
+
 
 
 # Optional helper views (useful if you later add routes / templates)
