@@ -34,7 +34,7 @@
     </div>
 
     {% if snapshot_url %}
-      <img id="snapshotImg" src="{{ snapshot_url }}" alt="snapshot" style="display:none;" />
+      <img id="snapshotImg" src="{{ snapshot_url }}?t={{ timestamp|default:0 }}" alt="snapshot" style="display:none;" />
     {% endif %}
 
     <canvas id="whiteboardCanvas" role="application" aria-label="Collaborative whiteboard"></canvas>

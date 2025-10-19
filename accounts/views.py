@@ -211,15 +211,17 @@ def edit_profile(request):
         user.username = request.POST.get("username")
         user.email = request.POST.get("email")
 
-        # Only allow editing student_id for non-students
-        if user.role != "student":
+        # Only update student_id if role is NOT student AND field is present
+        if user.role != "student" and "student_id" in request.POST:
             user.student_id = request.POST.get("student_id")
+
 
         user.save()
         messages.success(request, "✅ Profile updated successfully.")
         return redirect("profile")
 
     return render(request, "accounts/edit_profile.html")
+
 
 
 @login_required
