@@ -10,7 +10,8 @@ from django.urls import reverse
 from django.contrib import messages
 from django.utils.text import slugify
 from .models import Session, Participant
-from time import time
+import time as systime
+
 
 
 # optional libs (install qrcode and pillow)
@@ -80,46 +81,56 @@ def join_session(request):
 @login_required
 @safe_view
 def whiteboard_view(request, session_id):
+    """Display the collaborative whiteboard for a given session."""
     session = get_object_or_404(Session, id=session_id)
 
-    # Determine display title safely
+    # --- Determine display title safely ---
     display_title = (
         getattr(session, "title", None)
         or getattr(session, "name", None)
         or getattr(session, "code", None)
-        or str(getattr(session, "id", session))
+        or str(session.id)
     )
 
     # --- Determine if user can draw ---
     participant = session.participants.filter(user=request.user).first()
     can_draw = participant.can_draw if participant else (session.created_by == request.user)
 
-    # --- Determine snapshot URL if it exists ---
+    # --- Determine snapshot URL (always fresh to avoid browser caching) ---
     snapshot_url = None
     try:
-        if hasattr(session, "snapshot") and getattr(session, "snapshot"):
+        path = f"session_snapshots/{session_id}.png"
+        if default_storage.exists(path):
+            snapshot_url = default_storage.url(path)
+        elif hasattr(session, "snapshot") and getattr(session, "snapshot"):
             snapshot_url = session.snapshot.url
-        else:
-            path = f"session_snapshots/{session_id}.png"
-            if default_storage.exists(path):
-                snapshot_url = default_storage.url(path)
-    except Exception:
+
+        # ✅ Always append a timestamp query to prevent cached blank images
+        if snapshot_url:
+            snapshot_url = f"{snapshot_url.split('?')[0]}?v={int(systime.time())}"
+
+    except Exception as e:
+        logger.warning(f"Snapshot check failed for session {session_id}: {e}")
         snapshot_url = None
 
-    # --- NEW: Dynamic back URL based on role ---
+    # --- Determine where the Back button leads based on role ---
     if request.user == session.created_by:
         back_url = reverse("session_list")  # teacher side
     else:
         back_url = reverse("student_dashboard")  # student side
 
-    return render(request, "session/whiteboard.html", {
+    # --- Render template ---
+    context = {
         "session": session,
         "session_title": display_title,
         "snapshot_url": snapshot_url,
         "can_draw": can_draw,
-        "back_url": back_url,  # pass to template
-        "timestamp": int(time()),
-    })
+        "back_url": back_url,
+    }
+
+    return render(request, "session/whiteboard.html", context)
+
+
 
 
 
@@ -202,10 +213,12 @@ def save_snapshot(request, session_id):
             default_storage.delete(path)
 
         saved_path = default_storage.save(path, ContentFile(img_file.read()))
-        url = default_storage.url(saved_path)
-        url += f"?t={int(time())}"  # Add cache buster
 
-        return JsonResponse({"ok": True, "url": url})  # ✅ consistent format
+        # ✅ use systime.time() (not time.time)
+        timestamp = int(systime.time())
+        url = f"{default_storage.url(saved_path)}?t={timestamp}"
+
+        return JsonResponse({"ok": True, "url": url})
     except Exception as e:
         logger.exception("Failed to save snapshot for session %s: %s", session_id, e)
         return JsonResponse({"ok": False, "error": str(e)}, status=500)

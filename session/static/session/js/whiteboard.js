@@ -217,20 +217,37 @@
   canvas.addEventListener("pointerup", stopDraw);
   canvas.addEventListener("pointerout", stopDraw);
 
-  // ---------- Snapshot restore ----------
-  function drawSnapshotIfPresent() {
-    if (!snapshotImg || !snapshotImg.src) return;
-    const img = new Image();
-    img.crossOrigin = "anonymous";
-    img.src = snapshotImg.src + "?t=" + Date.now(); // Cache buster
-    img.onload = () => {
-      resizeCanvas();
-      const { cssW, cssH } = getCssSize();
-      ctx.drawImage(img, 0, 0, cssW, cssH);
-      isDirty = false;
-    };
-    img.onerror = () => console.warn("Failed to load snapshot image");
-  }
+// ---------- Snapshot restore ----------
+function drawSnapshotIfPresent() {
+  if (!snapshotImg || !snapshotImg.src) return;
+
+  const img = new Image();
+  img.crossOrigin = "anonymous";
+
+  // 🧩 Add cache-buster + ensure full absolute URL reloads
+  const baseUrl = snapshotImg.src.split("?")[0]; // remove any old query params
+  img.src = `${baseUrl}?r=${Date.now()}`; // force always-fresh image load
+
+  img.onload = () => {
+    resizeCanvas();
+    const { cssW, cssH } = getCssSize();
+
+    // ✅ Fill white background to prevent transparency flicker
+    ctx.fillStyle = "#fff";
+    ctx.fillRect(0, 0, cssW, cssH);
+
+    // ✅ Draw the latest saved snapshot
+    ctx.drawImage(img, 0, 0, cssW, cssH);
+
+    isDirty = false;
+    console.log("✅ Snapshot restored successfully:", img.src);
+  };
+
+  img.onerror = (err) => {
+    console.warn("⚠️ Failed to load snapshot image", err);
+  };
+}
+
 
   // ---------- Init ----------
   resizeCanvas();
