@@ -103,4 +103,4 @@ It supports real-time synchronization, user role management (teachers as hosts a
 ## Team Members
 - Bien, Erik Samuel Legaspi | Lead Developer | eriksamuel.bien@cit.edu  
 - Beato, Angel Anel Celaya | Developer | angelanel.beato@cit.edu  
-- Bibiy, Paul Andrei Eco | Developer | paulandrie.bibit@cit.edu
+- Bibit, Paul Andrei Eco | Developer | paulandrie.bibit@cit.edu
