@@ -9,9 +9,11 @@
 body {
   background: #fefefe url("https://www.transparenttextures.com/patterns/graphy.png");
   display: flex;
-  justify-content: center;
+  flex-direction: column;
   align-items: center;
-  height: 100vh;
+  justify-content: center;
+  min-height: 100vh;
+  text-align: center;
 }
 
 /* Card container */
@@ -134,4 +136,52 @@ body {
   color: #e74c3c;
   font-size: 0.9rem;
   margin-top: 5px;
+}
+
+/* ===== Artistic Curved Title ===== */
+.title-wrapper {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  margin-bottom: 500px;
+  margin-top: 100px;    /* brings the title a bit lower */
+}
+
+
+.curved-title {
+  width: 100%;
+  max-width: 1200px;
+  height: 180px; /* reduced height */
+}
+
+.curved-title text {
+  font-size: 6rem; /* smaller but still readable */
+  font-weight: 1000;
+  fill: #2c3e50;
+  font-family: "Pacifico", "Comic Sans MS", cursive, sans-serif;
+  text-shadow: 2px 2px #ffe066, -2px -2px #ffe066;
+  letter-spacing: 2px;
+  animation: waveText 3s ease-in-out infinite;
+}
+
+
+/* Wavy text animation */
+@keyframes waveText {
+  0%   { transform: rotate(-2deg); }
+  50%  { transform: rotate(2deg); }
+  100% { transform: rotate(-2deg); }
+}
+
+.page-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;   /* Centers horizontally */
+  justify-content: flex-start;
+  min-height: 100vh;
+  width: 100%;
+}
+
+/* Optional: slightly reduce space if it feels too far apart */
+.title-wrapper {
+  margin-bottom: 60px; /* was 100px — you can adjust */
 }
