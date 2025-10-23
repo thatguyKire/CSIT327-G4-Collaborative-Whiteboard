@@ -1,0 +1,113 @@
+/* join_session.css - theme-matching join card + scroll fix */
+
+/* Base helpers */
+* { box-sizing: border-box; }
+html, body { height: 100%; margin: 0; }
+
+/* Ensure the page background uses your site surface color (same as base.html) */
+body {
+  background-color: transparent; /* keep global base.html paint; page wrapper handles beige */
+  font-family: "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+/* Container that sits inside your main content area.
+   Use min-height instead of forcing 100vh so header/topbar doesn't double-count height. */
+.join-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  /* use available height relative to viewport minus topbar */
+  min-height: calc(100vh - 80px); /* tweak 80px if your topbar height differs */
+  padding: 40px 24px;
+  /* Use the same beige surface as the rest of your site */
+  background: linear-gradient(180deg, rgba(255,251,230,1) 0%, rgba(255,251,230,1) 100%);
+}
+
+/* The card fits your project's rounded, shadowed aesthetic */
+.join-card {
+  width: 100%;
+  max-width: 520px;
+  background: #fff;               /* card white */
+  border-radius: 14px;
+  padding: 28px 28px;
+  box-shadow: 8px 8px 0 #333;    /* match other "stacked" shadows in your app */
+  border: 3px solid #333;        /* subtle strong outline like your other panels */
+  transform: translateY(0);
+  transition: transform 160ms ease;
+}
+
+/* Heading style — match your project's font/feel */
+.join-card h1 {
+  margin: 0 0 10px;
+  font-size: 1.7rem;
+  color: #2c3e50;
+  text-align: center;
+  font-weight: 700;
+}
+
+/* Small descriptive text */
+.join-card p {
+  margin: 0 0 18px;
+  text-align: center;
+  color: #555;
+  line-height: 1.4;
+}
+
+/* Input styling aligned with your site */
+.join-card form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  align-items: center;
+}
+
+.join-card input[type="text"] {
+  width: 100%;
+  max-width: 420px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  border: 2px solid #ddd;
+  outline: none;
+  font-size: 1rem;
+  background: #fff;
+  transition: border-color .12s ease, box-shadow .12s ease;
+}
+
+.join-card input[type="text"]:focus {
+  border-color: #27ae60; /* green accent */
+  box-shadow: 0 4px 18px rgba(39,174,96,0.12);
+}
+
+/* Primary action button (uses your green theme) */
+.join-card .btn {
+  padding: 10px 18px;
+  border-radius: 10px;
+  background: #27ae60;
+  color: #fff;
+  border: 2px solid #333;
+  box-shadow: 4px 4px 0 #333;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 0.08s ease, background 0.12s ease;
+}
+
+.join-card .btn:hover { transform: translateY(-2px); background:#219150; }
+
+/* Error message */
+.error-message {
+  color: #e74c3c;
+  font-weight: 600;
+  margin-top: 8px;
+  text-align: center;
+}
+
+/* Smaller screens */
+@media (max-width: 520px) {
+  .join-card { padding: 18px; border-radius: 12px; }
+  .join-card h1 { font-size: 1.4rem; }
+  .join-wrapper { padding: 24px 12px; min-height: calc(100vh - 72px); }
+}
+
+/* If there is still a small page bottom gap, hide the extra background below main (safe fallback) */
+html, body { background-attachment: fixed; }

@@ -1,79 +1,203 @@
-/* Session list / manage page styling -- makes the Back button smaller and tidies the list */
+/* ===============================
+   Manage Sessions (Teacher Side)
+   =============================== */
+
 .dashboard-wrapper {
   max-width: 980px;
   margin: 18px auto;
-  padding: 18px;
-  background: #fff;
-  border-radius: 8px;
-  box-shadow: 0 6px 18px rgba(0,0,0,0.06);
+  padding: 20px;
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
   font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
 }
 
+/* ---------- Headings ---------- */
 .dashboard-wrapper h1 {
-  margin: 0 0 12px;
-  font-size: 1.4rem;
+  margin-bottom: 16px;
+  font-size: 1.6rem;
   color: #222;
+  font-weight: 700;
 }
 
-/* Back button: smaller, left aligned, consistent with other toolbar sizes */
+/* ---------- Back Button ---------- */
 .dashboard-wrapper > a.btn.btn-secondary {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  padding: 6px 10px;
-  font-size: 0. ninerem;
+  padding: 6px 12px;
+  font-size: 0.95rem;
   border-radius: 6px;
   text-decoration: none;
-  margin-bottom: 12px;
+  background: #dfe6e9;
+  color: #2c3e50;
+  transition: all 0.2s ease;
+  margin-bottom: 14px;
 }
 
-/* Form and create button */
+.dashboard-wrapper > a.btn.btn-secondary:hover {
+  background: #b2bec3;
+  transform: translateY(-1px);
+}
+
+/* ---------- Create Session Form ---------- */
+.create-session-form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
 .create-session-form input[type="text"] {
-  padding: 8px;
-  border: 1px solid #ddd;
+  padding: 10px;
+  border: 1px solid #ccc;
   border-radius: 6px;
-  margin-right: 8px;
+  flex: 1;
   min-width: 220px;
-}
-.create-session-form .btn {
-  padding: 7px 12px;
+  font-size: 1rem;
 }
 
-/* Sessions list */
+.create-session-form .btn {
+  padding: 8px 16px;
+  background: #27ae60;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  transition: background 0.2s ease;
+}
+
+.create-session-form .btn:hover {
+  background: #219150;
+}
+
+/* ---------- Session List ---------- */
 .dashboard-wrapper ul {
   list-style: none;
   padding: 0;
-  margin: 12px 0 0;
+  margin: 0;
 }
+
 .dashboard-wrapper li {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 10px 8px;
-  border-bottom: 1px solid #f0f0f0;
   justify-content: space-between;
+  padding: 12px 10px;
+  border-bottom: 1px solid #f0f0f0;
 }
-.dashboard-wrapper li:last-child { border-bottom: none; }
 
-/* Session meta on left, actions on right */
-.session-meta { flex: 1; color: #333; font-weight: 600; }
-.session-actions { display: flex; gap: 8px; align-items: center; }
+.dashboard-wrapper li:last-child {
+  border-bottom: none;
+}
 
-/* Action buttons (smaller) */
+.session-meta {
+  flex: 1;
+  color: #2c3e50;
+  font-weight: 600;
+}
+
+.session-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
 .session-actions .btn {
   padding: 6px 10px;
-  font-size: 0. ninerem;
+  font-size: 0.95rem;
   border-radius: 6px;
 }
-.session-actions .btn-danger { padding: 6px 8px; }
 
-/* Inline delete form: keep compact */
-.inline.delete-session-form { margin: 0; display: inline-block; }
-
-/* Responsive tweaks */
-@media (max-width: 640px) {
-  .dashboard-wrapper { padding: 12px; }
-  .create-session-form input[type="text"] { min-width: 120px; }
-  .dashboard-wrapper li { flex-direction: column; align-items: flex-start; gap: 6px; }
-  .session-actions { width: 100%; justify-content: flex-start; }
+.session-actions .btn-danger {
+  background: #e74c3c;
+  color: #fff;
 }
+
+.session-actions .btn-danger:hover {
+  background: #c0392b;
+}
+
+/* ---------- Responsive ---------- */
+@media (max-width: 640px) {
+  .dashboard-wrapper {
+    padding: 12px;
+  }
+  .create-session-form {
+    flex-direction: column;
+  }
+  .dashboard-wrapper li {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+  }
+  .session-actions {
+    width: 100%;
+    justify-content: flex-start;
+  }
+}
+
+/* ---------- QR Modal ---------- */
+.qr-modal {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  z-index: 1200;
+  align-items: center;
+  justify-content: center;
+}
+
+.qr-modal[aria-hidden="false"] {
+  display: flex;
+}
+
+.qr-modal-content {
+  background: #fff;
+  border-radius: 8px;
+  padding: 18px;
+  max-width: 420px;
+  width: 92%;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.25);
+}
+
+.qr-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.qr-modal-body {
+  text-align: center;
+}
+
+.qr-image {
+  max-width: 280px;
+  width: 100%;
+  height: auto;
+  border: 1px solid #eee;
+  border-radius: 8px;
+  padding: 8px;
+  background: #fff;
+}
+
+.qr-code-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  justify-content: center;
+  margin-top: 12px;
+}
+
+.qr-code-row input {
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  width: 60%;
+}
+
+.qr-hint {
+  margin-top: 10px;
+  font-size: 0.9rem;
+  color: #666;
+}
+

@@ -14,18 +14,22 @@
     <p class="subtitle">Manage your classes, monitor sessions, and interact with your students.</p>
 
     <div class="dashboard-grid">
+
+      <!-- My Classes Card -->
       <div class="card">
         <h3>My Classes</h3>
-        <p>
-          You have
-          <strong>
-            {{ active_classes_count }}
-            {% if active_classes_count == 1 %}active class{% else %}active classes{% endif %}
-          </strong>.
+        <p class="active-class-text">
+          You currently have
+          <span class="active-class-count">{{ active_classes_count }}</span>
+          {% if active_classes_count == 1 %}
+            <span class="class-label">active class</span>
+          {% else %}
+            <span class="class-label">active classes</span>
+          {% endif %}
         </p>
-        <a href="{% url 'session_list' %}" class="btn">View Classes</a>
       </div>
 
+      <!-- Active Sessions Card -->
       <div class="card">
         <div class="card-header">
           <h3 class="card-title">Active Sessions</h3>
@@ -37,16 +41,18 @@
               <li class="session-row">
                 <div>
                   <strong>
-                    {% if session.title %}{{ session.title }}
-                    {% elif session.name %}{{ session.name }}
-                    {% else %}Untitled Session{% endif %}
+                    {% if session.title %}
+                      {{ session.title }}
+                    {% elif session.name %}
+                      {{ session.name }}
+                    {% else %}
+                      Untitled Session
+                    {% endif %}
                   </strong>
                   <div class="session-meta">Code: {{ session.code|default:"—" }}</div>
                 </div>
 
                 <div class="session-actions">
-                  <a href="{% url 'whiteboard' session.id %}" class="btn">View</a>
-                  <a href="{% url 'session_list' %}" class="btn">Manage</a>
                   <a href="{% url 'whiteboard' session.id %}" class="btn btn-primary">Join Whiteboard</a>
                 </div>
               </li>
@@ -58,17 +64,18 @@
           </div>
         {% endif %}
 
-        <!-- Card-level action: consistent position with other cards -->
         <div class="card-footer" style="margin-top:16px;">
           <a href="{% url 'session_list' %}" class="btn">Manage Sessions</a>
         </div>
       </div>
 
+      <!-- Optional extra card (future use) -->
       <div class="card">
         <h3>Student Performance</h3>
         <p>Analyze progress and participation in real-time.</p>
-        <a href="#" class="btn">View Analytics</a>
+        <a href="#" class="btn btn-secondary">Coming Soon</a>
       </div>
+
     </div>
   </section>
 </div>

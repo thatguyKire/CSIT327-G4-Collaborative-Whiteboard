@@ -21,24 +21,27 @@
     {% endif %}
 
     <!-- Back to teacher dashboard -->
-    <a href="{% url 'teacher_dashboard' %}" class="btn btn-secondary" aria-label="Back to dashboard">← Back</a>
+    <a href="{% url 'teacher_dashboard' %}" class="btn btn-secondary back-btn" aria-label="Back to dashboard">← Back</a>
 
-    <form method="post" action="{% url 'create_session' %}" class="create-session-form" style="margin:12px 0;">
+    <!-- Create session -->
+    <form method="post" action="{% url 'create_session' %}" class="create-session-form">
       {% csrf_token %}
       <input type="text" name="title" placeholder="Session Title" required>
       <button type="submit" class="btn">Create Session</button>
     </form>
 
     <h3>Your Sessions</h3>
-    <ul>
+    <ul class="session-list">
       {% for s in sessions %}
-        <li>
-          <div class="session-meta">{{ s.title|default:"Untitled Session" }} — Code: <strong>{{ s.code }}</strong></div>
+        <li class="session-item">
+          <div class="session-meta">
+            {{ s.title|default:"Untitled Session" }} — Code: <strong>{{ s.code }}</strong>
+          </div>
 
           <div class="session-actions">
             <a href="{% url 'whiteboard' s.id %}" class="btn">Open</a>
 
-            <!-- Invite / QR button: make sure URL includes session id -->
+            <!-- Invite button -->
             <button type="button"
                     class="btn btn-secondary qr-btn"
                     data-qr-url="{% url 'session_qr' s.id %}"
@@ -53,27 +56,27 @@
           </div>
         </li>
       {% empty %}
-        <li>No sessions yet.</li>
+        <li class="no-session">No sessions yet.</li>
       {% endfor %}
     </ul>
   </section>
 </div>
 
-<!-- QR modal (hidden by default) -->
-<div id="qrModal" aria-hidden="true" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.45); z-index:1200; align-items:center; justify-content:center;">
-  <div style="background:#fff; border-radius:8px; padding:18px; max-width:420px; width:92%; box-shadow:0 8px 30px rgba(0,0,0,0.25);">
-    <div style="display:flex; justify-content:space-between; align-items:center; gap:12px; margin-bottom:8px;">
-      <strong>Invite students</strong>
-      <button id="qrClose" class="btn btn-secondary" aria-label="Close QR">Close</button>
+<!-- QR Modal -->
+<div id="qrModal" class="qr-modal" aria-hidden="true">
+  <div class="qr-modal-content">
+    <div class="qr-modal-header">
+      <strong>Invite Students</strong>
+      <button id="qrClose" class="btn btn-secondary close-btn" aria-label="Close QR">Close</button>
     </div>
 
-    <div style="text-align:center;">
-      <img id="qrImage" src="" alt="QR code" style="max-width:280px; width:100%; height:auto; border:1px solid #eee; padding:8px; background:#fff;" />
-      <div style="margin-top:12px; display:flex; gap:8px; align-items:center; justify-content:center;">
-        <input id="qrCodeInput" type="text" readonly style="padding:8px; border:1px solid #ddd; border-radius:6px; width:60%;" />
+    <div class="qr-modal-body">
+      <img id="qrImage" src="" alt="QR code" class="qr-image" />
+      <div class="qr-code-row">
+        <input id="qrCodeInput" type="text" readonly>
         <button id="copyCodeBtn" class="btn">Copy</button>
       </div>
-      <div style="margin-top:10px; font-size:0.9rem; color:#666;">Students can scan the QR or use the code to join.</div>
+      <p class="qr-hint">Students can scan the QR or use the code to join.</p>
     </div>
   </div>
 </div>
