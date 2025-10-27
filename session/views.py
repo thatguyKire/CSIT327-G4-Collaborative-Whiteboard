@@ -11,6 +11,14 @@ from django.contrib import messages
 from django.utils.text import slugify
 from .models import Session, Participant
 import time as systime
+from django.conf import settings
+from supabase import create_client
+from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_POST
+import json
+
+
+supabase = create_client(settings.SUPABASE_URL, settings.SUPABASE_KEY)
 
 
 
@@ -81,10 +89,10 @@ def join_session(request):
 @login_required
 @safe_view
 def whiteboard_view(request, session_id):
-    """Display the collaborative whiteboard for a given session."""
+    """Display the collaborative whiteboard for a given session (Supabase-powered)."""
     session = get_object_or_404(Session, id=session_id)
 
-    # --- Determine display title safely ---
+    # Determine display title
     display_title = (
         getattr(session, "title", None)
         or getattr(session, "name", None)
@@ -92,43 +100,47 @@ def whiteboard_view(request, session_id):
         or str(session.id)
     )
 
-    # --- Determine if user can draw ---
+    # Determine if user can draw
     participant = session.participants.filter(user=request.user).first()
     can_draw = participant.can_draw if participant else (session.created_by == request.user)
 
-    # --- Determine snapshot URL (always fresh to avoid browser caching) ---
+    # --- Get snapshot from Supabase Storage ---
     snapshot_url = None
     try:
-        path = f"session_snapshots/{session_id}.png"
-        if default_storage.exists(path):
-            snapshot_url = default_storage.url(path)
-        elif hasattr(session, "snapshot") and getattr(session, "snapshot"):
-            snapshot_url = session.snapshot.url
+        file_path = f"{session_id}.png"
+        bucket = settings.SUPABASE_BUCKET
 
-        # ✅ Always append a timestamp query to prevent cached blank images
+        # Try fetching the file list (checks if file exists)
+        res = supabase.storage.from_(bucket).list(path="")
+        if any(obj["name"] == file_path for obj in res):
+            snapshot_url = supabase.storage.from_(bucket).get_public_url(file_path)
+
+        # Add cache-buster to prevent old cache images
         if snapshot_url:
             snapshot_url = f"{snapshot_url.split('?')[0]}?v={int(systime.time())}"
 
     except Exception as e:
-        logger.warning(f"Snapshot check failed for session {session_id}: {e}")
+        logger.warning(f"⚠️ Snapshot lookup failed for session {session_id}: {e}")
         snapshot_url = None
 
-    # --- Determine where the Back button leads based on role ---
-    if request.user == session.created_by:
-        back_url = reverse("session_list")  # teacher side
-    else:
-        back_url = reverse("student_dashboard")  # student side
+    # Determine Back URL
+    back_url = (
+        reverse("session_list")
+        if request.user == session.created_by
+        else reverse("student_dashboard")
+    )
 
-    # --- Render template ---
-    context = {
-        "session": session,
-        "session_title": display_title,
-        "snapshot_url": snapshot_url,
-        "can_draw": can_draw,
-        "back_url": back_url,
-    }
-
-    return render(request, "session/whiteboard.html", context)
+    return render(
+        request,
+        "session/whiteboard.html",
+        {
+            "session": session,
+            "session_title": display_title,
+            "snapshot_url": snapshot_url,
+            "can_draw": can_draw,
+            "back_url": back_url,
+        },
+    )
 
 
 
@@ -188,16 +200,14 @@ def export_session(request, session_id):
 @safe_view
 def save_snapshot(request, session_id):
     """
-    Accepts POST with form-data 'image' (PNG blob). Saves to default_storage
-    at session_snapshots/<session_id>.png and overwrites old image.
-    Returns JSON {ok: true, url: <new_url>}
+    Uploads a uniquely named snapshot each time (avoids duplicate errors entirely).
     """
     if request.method != "POST":
         return HttpResponseBadRequest("POST required")
 
     session = get_object_or_404(Session, id=session_id)
 
-    # Only teacher/owner can save
+    # Only teacher or staff can save
     if request.user != session.created_by and not request.user.is_staff:
         return JsonResponse({"ok": False, "error": "permission"}, status=403)
 
@@ -206,23 +216,28 @@ def save_snapshot(request, session_id):
         return JsonResponse({"ok": False, "error": "no_image"}, status=400)
 
     try:
-        path = f"session_snapshots/{session_id}.png"
+        file_bytes = img_file.read()
+        bucket = settings.SUPABASE_BUCKET
+        storage = supabase.storage.from_(bucket)
 
-        # Delete old file to avoid cache issues
-        if default_storage.exists(path):
-            default_storage.delete(path)
-
-        saved_path = default_storage.save(path, ContentFile(img_file.read()))
-
-        # ✅ use systime.time() (not time.time)
+        # ✅ Use unique filename each save
         timestamp = int(systime.time())
-        url = f"{default_storage.url(saved_path)}?t={timestamp}"
+        file_path = f"{session_id}_{timestamp}.png"
 
-        return JsonResponse({"ok": True, "url": url})
+        storage.upload(file_path, file_bytes, {"content-type": "image/png"})
+
+        public_url = storage.get_public_url(file_path)
+
+        # ✅ Update session to point to the latest snapshot
+        session.snapshot_url = public_url
+        session.save(update_fields=["snapshot_url"])
+
+        logger.info(f"✅ Snapshot saved as new version: {file_path}")
+        return JsonResponse({"ok": True, "url": public_url})
+
     except Exception as e:
-        logger.exception("Failed to save snapshot for session %s: %s", session_id, e)
+        logger.exception(f"❌ Failed to upload snapshot for session {session_id}: {e}")
         return JsonResponse({"ok": False, "error": str(e)}, status=500)
-
 
 
 # Optional helper views (useful if you later add routes / templates)
@@ -404,3 +419,30 @@ def duplicate_session(request, session_id):
 
     messages.success(request, "Session duplicated.")
     return redirect(reverse("session_list"))
+
+@login_required
+@require_POST
+@safe_view
+def toggle_draw_permission(request, user_id):
+    """Teacher toggles whether a participant can draw."""
+    try:
+        data = json.loads(request.body)
+        can_draw = data.get("can_draw", False)
+
+        participant = Participant.objects.filter(
+            user_id=user_id
+        ).select_related("session").first()
+
+        if not participant:
+            return JsonResponse({"ok": False, "error": "participant_not_found"}, status=404)
+
+        # ✅ Permission: only the session owner can change this
+        if participant.session.created_by != request.user:
+            return JsonResponse({"ok": False, "error": "unauthorized"}, status=403)
+
+        participant.can_draw = can_draw
+        participant.save(update_fields=["can_draw"])
+        return JsonResponse({"ok": True})
+    except Exception as e:
+        logger.exception("toggle_draw_permission failed: %s", e)
+        return JsonResponse({"ok": False, "error": str(e)}, status=500)

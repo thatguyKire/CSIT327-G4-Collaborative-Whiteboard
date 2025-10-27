@@ -10,6 +10,9 @@ class Session(models.Model):
     scheduled_for = models.DateTimeField(blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
+    snapshot_url = models.URLField(blank=True, null=True)
+
+
     def __str__(self):
         return self.title
 
