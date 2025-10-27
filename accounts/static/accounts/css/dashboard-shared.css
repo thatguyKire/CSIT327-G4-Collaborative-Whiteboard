@@ -1,3 +1,7 @@
+/* =====================================
+   Shared Dashboard Styles (All Roles)
+   ===================================== */
+
 .main {
   margin-left: 240px;
   padding: 40px;
@@ -46,7 +50,9 @@
   color: #444;
 }
 
-/* Buttons: spacing and responsive stacking */
+/* ----------------------------
+   Button Styles (Universal)
+   ---------------------------- */
 .card .btn {
   background: #27ae60;
   color: white;
@@ -56,8 +62,9 @@
   cursor: pointer;
   font-weight: bold;
   transition: background 0.2s;
-  margin-right: 10px; /* space between buttons */
+  margin-right: 10px;
   white-space: nowrap;
+  box-shadow: 2px 2px 0 rgba(0, 0, 0, 0.35);
 }
 
 .card .btn:last-child {
@@ -68,17 +75,22 @@
   background: #219150;
 }
 
-/* Secondary / danger variants keep spacing */
-.card .btn.btn-secondary,
-.card .btn.btn-danger,
-.card .btn.btn-primary {
-  margin-right: 10px;
+.card .btn.btn-secondary {
+  background: #bdc3c7;
+  color: #222;
 }
 
-/* If you have a container for multiple actions, prefer using a flex gap:
-   .card .actions { display:flex; gap:12px; flex-wrap:wrap; align-items:center; } */
+.card .btn.btn-danger {
+  background: #e74c3c;
+  color: white;
+}
 
-/* Small screens: stack buttons full width for easier tapping */
+.card .btn.btn-primary {
+  background: #27ae60;
+  color: white;
+}
+
+/* Responsive buttons for mobile */
 @media (max-width: 600px) {
   .card .btn {
     display: block;
@@ -92,33 +104,9 @@
   }
 }
 
-/* New / override rules to space header action buttons */
-.card-header { width: 100%; }
-.card-actions {
-  display: flex;
-  gap: 12px;        /* space between buttons */
-  align-items: center;
-}
-
-/* Avoid double margins: header action buttons should not use the .card .btn right margin */
-.card .card-actions .btn {
-  margin-right: 0;
-}
-
-/* Keep general button spacing elsewhere */
-.card .btn { margin-right: 10px; }
-
-/* Responsive: if narrow, stack action buttons */
-@media (max-width: 520px) {
-  .card-actions {
-    flex-direction: column;
-    gap: 8px;
-    align-items: stretch;
-  }
-  .card-actions .btn { width: 100%; }
-}
-
-/* Add / override rules to ensure header actions don't hang off-screen or overlap sidebar */
+/* ----------------------------
+   Card Header & Actions
+   ---------------------------- */
 .card-header {
   display: flex;
   align-items: center;
@@ -126,72 +114,19 @@
   gap: 12px;
   width: 100%;
   box-sizing: border-box;
-}
-
-/* title left, actions on the right */
-.card-title { margin: 0; font-size: 1.15rem; }
-
-/* actions container: won't shrink and will wrap if space is tight */
-.card-actions {
-  display: flex;
-  gap: 12px;
-  align-items: center;
-  margin-left: 12px;
-  flex-shrink: 0;      /* keep buttons readable */
-  flex-wrap: wrap;     /* wrap to next line on small widths */
-  justify-content: flex-end;
-}
-
-/* ensure card buttons in header don't get the global right-margin doubled */
-.card .card-actions .btn { margin-right: 0; }
-
-/* Reduce button visual overflow (box-shadow) so they don't appear to hang */
-.card .btn {
-  box-shadow: 2px 2px 0 rgba(0,0,0,0.35);
-  white-space: nowrap;
-}
-
-/* If the sidebar reduces available width, ensure the main content accounts for it */
-@media (min-width: 980px) {
-  .main { margin-left: 240px; } /* sidebar width */
-}
-
-/* For narrower screens or when sidebar overlays, let actions wrap and stack */
-@media (max-width: 520px) {
-  .card-header { flex-direction: column; align-items: flex-start; gap: 8px; }
-  .card-actions { width: 100%; justify-content: flex-start; }
-  .card-actions .btn { width: auto; }
-}
-
-/* Optional: ensure session rows layout tolerates smaller widths */
-.session-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
-.session-row .session-actions { display:flex; gap:8px; flex-wrap:wrap; }
-
-/* Fix header action overflow when sidebar is expanded:
-   - allow the title to shrink (min-width:0) so actions don't escape the card
-   - keep actions wrapped and able to shrink instead of overflowing
-*/
-.card-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
   flex-wrap: wrap;
-  width: 100%;
-  box-sizing: border-box;
 }
 
-/* Title takes remaining space but can shrink */
 .card-title {
   flex: 1 1 0;
-  min-width: 0; /* allow ellipsis / wrapping when space is tight */
+  min-width: 0;
   margin: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  font-size: 1.15rem;
 }
 
-/* Actions stay on the right, wrap and don't force overflow */
 .card-actions {
   display: flex;
   gap: 12px;
@@ -203,19 +138,121 @@
   box-sizing: border-box;
 }
 
-/* Ensure buttons inside actions don't overflow card */
+/* Ensure buttons inside header actions don’t overflow */
 .card-actions .btn {
   white-space: nowrap;
   max-width: 100%;
+  margin-right: 0;
 }
 
-/* If available width is very small, stack actions under title */
+/* Responsive header layout */
 @media (max-width: 720px) {
-  .card-header { flex-direction: column; align-items: flex-start; }
-  .card-actions { width: 100%; justify-content: flex-start; }
-  .card-actions .btn { width: auto; }
+  .card-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .card-actions {
+    width: 100%;
+    justify-content: flex-start;
+  }
+  .card-actions .btn {
+    width: auto;
+  }
 }
 
-/* Keep session rows responsive */
-.session-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
-.session-row .session-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+/* ----------------------------
+   Session List Styling
+   ---------------------------- */
+.session-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  background: #fffef5;
+  border: 2px solid #333;
+  border-radius: 10px;
+  box-shadow: 4px 4px 0 #333;
+  padding: 10px 14px;
+  margin-bottom: 10px;
+}
+
+.session-row .session-meta {
+  font-size: 0.9rem;
+  color: #666;
+}
+
+.session-row .session-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+/* ----------------------------
+   Empty State (no sessions)
+   ---------------------------- */
+.empty-state {
+  text-align: center;
+  padding: 20px;
+  color: #777;
+  font-style: italic;
+}
+
+/* ----------------------------
+   Teacher Dashboard Enhancements
+   ---------------------------- */
+
+/* My Classes card text */
+.active-class-text {
+  font-size: 1.1rem;
+  text-align: center;
+  color: #333;
+}
+
+.active-class-count {
+  display: block;
+  font-size: 2.6rem;
+  font-weight: 800;
+  color: #27ae60;
+  text-shadow: 2px 2px 0 #333;
+  margin: 6px 0 4px;
+}
+
+.class-label {
+  display: block;
+  font-size: 1rem;
+  color: #555;
+}
+
+/* Active Sessions List */
+.session-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+/* Manage Sessions button footer */
+.card-footer {
+  text-align: center;
+  margin-top: 12px;
+}
+
+.card-footer .btn {
+  background: #27ae60;
+  color: white;
+  border: 2px solid #333;
+  border-radius: 6px;
+  box-shadow: 3px 3px 0 #333;
+  transition: background 0.2s ease, transform 0.1s ease;
+}
+
+.card-footer .btn:hover {
+  background: #219150;
+  transform: translateY(-2px);
+}
+
+/* Adjust responsive layout */
+@media (min-width: 980px) {
+  .main {
+    margin-left: 240px;
+  }
+}
