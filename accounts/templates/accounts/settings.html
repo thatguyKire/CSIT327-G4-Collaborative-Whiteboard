@@ -5,42 +5,51 @@
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'accounts/css/settings.css' %}">
-<link rel="stylesheet" href="{% static 'accounts/css/style.css' %}">
 {% endblock %}
 
 {% block content %}
-<main class="main">
-   
-    <a href="{% url 'student_dashboard' %}" class="back-button">
-        <img src="{% static 'accounts/icons/chevron-left.png' %}" alt="Back">
-        <span>Settings</span>
+<main class="settings-page">
+
+  <!-- Header -->
+  <div class="settings-header">
+    <a href="{% url 'student_dashboard' %}" class="back-arrow">
+      <img src="{% static 'accounts/icons/left - arrow.png' %}" alt="Back">
+    </a>
+    <div class="settings-header-text">
+      <h1>Settings</h1>
+      <p>Manage your account, preferences, and support options</p>
+    </div>
+  </div>
+
+  <!-- Options -->
+  <div class="settings-container">
+    <a href="{% url 'profile' %}" class="setting-card">
+      <img src="{% static 'accounts/icons/profile.png' %}" alt="Profile Management">
+      <h2>Profile Management</h2>
+      <p>Update your name, email, and other details</p>
     </a>
 
-    <div class="settings-options">
-        
-        <a href="{% url 'profile' %}" class="setting-item">
-            <img src="{% static 'accounts/icons/profile.png' %}" alt="Profile Management">
-            <span>Profile Management</span>
-        </a>
+    <a href="{% url 'edit_profile' %}" class="setting-card">
+      <img src="{% static 'accounts/icons/account.png' %}" alt="Account Settings">
+      <h2>Account Settings</h2>
+      <p>Change password and security preferences</p>
+    </a>
 
-      
-        <a href="{% url 'edit_profile' %}" class="setting-item">
-            <img src="{% static 'accounts/icons/account.png' %}" alt="Account">
-            <span>Account</span>
-        </a>
+    <a href="{% url 'help' %}" class="setting-card">
+      <img src="{% static 'accounts/icons/customer-support.png' %}" alt="Help & Support">
+      <h2>Help & Support</h2>
+      <p>Get assistance or contact our support team</p>
+    </a>
 
-        
-        <a href="{% url 'help' %}" class="setting-item">
-            <img src="{% static 'accounts/icons/customer-support.png' %}" alt="Help & Support">
-            <span>Help & Support</span>
-        </a>
-            <form method="post" action="{% url 'logout' %}" class="setting-item logout-form">
-                {% csrf_token %}
-                <button type="submit" class="logout-btn">
-                    <img src="{% static 'accounts/icons/logout.png' %}" alt="Logout">
-                    <span>Logout</span>
-                </button>
-            </form>
-    </div>
+    <form method="post" action="{% url 'logout' %}" class="setting-card logout-card">
+      {% csrf_token %}
+      <button type="submit">
+        <img src="{% static 'accounts/icons/logout.png' %}" alt="Logout">
+        <h2>Logout</h2>
+        <p>Sign out from your COLLABoard account</p>
+      </button>
+    </form>
+  </div>
+
 </main>
 {% endblock %}
