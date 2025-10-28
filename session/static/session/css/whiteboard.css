@@ -1,42 +1,48 @@
+/* ---------- Base ---------- */
 *, *::before, *::after {
   box-sizing: border-box;
 }
+
 html, body {
   height: 100%;
   margin: 0;
   font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+  background-color: #fffbe6;
 }
 
+/* ---------- Wrapper ---------- */
 .whiteboard-wrapper {
-  padding: 20px;
-  background-color: #fffbe6;
-  height: calc(100vh - 80px);
   display: flex;
   flex-direction: column;
   align-items: center;
-  overflow: hidden;
+  justify-content: flex-start;
+  padding: 24px;
+  min-height: calc(100vh - 80px);
 }
 
 .session-title {
   font-size: 1.8rem;
   font-weight: bold;
   color: #2c3e50;
-  margin-bottom: 10px;
   text-align: center;
+  margin-bottom: 16px;
 }
 
-/* Layout: whiteboard + participants sidebar */
+/* ---------- Layout ---------- */
 .whiteboard-layout {
-  display: grid;
-  grid-template-columns: 1fr 260px;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
   gap: 20px;
   width: 100%;
   max-width: 1300px;
-  height: 100%;
+  height: calc(100vh - 160px);
+  margin: 0 auto;
 }
 
 /* Whiteboard container */
 .whiteboard-container {
+  flex: 1;
   display: flex;
   flex-direction: column;
   background: #fff;
@@ -44,19 +50,26 @@ html, body {
   border-radius: 12px;
   box-shadow: 6px 6px 0 #333;
   overflow: hidden;
+
+  /* NEW */
+  width: 100%;
+  height: 100%;
+  min-width: 0;     /* allow shrinking */
+  max-width: none;  /* remove artificial cap */
 }
 
-/* Toolbar */
+/* ---------- Toolbar ---------- */
 .toolbar {
   display: flex;
+  flex-wrap: wrap;
   gap: 10px;
   align-items: center;
   justify-content: flex-start;
   padding: 10px;
   background: #f5f5dc;
   border-bottom: 2px solid #333;
-  flex-wrap: wrap;
 }
+
 .toolbar label {
   font-weight: 600;
   color: #333;
@@ -65,6 +78,7 @@ html, body {
   gap: 5px;
 }
 
+/* Back button */
 #backBtn {
   display: inline-flex;
   align-items: center;
@@ -74,7 +88,7 @@ html, body {
   min-width: 44px;
 }
 
-/* Canvas */
+/* Canvas fills available space perfectly */
 #whiteboardCanvas {
   flex: 1;
   width: 100%;
@@ -83,9 +97,12 @@ html, body {
   cursor: crosshair;
   touch-action: none;
   user-select: none;
+  border-bottom-left-radius: 12px;
+  border-bottom-right-radius: 12px;
+  display: block;
 }
 
-/* Buttons */
+/* ---------- Buttons ---------- */
 .btn {
   border: 2px solid #333;
   padding: 6px 12px;
@@ -95,83 +112,102 @@ html, body {
   box-shadow: 2px 2px 0 #333;
   transition: transform 0.1s ease, background 0.2s ease;
 }
+
 .btn:hover {
   transform: translateY(-2px);
 }
+
 .btn-primary {
   background: #27ae60;
   color: white;
 }
+
 .btn-danger {
   background: #e74c3c;
   color: white;
 }
+
 .btn-secondary {
   background: #bdc3c7;
   color: #222;
 }
+
 .btn.active {
   background: #3498db;
   color: #fff;
 }
 
-/* Participants Sidebar */
+/* ---------- Participants Sidebar ---------- */
 .participants-panel {
+  width: 260px;
   background: #fffdf4;
   border: 2px solid #333;
-  border-radius: 10px;
+  border-radius: 12px;
   box-shadow: 4px 4px 0 #333;
   padding: 16px;
   overflow-y: auto;
-  max-height: 100%;
+  height: 100%;
 }
+
 .participants-panel h3 {
   text-align: center;
-  margin-bottom: 14px;
   color: #2c3e50;
-  font-size: 1.2rem;
+  font-weight: bold;
+  margin-bottom: 14px;
 }
+
 .participants-panel ul {
   list-style: none;
   padding: 0;
   margin: 0;
 }
-.participants-panel li {
+
+.participant-item {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background: #fff;
-  border: 1px solid #eee;
+  background: #ffffff;
+  border: 1px solid #ddd;
   border-radius: 8px;
-  padding: 6px 10px;
-  margin-bottom: 8px;
+  padding: 8px 10px;
+  margin-bottom: 10px;
+  transition: background 0.2s ease, transform 0.1s ease;
 }
+
+.participant-item:hover {
+  transform: translateX(2px);
+  background: #f9f9f9;
+}
+
 .participant-name {
   font-weight: 600;
   color: #333;
 }
 
-/* Toggle Switch */
+/* ---------- Switch Styling ---------- */
 .switch {
   position: relative;
   display: inline-block;
-  width: 36px;
+  width: 38px;
   height: 20px;
 }
+
 .switch input {
   display: none;
 }
+
 .slider {
   position: absolute;
   cursor: pointer;
-  background-color: #ccc;
-  border-radius: 20px;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  transition: 0.2s;
+  background-color: #ccc;
+  transition: 0.3s;
+  border-radius: 20px;
 }
+
 .slider:before {
   position: absolute;
   content: "";
@@ -180,24 +216,46 @@ html, body {
   left: 3px;
   bottom: 3px;
   background-color: white;
+  transition: 0.3s;
   border-radius: 50%;
-  transition: 0.2s;
 }
+
 input:checked + .slider {
   background-color: #27ae60;
 }
+
 input:checked + .slider:before {
-  transform: translateX(16px);
+  transform: translateX(18px);
 }
 
-/* Responsive */
-@media (max-width: 920px) {
+/* ---------- Read-only Mode Banner ---------- */
+.readonly-toolbar {
+  background: #f3f3f3;
+  border-radius: 6px;
+  padding: 6px 12px;
+  color: #777;
+  font-weight: 600;
+  text-align: center;
+  flex: 1;
+}
+
+/* ---------- Responsive ---------- */
+@media (max-width: 1024px) {
   .whiteboard-layout {
-    grid-template-columns: 1fr;
-  }
-  .participants-panel {
-    order: -1;
+    flex-direction: column;
+    align-items: center;
     height: auto;
-    max-height: none;
+  }
+
+  .participants-panel {
+    width: 100%;
+    max-width: 600px;
+    height: auto;
+  }
+
+  .whiteboard-container {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
   }
 }
