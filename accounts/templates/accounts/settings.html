@@ -12,7 +12,10 @@
 
   <!-- Header -->
   <div class="settings-header">
-    <a href="{% url 'student_dashboard' %}" class="back-arrow">
+    <a href="{% if user.role == 'teacher' %}{% url 'teacher_dashboard' %}
+         {% else %}{% url 'student_dashboard' %}
+         {% endif %}" class="back-arrow">
+
       <img src="{% static 'accounts/icons/left - arrow.png' %}" alt="Back">
     </a>
     <div class="settings-header-text">
