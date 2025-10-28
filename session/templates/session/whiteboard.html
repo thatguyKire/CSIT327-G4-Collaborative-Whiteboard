@@ -11,37 +11,52 @@
 
   <div class="whiteboard-layout">
     
-    <!-- 🎨 Whiteboard Area -->
+    <!-- 🎨 Whiteboard Canvas Area -->
     <div class="whiteboard-container">
       <div class="toolbar" role="toolbar">
+        <!-- 🔙 Back Button -->
         <button id="backBtn" class="btn btn-secondary" data-back-url="{{ back_url }}">← Back</button>
 
         {% if can_draw %}
+          <!-- Drawing Tools (Teacher + Approved Students) -->
           <label>Color: <input type="color" id="colorPicker" value="#000000"></label>
           <label>Size: <input type="range" id="sizePicker" min="1" max="20" value="3"></label>
           <button id="penBtn" class="btn btn-secondary active">Pen</button>
           <button id="eraserBtn" class="btn btn-secondary">Eraser</button>
           <button id="clearBtn" class="btn btn-danger">Clear</button>
-          <button id="saveBtn" class="btn btn-success" data-save-url="{% url 'save_snapshot' session.id %}">Save</button>
+
+          <!-- ✅ Teacher Save Option Only -->
+          {% if user == session.created_by %}
+            <button id="saveBtn" class="btn btn-success" data-save-url="{% url 'save_snapshot' session.id %}">Save</button>
+          {% endif %}
+
+          <!-- 🖼️ Everyone can export their view -->
           <button id="exportBtn" class="btn btn-primary">Export</button>
+
         {% else %}
-          <span style="margin-left:12px; color:#555;">👀 View-only mode</span>
+          <!-- 👀 View-only Mode -->
+          <div class="readonly-toolbar">
+            👀 View-only mode — waiting for teacher permission
+          </div>
         {% endif %}
       </div>
 
+      <!-- 🔄 Previous Snapshot (if exists) -->
       {% if snapshot_url %}
         <img id="snapshotImg" src="{{ snapshot_url }}" hidden>
       {% endif %}
+
+      <!-- ✏️ Drawing Canvas -->
       <canvas id="whiteboardCanvas"></canvas>
     </div>
 
-    <!-- 👥 Participants Sidebar (teacher only) -->
+    <!-- 👥 Participants Sidebar (Teacher Only) -->
     {% if user == session.created_by %}
     <aside class="participants-panel">
       <h3>👥 Participants</h3>
       <ul id="participantsList">
         {% for p in session.participants.all %}
-        <li>
+        <li class="participant-item">
           <span class="participant-name">{{ p.user.username }}</span>
           <form method="post" class="toggle-draw-form" data-user-id="{{ p.user.id }}">
             {% csrf_token %}
@@ -60,6 +75,13 @@
   </div>
 </div>
 
+<!-- 🔐 Safe boolean export for JS (no HTML injection risk) -->
+{{ can_draw|json_script:"can_draw_data" }}
+<script>
+  window.CAN_DRAW = JSON.parse(document.getElementById("can_draw_data").textContent);
+</script>
+
+<!-- 🧠 Scripts -->
 <script src="{% static 'session/js/whiteboard.js' %}"></script>
 {% if user == session.created_by %}
 <script src="{% static 'session/js/participants.js' %}"></script>
