@@ -19,4 +19,7 @@ urlpatterns = [
     path('upload/<uuid:session_id>/', views.upload_attachment, name='upload_attachment'),
     path('export_pdf/<uuid:session_id>/', views.export_session_pdf, name='export_session_pdf'),
     path('duplicate/<uuid:session_id>/', views.duplicate_session, name='duplicate_session'),
+
+    path('<int:user_id>/toggle_draw/', views.toggle_draw_permission, name='toggle_draw'),
+
 ]
