@@ -30,7 +30,7 @@ SECRET_KEY = 'django-insecure-4-b^8=^287@np#7mr$+l9*5!+2tvn_6ecx#4n+six8ep3!ln-#
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['collaboard-z4sx.onrender.com', 'localhost', '127.0.0.1']
 
 
 # Application definition
