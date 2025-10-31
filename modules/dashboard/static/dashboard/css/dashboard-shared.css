@@ -1,0 +1,218 @@
+/* =====================================
+   Shared Dashboard Styles (All Roles)
+   ===================================== */
+
+/* Main content inherits spacing from base.html */
+.dashboard-section {
+  padding: 40px;
+  background: #fffbe6;
+  min-height: calc(100vh - 80px);
+}
+
+/* ---------- Headings & Typography ---------- */
+.dashboard-section h1 {
+  font-size: 2rem;
+  color: #253444;
+  margin-bottom: 8px;
+}
+
+.subtitle {
+  color: #555;
+  font-size: 1.1rem;
+  margin-bottom: 25px;
+}
+
+/* ---------- Grid Layout for Cards ---------- */
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 20px;
+}
+
+/* ---------- Card Styling ---------- */
+.card {
+  background: #fff;
+  border: 2px solid #333;
+  border-radius: 10px;
+  box-shadow: 4px 4px 0 #333;
+  padding: 20px;
+  transition: transform 0.2s ease;
+}
+
+.card:hover {
+  transform: translateY(-5px);
+}
+
+.card h3 {
+  margin-bottom: 10px;
+  color: #2c3e50;
+}
+
+.card p {
+  margin-bottom: 15px;
+  color: #444;
+}
+
+/* ---------- Button Styles ---------- */
+.card .btn {
+  background: #27ae60;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 8px 12px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: background 0.2s, transform 0.2s;
+  margin-right: 10px;
+  box-shadow: 2px 2px 0 rgba(0, 0, 0, 0.35);
+}
+
+.card .btn:hover {
+  background: #219150;
+  transform: translateY(-2px);
+}
+
+.card .btn.btn-secondary {
+  background: #bdc3c7;
+  color: #222;
+}
+
+.card .btn.btn-danger {
+  background: #e74c3c;
+  color: white;
+}
+
+.card .btn.btn-primary {
+  background: #27ae60;
+  color: white;
+}
+
+/* ---------- Mobile Buttons ---------- */
+@media (max-width: 600px) {
+  .card .btn {
+    display: block;
+    width: 100%;
+    margin-right: 0;
+    margin-bottom: 8px;
+    text-align: center;
+  }
+  .card .btn:last-child {
+    margin-bottom: 0;
+  }
+}
+
+/* ---------- Card Header & Actions ---------- */
+.card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.card-title {
+  flex: 1;
+  font-size: 1.15rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.card-actions {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+/* ---------- Session List ---------- */
+.session-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.session-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  background: #fffef5;
+  border: 2px solid #333;
+  border-radius: 10px;
+  box-shadow: 4px 4px 0 #333;
+  padding: 10px 14px;
+  margin-bottom: 10px;
+}
+
+.session-meta {
+  font-size: 0.9rem;
+  color: #666;
+}
+
+.session-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+/* ---------- Empty State ---------- */
+.empty-state {
+  text-align: center;
+  padding: 20px;
+  color: #777;
+  font-style: italic;
+}
+
+/* ---------- Teacher Dashboard Enhancements ---------- */
+.active-class-text {
+  font-size: 1.1rem;
+  text-align: center;
+  color: #333;
+}
+
+.active-class-count {
+  display: block;
+  font-size: 2.6rem;
+  font-weight: 800;
+  color: #27ae60;
+  text-shadow: 2px 2px 0 #333;
+  margin: 6px 0 4px;
+}
+
+.class-label {
+  display: block;
+  font-size: 1rem;
+  color: #555;
+}
+
+/* ---------- Footer Buttons ---------- */
+.card-footer {
+  text-align: center;
+  margin-top: 12px;
+}
+
+.card-footer .btn {
+  background: #27ae60;
+  color: white;
+  border: 2px solid #333;
+  border-radius: 6px;
+  box-shadow: 3px 3px 0 #333;
+}
+
+.card-footer .btn:hover {
+  background: #219150;
+  transform: translateY(-2px);
+}
+
+/* ---------- Responsive Layout ---------- */
+@media (max-width: 720px) {
+  .card-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .card-actions {
+    width: 100%;
+    justify-content: flex-start;
+  }
+}
