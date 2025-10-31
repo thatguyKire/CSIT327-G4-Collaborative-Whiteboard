@@ -1,0 +1,102 @@
+{% load static %}
+{% block extra_css %}{% endblock %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>{% block title %}COLLABoard{% endblock %}</title>
+
+  <!-- Global Base CSS -->
+  <link rel="stylesheet" href="{% static 'core/css/base.css' %}">
+  <link rel="stylesheet" href="{% static 'dashboard/css/dashboard.css' %}">
+  <link rel="stylesheet" href="{% static 'notifications/css/notifications.css' %}">
+  <link rel="stylesheet" href="{% static 'core/css/style.css' %}">
+
+  <!-- Core JS -->
+  <script src="{% static 'core/js/dashboard-sidebar.js' %}" defer></script>
+  <script src="{% static 'dashboard/js/dashboard-ui.js' %}" defer></script>
+</head>
+<body>
+
+  <!-- 🧠 Topbar -->
+  <header class="topbar">
+    <div class="topbar-left">
+      <div class="logo">COLLABoard</div>
+    </div>
+
+    <div class="topbar-center">
+      <div class="search">
+        <input type="search" placeholder="Search" />
+        <img src="{% static 'core/icons/search.png' %}" class="tb-search-icon" alt="Search" />
+      </div>
+    </div>
+
+    <div class="topbar-right">
+      <!-- Notifications -->
+      <img src="{% static 'core/icons/bell.png' %}" id="notifBell" class="tb-icon" alt="Notifications" />
+
+      <div class="notifications-panel" id="notificationsPanel">
+        <h3>Notifications</h3>
+        <div class="notif-list">
+          <div class="notification-item">
+            <p>Welcome to COLLABoard 🎉</p>
+            <time>Just now</time>
+          </div>
+          <div class="notification-item">
+            <p>New feature: Whiteboard sessions now exportable as PDF!</p>
+            <time>10 mins ago</time>
+          </div>
+        </div>
+        <a href="{% url 'notifications' %}" class="btn-secondary">See all</a>
+      </div>
+
+      <!-- Account Dropdown -->
+      <div class="account-menu">
+        <img src="{% static 'core/icons/usertopbar.png' %}" id="accountIcon" class="tb-icon" alt="Account" />
+        <div class="account-dropdown" id="accountDropdown">
+          <a href="{% url 'profile' %}" class="dropdown-item">Profile</a>
+          <a href="{% url 'settings' %}" class="dropdown-item">Settings</a>
+
+          <form action="{% url 'auth:logout' %}" method="post" class="logout-form">
+            {% csrf_token %}
+            <button type="submit" class="dropdown-item logout-btn">Logout</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- 🧱 Sidebar -->
+  <aside class="sidebar" id="sidebar">
+    <button class="toggle-btn" id="toggleBtn">
+      <img src="{% static 'core/icons/left-arrow.png' %}" class="toggle-icon" alt="Toggle Sidebar" />
+    </button>
+
+    <nav class="menu">
+      <!-- Role-based dashboard redirect -->
+      {% if user.role == "teacher" %}
+        <a href="{% url 'teacher_dashboard' %}" class="menu-btn">My Dashboard</a>
+      {% elif user.role == "admin" %}
+        <a href="{% url 'admin_dashboard' %}" class="menu-btn">My Dashboard</a>
+      {% else %}
+        <a href="{% url 'student_dashboard' %}" class="menu-btn">My Dashboard</a>
+      {% endif %}
+
+      <a href="{% url 'profile' %}" class="menu-btn">My Profile</a>
+      <a href="#" class="menu-btn">Chats</a>
+      <a href="{% url 'help' %}" class="menu-btn">Help</a>
+    </nav>
+
+    <div class="sidebar-bottom">
+      <a href="{% url 'join_session' %}" class="join-btn">Join Session!</a>
+    </div>
+  </aside>
+
+  <!-- 🧩 Main Content -->
+  <main class="main">
+    {% block content %}{% endblock %}
+  </main>
+
+</body>
+</html>

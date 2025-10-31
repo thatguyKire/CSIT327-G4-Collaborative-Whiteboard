@@ -1,0 +1,68 @@
+{% extends "core/base.html" %}
+{% load static %}
+
+{% block title %}Teacher Dashboard - COLLABoard{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'dashboard/css/dashboard-shared.css' %}">
+<link rel="stylesheet" href="{% static 'dashboard/css/dashboard.css' %}">
+{% endblock %}
+
+{% block content %}
+<section class="dashboard-section">
+  <h1>Welcome, {{ user.username }}</h1>
+  <p class="subtitle">Manage your classes, monitor sessions, and interact with your students.</p>
+
+  <div class="dashboard-grid">
+
+    <!-- My Classes -->
+    <div class="card">
+      <h3>My Classes</h3>
+      <p class="active-class-text">
+        You currently have
+        <span class="active-class-count">{{ active_classes_count }}</span>
+        {% if active_classes_count == 1 %}
+          active class
+        {% else %}
+          active classes
+        {% endif %}
+      </p>
+    </div>
+
+    <!-- Active Sessions -->
+    <div class="card">
+      <h3>Active Sessions</h3>
+      {% if open_sessions %}
+        <ul class="session-list">
+          {% for session in open_sessions %}
+            <li class="session-row">
+              <div>
+                <strong>{{ session.title|default:"Untitled Session" }}</strong>
+                <div class="session-meta">Code: {{ session.code|default:"—" }}</div>
+              </div>
+              <div class="session-actions">
+                <a href="{% url 'whiteboard' session.id %}" class="btn btn-primary">Join Whiteboard</a>
+              </div>
+            </li>
+          {% endfor %}
+        </ul>
+      {% else %}
+        <div class="empty-state">
+          <p>No active sessions right now.</p>
+        </div>
+      {% endif %}
+      <div class="card-footer" style="margin-top:16px;">
+        <a href="{% url 'session_list' %}" class="btn">Manage Sessions</a>
+      </div>
+    </div>
+
+    <!-- Optional Future Feature -->
+    <div class="card">
+      <h3>Student Performance</h3>
+      <p>Analyze progress and participation in real-time.</p>
+      <a href="#" class="btn btn-secondary">Coming Soon</a>
+    </div>
+
+  </div>
+</section>
+{% endblock %}

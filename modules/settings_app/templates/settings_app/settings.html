@@ -1,0 +1,62 @@
+{% extends "core/base.html" %}
+{% load static %}
+
+{% block title %}Settings - COLLABoard{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'settings_app/css/settings.css' %}">
+{% endblock %}
+
+{% block content %}
+<main class="settings-page">
+
+  <!-- Header -->
+  <div class="settings-header">
+    <a href="{% if user.role == 'teacher' %}
+                {% url 'teacher_dashboard' %}
+              {% elif user.role == 'admin' %}
+                {% url 'admin_dashboard' %}
+              {% else %}
+                {% url 'student_dashboard' %}
+              {% endif %}" class="back-arrow">
+      <img src="{% static 'core/icons/left-arrow.png' %}" alt="Back">
+    </a>
+
+    <div class="settings-header-text">
+      <h1>Settings</h1>
+      <p>Manage your account, preferences, and support options</p>
+    </div>
+  </div>
+
+  <!-- Options -->
+  <div class="settings-container">
+    <a href="{% url 'profile' %}" class="setting-card">
+      <img src="{% static 'core/icons/profile.png' %}" alt="Profile Management">
+      <h2>Profile Management</h2>
+      <p>Update your name, email, and other details</p>
+    </a>
+
+    <a href="{% url 'edit_profile' %}" class="setting-card">
+      <img src="{% static 'core/icons/account.png' %}" alt="Account Settings">
+      <h2>Account Settings</h2>
+      <p>Change password and security preferences</p>
+    </a>
+
+    <a href="{% url 'help' %}" class="setting-card">
+      <img src="{% static 'core/icons/help.png' %}" alt="Help & Support">
+      <h2>Help & Support</h2>
+      <p>Get assistance or contact our support team</p>
+    </a>
+
+    <form method="post" action="{% url 'auth:logout' %}" class="setting-card logout-card">
+      {% csrf_token %}
+      <button type="submit">
+        <img src="{% static 'core/icons/logout.png' %}" alt="Logout">
+        <h2>Logout</h2>
+        <p>Sign out from your COLLABoard account</p>
+      </button>
+    </form>
+  </div>
+
+</main>
+{% endblock %}

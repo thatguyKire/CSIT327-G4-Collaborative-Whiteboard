@@ -1,0 +1,26 @@
+{% extends "core/base.html" %}
+
+{% load static %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'session/css/join_session.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="join-wrapper">
+  <div class="join-card">
+    <h1>Join a Session</h1>
+    <p>Enter your session code below to join your teacher’s whiteboard.</p>
+
+    <form method="post">
+      {% csrf_token %}
+      <input type="text" name="code" placeholder="Enter Session Code" required>
+      <button type="submit" class="btn">Join</button>
+    </form>
+
+    {% if error %}
+      <p class="error-message">{{ error }}</p>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
