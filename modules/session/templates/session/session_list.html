@@ -1,5 +1,4 @@
 {% extends "core/base.html" %}
-
 {% load static %}
 
 {% block extra_css %}
@@ -13,13 +12,14 @@
   <section class="dashboard-wrapper">
     <h1>Manage Sessions</h1>
 
-    {% if messages %}
-      <ul class="messages">
-        {% for message in messages %}
-          <li class="message {{ message.tags }}">{{ message }}</li>
-        {% endfor %}
-      </ul>
-    {% endif %}
+    <!-- ✅ Search bar -->
+    <form method="get" class="search-form">
+      <input type="text" name="q" placeholder="Search sessions..." value="{{ query }}">
+      <button type="submit" class="btn">Search</button>
+      {% if query %}
+        <a href="{% url 'session_list' %}" class="btn btn-secondary clear-btn">Clear</a>
+      {% endif %}
+    </form>
 
     <!-- Back to teacher dashboard -->
     <a href="{% url 'teacher_dashboard' %}" class="btn btn-secondary back-btn" aria-label="Back to dashboard">← Back</a>
@@ -31,18 +31,34 @@
       <button type="submit" class="btn">Create Session</button>
     </form>
 
+    <!-- Flash messages -->
+    {% if messages %}
+      <ul class="messages">
+        {% for message in messages %}
+          <li class="message {{ message.tags }}">{{ message }}</li>
+        {% endfor %}
+      </ul>
+    {% endif %}
+
+    <!-- Sessions -->
     <h3>Your Sessions</h3>
     <ul class="session-list">
       {% for s in sessions %}
         <li class="session-item">
           <div class="session-meta">
-            {{ s.title|default:"Untitled Session" }} — Code: <strong>{{ s.code }}</strong>
+            <strong>{{ s.title|default:"Untitled Session" }}</strong> — Code: <strong>{{ s.code }}</strong>
           </div>
 
           <div class="session-actions">
             <a href="{% url 'whiteboard' s.id %}" class="btn">Open</a>
 
-            <!-- Invite button -->
+            {% if s.is_offline_available %}
+            <a href="{% url 'offline_view' s.id %}" class="btn btn-secondary">View Offline</a>
+            {% else %}
+              <button class="btn btn-secondary" disabled title="No offline snapshot yet">Offline Unavailable</button>
+{% endif %}
+
+            <!-- Invite -->
             <button type="button"
                     class="btn btn-secondary qr-btn"
                     data-qr-url="{% url 'session_qr' s.id %}"

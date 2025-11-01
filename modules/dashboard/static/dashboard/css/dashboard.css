@@ -106,7 +106,7 @@ img { max-width: 100%; height: auto; display: inline-block; }
 }
 
 .sidebar.collapsed .toggle-icon {
-  content: url("../icons/right - arrow.png");
+  content: url("../icons/right-arrow.png");
 }
 
 .menu { margin-top: 6px; display:flex; flex-direction:column; gap:12px; padding: 8px 4px; }

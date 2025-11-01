@@ -1,0 +1,77 @@
+/* ==========================
+   OFFLINE VIEW PAGE STYLES
+   Matches Whiteboard Theme
+   ========================== */
+
+.offline-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: calc(100vh - 100px);
+  text-align: center;
+  background: #fffbe6; /* same warm tone as your whiteboard */
+  padding: 40px 20px;
+}
+
+.offline-header {
+  margin-bottom: 20px;
+}
+
+.offline-header h1 {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #253444;
+  margin-bottom: 6px;
+  text-shadow: 1px 1px 0 #f9d342;
+}
+
+.offline-header .subtitle {
+  font-size: 1rem;
+  color: #555;
+}
+
+.snapshot-frame {
+  border: 3px solid #333;
+  border-radius: 12px;
+  box-shadow: 6px 6px 0 #333;
+  overflow: hidden;
+  background: #fff;
+  padding: 10px;
+  margin-bottom: 25px;
+  max-width: 90vw;
+  max-height: 75vh;
+}
+
+.snapshot-image {
+  display: block;
+  max-width: 100%;
+  max-height: 70vh;
+  object-fit: contain;
+}
+
+.no-snapshot {
+  color: #666;
+  font-size: 1rem;
+  padding: 40px;
+}
+
+.offline-back {
+  margin-top: 15px;
+}
+
+.offline-back .btn {
+  padding: 10px 20px;
+  border-radius: 8px;
+  border: 2px solid #333;
+  box-shadow: 3px 3px 0 #333;
+  background: #74808a;
+  color: white;
+  font-weight: bold;
+  transition: background 0.2s, transform 0.2s;
+}
+
+.offline-back .btn:hover {
+  background: #5f6a73;
+  transform: translateY(-2px);
+}

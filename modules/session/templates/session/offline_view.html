@@ -1,0 +1,29 @@
+{% extends "core/base.html" %}
+{% load static %}
+
+{% block title %}Offline View - {{ session.title|default:"Saved Session" }}{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'session/css/offline_view.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="main offline-container">
+  <div class="offline-header">
+    <h1>{{ session.title|default:"Saved Session" }}</h1>
+    <p class="subtitle">View-only mode (offline snapshot)</p>
+  </div>
+
+  <div class="snapshot-frame">
+    {% if snapshot_url %}
+      <img src="{{ snapshot_url }}" alt="Whiteboard Snapshot" class="snapshot-image">
+    {% else %}
+      <p class="no-snapshot">No saved snapshot available for this session.</p>
+    {% endif %}
+  </div>
+
+  <div class="offline-back">
+    <a href="{% url 'session_list' %}" class="btn btn-secondary">← Back to Sessions</a>
+  </div>
+</div>
+{% endblock %}
