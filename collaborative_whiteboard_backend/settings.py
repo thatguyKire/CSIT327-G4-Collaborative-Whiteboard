@@ -153,8 +153,18 @@ MEDIA_ROOT = BASE_DIR / 'media'
 
 # ✅ WhiteNoise for Render (static caching)
 STORAGES = {
+    # Handles Django static files
     "staticfiles": {
         "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+    },
+
+    # ✅ Handles user uploads (images, PDFs, etc.)
+    "default": {
+        "BACKEND": "django.core.files.storage.FileSystemStorage",
+        "OPTIONS": {
+            "location": MEDIA_ROOT,
+            "base_url": MEDIA_URL,
+        },
     },
 }
 

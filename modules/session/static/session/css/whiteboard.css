@@ -4,28 +4,54 @@
 }
 
 html, body {
-  height: 100%;
+  height: auto;
+  min-height: 100%;
   margin: 0;
   font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
   background-color: #fffbe6;
+  overflow-y: auto; /* ✅ Allow scrolling */
 }
 
-/* ---------- Wrapper ---------- */
+/* ---------- Scroll behavior (for small screens) ---------- */
 .whiteboard-wrapper {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: flex-start;
-  padding: 24px;
-  min-height: calc(100vh - 80px);
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: #ccc transparent;
+   padding: 24px 24px 60px 24px; /* ✅ adds breathing space below canvas */
 }
 
+/* Optional: Adds space after everything (footer breathing room) */
+.whiteboard-wrapper::after {
+  content: "";
+  display: block;
+  height: 50px;
+}
+
+/* ---------- Session Title Alignment (Centered Above Board) ---------- */
 .session-title {
-  font-size: 1.8rem;
-  font-weight: bold;
+  font-size: 1.9rem;
+  font-weight: 700;
   color: #2c3e50;
   text-align: center;
-  margin-bottom: 16px;
+
+  /* ✅ Visually balanced placement */
+  margin-top: 40px;      /* space below navbar */
+  margin-bottom: 20px;   /* space above toolbar */
+  letter-spacing: 0.5px;
+  text-shadow: 2px 2px 0 #f9d342; /* fun notebook vibe */
+  animation: fadeInTitle 0.8s ease;
+}
+
+/* Subtle entry animation */
+@keyframes fadeInTitle {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /* ---------- Layout ---------- */
@@ -36,11 +62,11 @@ html, body {
   gap: 20px;
   width: 100%;
   max-width: 1300px;
-  height: calc(100vh - 160px);
   margin: 0 auto;
+  padding-bottom: 40px; /* ✅ More breathing room at bottom */
+  flex-wrap: nowrap;
 }
-
-/* Whiteboard container */
+/* ---------- Whiteboard Container (Dynamic Layout) ---------- */
 .whiteboard-container {
   flex: 1;
   display: flex;
@@ -50,24 +76,21 @@ html, body {
   border-radius: 12px;
   box-shadow: 6px 6px 0 #333;
   overflow: hidden;
-
-  /* NEW */
   width: 100%;
   height: 100%;
-  min-width: 0;     /* allow shrinking */
-  max-width: none;  /* remove artificial cap */
+  min-height: 600px; /* ✅ ensures space for big canvas */
+  position: relative;
 }
-
 /* ---------- Toolbar ---------- */
 .toolbar {
   display: flex;
   flex-wrap: wrap;
-  gap: 10px;
   align-items: center;
   justify-content: flex-start;
-  padding: 10px;
+  padding: 8px 12px;
   background: #f5f5dc;
   border-bottom: 2px solid #333;
+  gap: 10px;
 }
 
 .toolbar label {
@@ -76,19 +99,37 @@ html, body {
   display: flex;
   align-items: center;
   gap: 5px;
+  font-size: 0.9rem;
 }
 
-/* Back button */
+/* ---------- Back Button ---------- */
 #backBtn {
   display: inline-flex;
   align-items: center;
   order: -1;
   margin-right: auto;
-  padding: 6px 10px;
-  min-width: 44px;
+  padding: 5px 8px;
+  font-size: 0.85rem;
+  min-width: 40px;
 }
 
-/* Canvas fills available space perfectly */
+/* ---------- Upload Section ---------- */
+.upload-section {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  border: 2px dashed #ccc;
+  border-radius: 8px;
+  padding: 4px 8px;
+  background: #fffbe6;
+}
+
+.upload-section:hover {
+  border-color: #333;
+}
+
+/* ---------- Canvas (Responsive) ---------- */
 #whiteboardCanvas {
   flex: 1;
   width: 100%;
@@ -97,18 +138,18 @@ html, body {
   cursor: crosshair;
   touch-action: none;
   user-select: none;
-  border-bottom-left-radius: 12px;
-  border-bottom-right-radius: 12px;
   display: block;
+  image-rendering: pixelated; /* ✅ crisp zoom scaling */
 }
 
 /* ---------- Buttons ---------- */
 .btn {
   border: 2px solid #333;
-  padding: 6px 12px;
-  border-radius: 6px;
+  padding: 4px 10px;
+  border-radius: 5px;
   font-weight: bold;
   cursor: pointer;
+  font-size: 0.85rem;
   box-shadow: 2px 2px 0 #333;
   transition: transform 0.1s ease, background 0.2s ease;
 }
@@ -146,7 +187,7 @@ html, body {
   box-shadow: 4px 4px 0 #333;
   padding: 16px;
   overflow-y: auto;
-  height: 100%;
+  max-height: 650px; /* ✅ Panel scrolls if needed */
 }
 
 .participants-panel h3 {
@@ -184,7 +225,7 @@ html, body {
   color: #333;
 }
 
-/* ---------- Switch Styling ---------- */
+/* ---------- Switch Styling (unchanged) ---------- */
 .switch {
   position: relative;
   display: inline-block;
@@ -228,7 +269,7 @@ input:checked + .slider:before {
   transform: translateX(18px);
 }
 
-/* ---------- Read-only Mode Banner ---------- */
+/* ---------- Read-only Mode ---------- */
 .readonly-toolbar {
   background: #f3f3f3;
   border-radius: 6px;
@@ -244,7 +285,6 @@ input:checked + .slider:before {
   .whiteboard-layout {
     flex-direction: column;
     align-items: center;
-    height: auto;
   }
 
   .participants-panel {
@@ -253,9 +293,7 @@ input:checked + .slider:before {
     height: auto;
   }
 
-  .whiteboard-container {
-    width: 100%;
-    max-width: 100%;
-    min-width: 0;
+  .toolbar {
+    justify-content: center;
   }
 }

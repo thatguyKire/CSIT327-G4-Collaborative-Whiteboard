@@ -1,0 +1,36 @@
+/* Compact upload section */
+.upload-section {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #fdfdf0;
+  border: 1px dashed #aaa;
+  padding: 4px 8px;
+  border-radius: 6px;
+  box-shadow: 2px 2px 0 #ccc inset;
+  max-width: 250px;
+  overflow-x: auto;
+}
+
+.upload-section .upload-status {
+  font-size: 0.85rem;
+  color: #333;
+  margin-left: 4px;
+}
+
+.uploaded-files {
+  display: flex;
+  gap: 5px;
+  align-items: center;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.upload-preview {
+  width: 40px;
+  height: 40px;
+  object-fit: cover;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+}
