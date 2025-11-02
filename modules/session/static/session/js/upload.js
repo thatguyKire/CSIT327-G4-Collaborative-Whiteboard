@@ -3,10 +3,20 @@ document.addEventListener("DOMContentLoaded", () => {
   const uploadStatus = document.getElementById("uploadStatus");
   const uploadedFiles = document.getElementById("uploadedFiles");
   const canvas = document.getElementById("whiteboardCanvas");
-  const ctx = canvas ? canvas.getContext("2d") : null;
+  const ctx = canvas.getContext("2d");
 
   if (!fileInput || !canvas || !ctx) return;
 
+  const canDraw = window.CAN_DRAW === true;
+  let images = [];
+  let activeImage = null;
+  let dragging = false;
+  let resizing = false;
+  let offsetX = 0;
+  let offsetY = 0;
+  const resizeHandleSize = 15;
+
+  // 🖼️ Upload + Add image
   fileInput.addEventListener("change", async () => {
     const file = fileInput.files[0];
     if (!file) return;
@@ -17,104 +27,186 @@ document.addEventListener("DOMContentLoaded", () => {
     formData.append("file", file);
 
     try {
-      const response = await fetch(`/session/${sessionId}/upload/`, {
+      const res = await fetch(`/session/${sessionId}/upload/`, {
         method: "POST",
         body: formData,
-        headers: {
-          "X-CSRFToken": getCookie("csrftoken"),
-        },
+        headers: { "X-CSRFToken": getCookie("csrftoken") },
       });
-
-      const data = await response.json();
+      const data = await res.json();
 
       if (data.ok || data.file_url) {
-        uploadStatus.textContent = `✅ Upload successful! ${file.name}`;
+        uploadStatus.textContent = `✅ Uploaded ${file.name}`;
         const li = document.createElement("li");
-
-        // 🖼️ Show preview for image files
-        if (data.file_url.match(/\.(jpg|jpeg|png|gif|webp)$/i)) {
-          li.innerHTML = `<img src="${data.file_url}" alt="Uploaded image" class="upload-preview">`;
-
-          // Draw the uploaded image directly on canvas
-          drawImageOnCanvas(data.file_url);
-        } else {
-          li.innerHTML = `<a href="${data.file_url}" target="_blank">${file.name}</a>`;
-        }
-
+        li.innerHTML = `<img src="${data.file_url}" alt="${file.name}" class="upload-preview">`;
         uploadedFiles.appendChild(li);
-      } else {
-        uploadStatus.textContent = "❌ Upload failed!";
-      }
+        addImage(data.file_url);
+      } else uploadStatus.textContent = "❌ Upload failed!";
     } catch (err) {
       uploadStatus.textContent = "⚠️ Upload error.";
-      console.error("Upload failed:", err);
+      console.error(err);
     } finally {
       fileInput.value = "";
     }
   });
 
-  // 🎨 Draw uploaded image on canvas, scaled to fit perfectly and remain crisp
-  function drawImageOnCanvas(url) {
-    if (!ctx || !canvas) return;
-
+  // 🧠 Add draggable image
+  function addImage(url) {
     const img = new Image();
     img.crossOrigin = "anonymous";
-
-    img.onload = () => {
-      // Adjust for device pixel ratio for sharper rendering
-      const scaleFactor = window.devicePixelRatio || 1;
-      ctx.imageSmoothingEnabled = false;
-
-      const canvasWidth = canvas.width / scaleFactor;
-      const canvasHeight = canvas.height / scaleFactor;
-
-      const imgRatio = img.width / img.height;
-      const canvasRatio = canvasWidth / canvasHeight;
-
-      let imgWidth, imgHeight;
-
-      // Fit image proportionally within the canvas (no cropping)
-      if (imgRatio > canvasRatio) {
-        imgWidth = canvasWidth * 0.8;
-        imgHeight = imgWidth / imgRatio;
-      } else {
-        imgHeight = canvasHeight * 0.8;
-        imgWidth = imgHeight * imgRatio;
-      }
-
-      const x = (canvasWidth - imgWidth) / 2;
-      const y = (canvasHeight - imgHeight) / 2;
-
-      // Clear previous drawing before rendering image
-      ctx.clearRect(0, 0, canvasWidth, canvasHeight);
-      ctx.fillStyle = "#fff";
-      ctx.fillRect(0, 0, canvasWidth, canvasHeight);
-
-      ctx.drawImage(img, x, y, imgWidth, imgHeight);
-      console.log("✅ Image drawn to canvas:", url);
-    };
-
-    img.onerror = () => {
-      console.warn("⚠️ Failed to load image:", url);
-      uploadStatus.textContent = "⚠️ Could not display uploaded image.";
-    };
-
     img.src = url;
+    img.onload = () => {
+      const scale = 0.6;
+      const width = img.width * scale;
+      const height = img.height * scale;
+      const x = (canvas.width - width) / 2;
+      const y = (canvas.height - height) / 2;
+      const newImg = { img, x, y, width, height, rotation: 0 };
+      images.push(newImg);
+      activeImage = newImg;
+      redrawCanvas();
+    };
   }
 
-  // 🔐 Helper: CSRF token getter
-  function getCookie(name) {
-    let cookieValue = null;
-    if (document.cookie && document.cookie !== "") {
-      const cookies = document.cookie.split(";");
-      for (let i = 0; i < cookies.length; i++) {
-        const cookie = cookies[i].trim();
-        if (cookie.startsWith(name + "=")) {
-          cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-          break;
-        }
-      }
+  // ✅ Redraw function (fixed — clears old pixels)
+  function redrawCanvas() {
+    // Clear the full canvas first
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // Fill white background to prevent ghost trails
+    ctx.fillStyle = "#fff";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // Redraw all uploaded images
+    for (const item of images) {
+      ctx.save();
+      ctx.translate(item.x + item.width / 2, item.y + item.height / 2);
+      ctx.rotate((item.rotation * Math.PI) / 180);
+      ctx.drawImage(item.img, -item.width / 2, -item.height / 2, item.width, item.height);
+      ctx.restore();
     }
-    return cookieValue;
+
+    // Highlight the active image
+    if (activeImage && canDraw) {
+      ctx.strokeStyle = "#3498db";
+      ctx.lineWidth = 2;
+      ctx.strokeRect(activeImage.x, activeImage.y, activeImage.width, activeImage.height);
+
+      // Resize handle
+      ctx.fillStyle = "#3498db";
+      ctx.fillRect(
+        activeImage.x + activeImage.width - resizeHandleSize,
+        activeImage.y + activeImage.height - resizeHandleSize,
+        resizeHandleSize,
+        resizeHandleSize
+      );
+
+      // Delete button
+      ctx.fillStyle = "#e74c3c";
+      ctx.fillRect(activeImage.x + activeImage.width - 20, activeImage.y - 20, 20, 20);
+      ctx.fillStyle = "#fff";
+      ctx.font = "14px Arial";
+      ctx.fillText("✕", activeImage.x + activeImage.width - 15, activeImage.y - 6);
+    }
+  }
+
+  // 🖱️ Mouse position + hit test
+  function getMousePos(e) {
+    const rect = canvas.getBoundingClientRect();
+    return { x: e.clientX - rect.left, y: e.clientY - rect.top };
+  }
+
+  function hitTest(x, y) {
+    for (let i = images.length - 1; i >= 0; i--) {
+      const img = images[i];
+      if (x >= img.x && x <= img.x + img.width && y >= img.y && y <= img.y + img.height)
+        return img;
+    }
+    return null;
+  }
+
+  // 🖱️ Mouse Events
+  canvas.addEventListener("mousedown", (e) => {
+    if (!canDraw) return;
+    const mouse = getMousePos(e);
+    const img = hitTest(mouse.x, mouse.y);
+
+    if (img) {
+      images = images.filter((i) => i !== img);
+      images.push(img);
+      activeImage = img;
+
+      // Delete button
+      if (
+        mouse.x >= img.x + img.width - 20 &&
+        mouse.x <= img.x + img.width &&
+        mouse.y >= img.y - 20 &&
+        mouse.y <= img.y
+      ) {
+        images = images.filter((i) => i !== img);
+        activeImage = null;
+        redrawCanvas();
+        return;
+      }
+
+      // Resize handle
+      if (
+        mouse.x >= img.x + img.width - resizeHandleSize &&
+        mouse.y >= img.y + img.height - resizeHandleSize
+      ) {
+        resizing = true;
+      } else {
+        dragging = true;
+        offsetX = mouse.x - img.x;
+        offsetY = mouse.y - img.y;
+      }
+    } else {
+      activeImage = null;
+    }
+    redrawCanvas();
+  });
+
+  canvas.addEventListener("mousemove", (e) => {
+    if (!canDraw || (!dragging && !resizing)) return;
+    const mouse = getMousePos(e);
+
+    if (activeImage) {
+      if (dragging) {
+        activeImage.x = mouse.x - offsetX;
+        activeImage.y = mouse.y - offsetY;
+      } else if (resizing) {
+        activeImage.width = Math.max(30, mouse.x - activeImage.x);
+        activeImage.height = Math.max(30, mouse.y - activeImage.y);
+      }
+      redrawCanvas(); // 🧠 smooth + clean drag
+    }
+  });
+
+  ["mouseup", "mouseout"].forEach((ev) => canvas.addEventListener(ev, () => {
+    dragging = false;
+    resizing = false;
+  }));
+
+  // ⌨️ Delete / Rotate
+  document.addEventListener("keydown", (e) => {
+    if (!activeImage || !canDraw) return;
+    if (e.key === "Delete" || e.key === "Backspace") {
+      images = images.filter((i) => i !== activeImage);
+      activeImage = null;
+      redrawCanvas();
+    }
+  });
+
+  canvas.addEventListener("wheel", (e) => {
+    if (activeImage && e.shiftKey && canDraw) {
+      e.preventDefault();
+      activeImage.rotation += e.deltaY * -0.1;
+      redrawCanvas();
+    }
+  });
+
+  // 🔐 CSRF helper
+  function getCookie(name) {
+    const match = document.cookie.match(`(^|;)\\s*${name}\\s*=\\s*([^;]+)`);
+    return match ? match.pop() : "";
   }
 });
