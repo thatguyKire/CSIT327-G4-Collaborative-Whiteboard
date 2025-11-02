@@ -19,26 +19,24 @@
         <button id="backBtn" class="btn btn-secondary" data-back-url="{{ back_url }}">← Back</button>
 
         {% if can_draw %}
-          <!-- Drawing Tools (Teacher + Approved Students) -->
+          <!-- ✏️ Drawing Tools -->
           <label>Color: <input type="color" id="colorPicker" value="#000000"></label>
           <label>Size: <input type="range" id="sizePicker" min="1" max="20" value="3"></label>
           <button id="penBtn" class="btn btn-secondary active">Pen</button>
           <button id="eraserBtn" class="btn btn-secondary">Eraser</button>
-          <button id="clearBtn" class="btn btn-danger">Clear</button>
+          <button id="clearBtn" class="btn btn-danger">Clear All</button>
 
           {% if user == session.created_by %}
             <button id="saveBtn" class="btn btn-success" data-save-url="{% url 'save_snapshot' session.id %}">Save</button>
           {% endif %}
           <button id="exportBtn" class="btn btn-primary">Export</button>
 
-          <!-- 🗂️ File Upload Section -->
+          <!-- 🗂️ File Upload -->
           <div class="upload-section">
-            <label for="fileInput" class="btn btn-secondary">📁 Upload File</label>
+            <label for="fileInput" class="btn btn-secondary">📁 Upload</label>
             <input type="file" id="fileInput" accept="image/*,.pdf,.docx,.pptx" hidden>
             <div id="uploadStatus" class="upload-status"></div>
-            <ul id="uploadedFiles" class="uploaded-files"></ul>
           </div>
-
         {% else %}
           <div class="readonly-toolbar">
             👀 View-only mode — waiting for teacher permission
@@ -46,13 +44,22 @@
         {% endif %}
       </div>
 
+      <!-- 📁 Uploaded Files List -->
+      {% if can_draw %}
+      <div class="uploaded-files-container">
+        <ul id="uploadedFiles" class="uploaded-files"></ul>
+      </div>
+      {% endif %}
+
       {% if snapshot_url %}
         <img id="snapshotImg" src="{{ snapshot_url }}" hidden>
       {% endif %}
 
+      <!-- 🎨 Unified Canvas -->
       <canvas id="whiteboardCanvas"></canvas>
     </div>
 
+    <!-- 👥 Participants Sidebar -->
     {% if user == session.created_by %}
     <aside class="participants-panel">
       <h3>👥 Participants</h3>
@@ -82,6 +89,7 @@
   window.CAN_DRAW = JSON.parse(document.getElementById("can_draw_data").textContent);
 </script>
 
+<!-- 🧠 Scripts -->
 <script src="{% static 'session/js/whiteboard.js' %}"></script>
 {% if user == session.created_by %}
 <script src="{% static 'session/js/participants.js' %}"></script>
