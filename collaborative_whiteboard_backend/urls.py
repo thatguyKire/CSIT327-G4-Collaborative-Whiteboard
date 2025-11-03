@@ -33,6 +33,8 @@ urlpatterns = [
     path('notifications/', include('modules.notifications.urls')),
     path('help/', include('modules.help_app.urls')),
     path('session/', include('modules.session.urls')),
+    path("chat/", include("modules.chat.urls")),
+
 ]
 
 # Serve media files in development

@@ -44,7 +44,7 @@
         {% endif %}
       </div>
 
-      <!-- 📁 Uploaded Files List -->
+      <!-- 📁 Uploaded Files -->
       {% if can_draw %}
       <div class="uploaded-files-container">
         <ul id="uploadedFiles" class="uploaded-files"></ul>
@@ -89,7 +89,7 @@
   window.CAN_DRAW = JSON.parse(document.getElementById("can_draw_data").textContent);
 </script>
 
-<!-- 🧠 Scripts -->
+<!-- 🎨 Scripts -->
 <script src="{% static 'session/js/whiteboard.js' %}"></script>
 {% if user == session.created_by %}
 <script src="{% static 'session/js/participants.js' %}"></script>
@@ -97,4 +97,6 @@
 {% if can_draw %}
 <script src="{% static 'session/js/upload.js' %}" defer></script>
 {% endif %}
+
+<!-- 💬 Chat Integration (automatically loaded from base.html) -->
 {% endblock %}

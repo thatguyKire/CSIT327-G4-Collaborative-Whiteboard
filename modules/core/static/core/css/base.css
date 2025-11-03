@@ -339,7 +339,7 @@ img {
 }
 
 .sidebar.collapsed .toggle-icon {
-  content: url("../icons/right - arrow.png");
+  content: url("../icons/right-arrow.png");
 }
 
 /* ---------- Menu ---------- */
@@ -478,5 +478,46 @@ img {
     right: 0;
     left: 10px;
     width: auto;
+  }
+}
+
+/* Add this to core/static/core/css/base.css */
+
+/* ========================================
+   🎨 LOGO STYLING
+   ======================================== */
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 700;
+  font-size: 1.3rem;
+  color: white;
+}
+
+.logo-image {
+  width: 36px;
+  height: 36px;
+  object-fit: contain;
+  background: white;
+  border-radius: 8px;
+  padding: 4px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.logo-text {
+  letter-spacing: 0.5px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .logo-text {
+    display: none;
+  }
+  
+  .logo-image {
+    width: 32px;
+    height: 32px;
   }
 }

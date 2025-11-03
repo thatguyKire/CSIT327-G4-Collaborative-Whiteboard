@@ -1,0 +1,39 @@
+{% load static %}
+
+<!-- 💬 Floating Chat Bubble (like Messenger) -->
+<div id="chatBubble" class="chat-bubble" draggable="false">
+  <img src="{% static 'core/icons/collaboard-logo.png' %}" alt="Chat" class="bubble-icon">
+  <span class="chat-badge" id="unreadBadge">0</span>
+</div>
+
+<!-- 💬 Chat Window -->
+<div id="chatWindow" class="chat-window hidden">
+  <div class="chat-window-header">
+    <div class="chat-header-left">
+      <img src="{% static 'core/icons/collaboard-logo.png' %}" alt="COLLABoard" class="header-logo">
+      <span class="chat-title">Chat</span>
+    </div>
+    <div class="chat-header-right">
+      <span id="chatStatus" class="chat-status">●</span>
+      <button id="minimizeBtn" class="header-btn" title="Minimize">−</button>
+      <button id="closeBtn" class="header-btn" title="Close">×</button>
+    </div>
+  </div>
+
+  <div id="chatMessages" class="chat-messages">
+    <div class="chat-empty">No messages yet. Start the conversation!</div>
+  </div>
+
+  <div class="chat-input-container">
+    <input type="text" id="chatInput" placeholder="Type a message..." autocomplete="off" maxlength="500">
+    <button id="chatSendBtn" class="chat-send">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+        <path d="M22 2L11 13" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        <path d="M22 2L15 22L11 13L2 9L22 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </button>
+  </div>
+</div>
+
+<link rel="stylesheet" href="{% static 'chat/css/chat.css' %}">
+<script src="{% static 'chat/js/chat.js' %}" defer></script>

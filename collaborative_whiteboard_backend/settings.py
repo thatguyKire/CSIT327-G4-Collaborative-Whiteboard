@@ -51,6 +51,7 @@ INSTALLED_APPS = [
     'modules.help_app',
     'modules.session',
     'modules.core',             # ✅ where base templates/icons live
+    'modules.chat',
 ]
 
 # -------------------------------------------------------------
