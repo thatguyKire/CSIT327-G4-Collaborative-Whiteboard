@@ -12,8 +12,6 @@ from .views import (
     export_session_pdf,
     duplicate_session,
     toggle_draw_permission,
-    chat_messages,
-    send_message,
     offline_view,
     upload_views,
 )
@@ -39,9 +37,6 @@ urlpatterns = [
     # Teacher permission toggle
     path('<int:user_id>/toggle_draw/', toggle_draw_permission, name='toggle_draw'),
 
-    # Chat endpoints
-    path('<uuid:session_id>/chat/', chat_messages, name='chat_messages'),
-    path('<uuid:session_id>/chat/send/', send_message, name='send_message'),
 
     # Offline view
     path('<uuid:session_id>/offline/', offline_view, name='offline_view'),

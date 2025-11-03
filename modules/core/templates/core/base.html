@@ -1,28 +1,32 @@
 {% load static %}
-{% block extra_css %}{% endblock %}
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="username" content="{{ request.user.username }}">
   <title>{% block title %}COLLABoard{% endblock %}</title>
 
-  <!-- Global Base CSS -->
+  <!-- 🎨 Favicon -->
+  <link rel="icon" type="image/png" href="{% static 'core/icons/collaboard-logo.png' %}">
+
+  <!-- 🌈 Global Styles -->
   <link rel="stylesheet" href="{% static 'core/css/base.css' %}">
   <link rel="stylesheet" href="{% static 'dashboard/css/dashboard.css' %}">
   <link rel="stylesheet" href="{% static 'notifications/css/notifications.css' %}">
   <link rel="stylesheet" href="{% static 'core/css/style.css' %}">
 
-  <!-- Core JS -->
-  <script src="{% static 'core/js/dashboard-sidebar.js' %}" defer></script>
-  <script src="{% static 'dashboard/js/dashboard-ui.js' %}" defer></script>
+  {% block extra_css %}{% endblock %}
 </head>
-<body>
 
+<body>
   <!-- 🧠 Topbar -->
   <header class="topbar">
     <div class="topbar-left">
-      <div class="logo">COLLABoard</div>
+      <div class="logo">
+        <img src="{% static 'core/icons/collaboard-logo.png' %}" alt="COLLABoard" class="logo-image">
+        <span class="logo-text">COLLABoard</span>
+      </div>
     </div>
 
     <div class="topbar-center">
@@ -74,7 +78,6 @@
     </button>
 
     <nav class="menu">
-      <!-- Role-based dashboard redirect -->
       {% if user.role == "teacher" %}
         <a href="{% url 'teacher_dashboard' %}" class="menu-btn">My Dashboard</a>
       {% elif user.role == "admin" %}
@@ -84,7 +87,7 @@
       {% endif %}
 
       <a href="{% url 'profile' %}" class="menu-btn">My Profile</a>
-      <a href="#" class="menu-btn">Chats</a>
+      <a href="#" class="menu-btn" id="sidebarChatBtn">Chats</a>
       <a href="{% url 'help' %}" class="menu-btn">Help</a>
     </nav>
 
@@ -98,5 +101,13 @@
     {% block content %}{% endblock %}
   </main>
 
+  <!-- 💬 Floating Chat Bubble (Global) -->
+  {% include 'chat/chat_box.html' %}
+
+  <!-- 🧠 Core Scripts -->
+  <script src="{% static 'core/js/dashboard-sidebar.js' %}" defer></script>
+  <script src="{% static 'dashboard/js/dashboard-ui.js' %}" defer></script>
+  
+  {% block extra_js %}{% endblock %}
 </body>
 </html>
