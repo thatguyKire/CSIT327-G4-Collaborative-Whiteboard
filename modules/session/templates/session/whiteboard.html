@@ -11,72 +11,77 @@
   <h2 class="session-title">{{ session_title }}</h2>
 
   <div class="whiteboard-layout">
-    
-    <!-- 🎨 Whiteboard Canvas Area -->
+    <!-- Canvas + Tools -->
     <div class="whiteboard-container">
-      <div class="toolbar" role="toolbar">
-        <!-- 🔙 Back Button -->
-        <button id="backBtn" class="btn btn-secondary" data-back-url="{{ back_url }}">← Back</button>
+      <div class="toolbar" role="toolbar" aria-label="Whiteboard toolbar">
+        <button id="backBtn" class="btn btn-secondary" data-back-url="{{ back_url }}" aria-label="Go back">← Back</button>
 
         {% if can_draw %}
-          <!-- ✏️ Drawing Tools -->
-          <label>Color: <input type="color" id="colorPicker" value="#000000"></label>
-          <label>Size: <input type="range" id="sizePicker" min="1" max="20" value="3"></label>
-          <button id="penBtn" class="btn btn-secondary active">Pen</button>
-          <button id="eraserBtn" class="btn btn-secondary">Eraser</button>
-          <button id="clearBtn" class="btn btn-danger">Clear All</button>
+          <label>Color: <input type="color" id="colorPicker" value="#000000" aria-label="Brush color"></label>
+          <label>Size: <input type="range" id="sizePicker" min="1" max="20" value="3" aria-label="Brush size"></label>
+          <button id="penBtn" class="btn btn-secondary active" aria-label="Pen tool">Pen</button>
+          <button id="eraserBtn" class="btn btn-secondary" aria-label="Eraser tool">Eraser</button>
+
+          <button id="undoBtn" class="btn btn-secondary" aria-label="Undo last action" title="Undo (Ctrl+Z)">Undo</button>
+          <button id="redoBtn" class="btn btn-secondary" aria-label="Redo last action" title="Redo (Ctrl+Y / Ctrl+Shift+Z)">Redo</button>
+
+          <button id="clearBtn" class="btn btn-danger" aria-label="Clear whiteboard">Clear All</button>
 
           {% if user == session.created_by %}
-            <button id="saveBtn" class="btn btn-success" data-save-url="{% url 'save_snapshot' session.id %}">Save</button>
+            <button id="saveBtn" class="btn btn-success" data-save-url="{% url 'save_snapshot' session.id %}" aria-label="Save snapshot">Save</button>
           {% endif %}
-          <button id="exportBtn" class="btn btn-primary">Export</button>
+          <button id="exportBtn" class="btn btn-primary" aria-label="Export as image">Export</button>
 
-          <!-- 🗂️ File Upload -->
           <div class="upload-section">
-            <label for="fileInput" class="btn btn-secondary">📁 Upload</label>
+            <label for="fileInput" class="btn btn-secondary" aria-label="Upload file">📁 Upload</label>
             <input type="file" id="fileInput" accept="image/*,.pdf,.docx,.pptx" hidden>
-            <div id="uploadStatus" class="upload-status"></div>
+            <div id="uploadStatus" class="upload-status" role="status" aria-live="polite"></div>
           </div>
         {% else %}
-          <div class="readonly-toolbar">
+          <div class="readonly-toolbar" aria-live="polite">
             👀 View-only mode — waiting for teacher permission
           </div>
         {% endif %}
       </div>
 
-      <!-- 📁 Uploaded Files -->
       {% if can_draw %}
-      <div class="uploaded-files-container">
+      <div class="uploaded-files-container" aria-label="Uploaded files">
         <ul id="uploadedFiles" class="uploaded-files"></ul>
       </div>
       {% endif %}
 
       {% if snapshot_url %}
-        <img id="snapshotImg" src="{{ snapshot_url }}" hidden>
+        <img id="snapshotImg" src="{{ snapshot_url }}" hidden alt="Previous whiteboard snapshot">
       {% endif %}
 
-      <!-- 🎨 Unified Canvas -->
-      <canvas id="whiteboardCanvas"></canvas>
+      <!-- Important: set both CSS size and intrinsic size -->
+      <canvas
+        id="whiteboardCanvas"
+        aria-label="Whiteboard drawing area"
+        style="width:100%; height:600px; background:#fff; display:block;"
+        width="1200" height="600"></canvas>
+      <noscript>Enable JavaScript to use the whiteboard.</noscript>
     </div>
 
-    <!-- 👥 Participants Sidebar -->
+    <!-- Participants (teacher only) -->
     {% if user == session.created_by %}
-    <aside class="participants-panel">
+    <aside class="participants-panel" aria-label="Participants">
       <h3>👥 Participants</h3>
       <ul id="participantsList">
         {% for p in session.participants.all %}
         <li class="participant-item">
           <span class="participant-name">{{ p.user.username }}</span>
-          <form method="post" class="toggle-draw-form" data-user-id="{{ p.user.id }}">
+          <form method="post"
+                class="toggle-draw-form"
+                data-user-id="{{ p.user.id }}"
+                data-url="{% url 'toggle_draw_permission' session.id p.user.id %}">
             {% csrf_token %}
-            <label class="switch">
+            <label class="switch" aria-label="Toggle draw permission">
               <input type="checkbox" name="can_draw" {% if p.can_draw %}checked{% endif %}>
               <span class="slider"></span>
             </label>
           </form>
         </li>
-        {% empty %}
-        <li class="empty">No participants yet.</li>
         {% endfor %}
       </ul>
     </aside>
@@ -87,9 +92,14 @@
 {{ can_draw|json_script:"can_draw_data" }}
 <script>
   window.CAN_DRAW = JSON.parse(document.getElementById("can_draw_data").textContent);
+  window.CURRENT_SESSION_ID = "{{ session.id }}";
+  window.CURRENT_USER_ID = "{{ request.user.id }}";
+  window.SUPABASE_URL = "{{ SUPABASE_URL }}";
+  window.SUPABASE_ANON_KEY = "{{ SUPABASE_ANON_KEY }}";
 </script>
 
-<!-- 🎨 Scripts -->
+<!-- Load Supabase first, then app scripts -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.6/dist/umd/supabase.js"></script>
 <script src="{% static 'session/js/whiteboard.js' %}"></script>
 {% if user == session.created_by %}
 <script src="{% static 'session/js/participants.js' %}"></script>
@@ -97,6 +107,4 @@
 {% if can_draw %}
 <script src="{% static 'session/js/upload.js' %}" defer></script>
 {% endif %}
-
-<!-- 💬 Chat Integration (automatically loaded from base.html) -->
 {% endblock %}

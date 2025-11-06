@@ -134,9 +134,12 @@ USE_TZ = True
 # -------------------------------------------------------------
 # SUPABASE (for whiteboard snapshots)
 # -------------------------------------------------------------
-SUPABASE_URL = os.getenv("SUPABASE_URL")
-SUPABASE_KEY = os.getenv("SUPABASE_KEY")
+SUPABASE_URL = os.getenv("SUPABASE_URL", "")
+SUPABASE_ANON_KEY = os.getenv("SUPABASE_ANON_KEY") or os.getenv("SUPABASE_KEY", "")
+SUPABASE_SERVICE_ROLE_KEY = os.getenv("SUPABASE_SERVICE_ROLE_KEY", "")
 SUPABASE_BUCKET = os.getenv("SUPABASE_BUCKET", "whiteboard_snapshots")
+# Backward-compat alias (old code may still read SUPABASE_KEY)
+SUPABASE_KEY = SUPABASE_ANON_KEY
 
 # -------------------------------------------------------------
 # STATIC & MEDIA FILES

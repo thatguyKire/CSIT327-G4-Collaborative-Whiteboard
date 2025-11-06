@@ -1,33 +1,33 @@
 {% load static %}
 
 <!-- 💬 Floating Chat Bubble (like Messenger) -->
-<div id="chatBubble" class="chat-bubble" draggable="false">
+<div id="chatBubble" class="chat-bubble" draggable="false" role="button" aria-haspopup="dialog" aria-controls="chatWindow" aria-label="Open chat" tabindex="0">
   <img src="{% static 'core/icons/collaboard-logo.png' %}" alt="Chat" class="bubble-icon">
-  <span class="chat-badge" id="unreadBadge">0</span>
+  <span class="chat-badge" id="unreadBadge" role="status" aria-live="polite">0</span>
 </div>
 
 <!-- 💬 Chat Window -->
-<div id="chatWindow" class="chat-window hidden">
+<div id="chatWindow" class="chat-window hidden" role="dialog" aria-modal="false" aria-labelledby="chatWindowTitle">
   <div class="chat-window-header">
     <div class="chat-header-left">
       <img src="{% static 'core/icons/collaboard-logo.png' %}" alt="COLLABoard" class="header-logo">
-      <span class="chat-title">Chat</span>
+      <span class="chat-title" id="chatWindowTitle">Chat</span>
     </div>
     <div class="chat-header-right">
-      <span id="chatStatus" class="chat-status">●</span>
-      <button id="minimizeBtn" class="header-btn" title="Minimize">−</button>
-      <button id="closeBtn" class="header-btn" title="Close">×</button>
+      <span id="chatStatus" class="chat-status" aria-label="Connection status" title="Connection status">●</span>
+      <button id="minimizeBtn" class="header-btn" title="Minimize" type="button" aria-label="Minimize chat">−</button>
+      <button id="closeBtn" class="header-btn" title="Close" type="button" aria-label="Close chat">×</button>
     </div>
   </div>
 
-  <div id="chatMessages" class="chat-messages">
+  <div id="chatMessages" class="chat-messages" role="log" aria-live="polite" aria-relevant="additions text" aria-atomic="false">
     <div class="chat-empty">No messages yet. Start the conversation!</div>
   </div>
 
   <div class="chat-input-container">
-    <input type="text" id="chatInput" placeholder="Type a message..." autocomplete="off" maxlength="500">
-    <button id="chatSendBtn" class="chat-send">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+    <input type="text" id="chatInput" placeholder="Type a message..." autocomplete="off" maxlength="500" aria-label="Type a message">
+    <button id="chatSendBtn" class="chat-send" type="button" aria-label="Send message">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true" focusable="false">
         <path d="M22 2L11 13" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
         <path d="M22 2L15 22L11 13L2 9L22 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
       </svg>

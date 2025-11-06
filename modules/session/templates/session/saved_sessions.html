@@ -1,0 +1,36 @@
+{% extends "core/base.html" %}
+{% load static %}
+
+{% block title %}Saved Sessions - COLLABoard{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'session/css/session_list.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="main">
+  <section class="dashboard-wrapper">
+    <h1>Saved Sessions</h1>
+    <a href="{% url 'teacher_dashboard' %}" class="btn btn-secondary">← Back</a>
+
+    <ul>
+      {% for it in items %}
+      <li>
+        <div class="session-meta">
+          <strong>{{ it.title }}</strong>
+        </div>
+        <div class="session-actions">
+          {% if it.snapshot_url %}
+            <a class="btn btn-primary" href="{% url 'offline_view' it.id %}">View Snapshot</a>
+            <a class="btn btn-secondary" href="{{ it.snapshot_url }}" download>Download</a>
+          {% else %}
+            <span class="empty">No snapshot</span>
+          {% endif %}
+        </div>
+      </li>
+      {% empty %}
+      <li class="no-session">No saved sessions yet.</li>
+      {% endfor %}
+    </ul>
+  </section>
+</div>
+{% endblock %}

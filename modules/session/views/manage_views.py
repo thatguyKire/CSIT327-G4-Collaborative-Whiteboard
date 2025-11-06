@@ -63,29 +63,29 @@ def delete_session(request, session_id):
 
 @login_required
 @require_POST
-@safe_view
-def toggle_draw_permission(request, user_id):
-    """Teacher toggles whether a participant can draw."""
+def toggle_draw_permission(request, session_id, user_id):
     try:
-        data = json.loads(request.body)
-        can_draw = data.get("can_draw", False)
+        session = get_object_or_404(Session, id=session_id)
+        if request.user != session.created_by:
+            return JsonResponse({"ok": False, "error": "forbidden"}, status=403)
 
-        participant = Participant.objects.filter(
-            user_id=user_id
-        ).select_related("session").first()
+        try:
+            data = json.loads(request.body or "{}")
+        except json.JSONDecodeError:
+            data = request.POST or {}
 
-        if not participant:
+        raw = str(data.get("can_draw", "")).lower()
+        can = raw in ("1", "true", "on", "yes")
+
+        p = Participant.objects.filter(session=session, user_id=user_id).first()
+        if not p:
             return JsonResponse({"ok": False, "error": "participant_not_found"}, status=404)
 
-        # ✅ Permission: only the session owner can change this
-        if participant.session.created_by != request.user:
-            return JsonResponse({"ok": False, "error": "unauthorized"}, status=403)
-
-        participant.can_draw = can_draw
-        participant.save(update_fields=["can_draw"])
-        return JsonResponse({"ok": True})
+        p.can_draw = can
+        p.save(update_fields=["can_draw"])
+        return JsonResponse({"ok": True, "user_id": user_id, "can_draw": p.can_draw})
     except Exception as e:
-        logger.exception("toggle_draw_permission failed: %s", e)
+        # Ensure JSON is always returned (avoid HTML error page)
         return JsonResponse({"ok": False, "error": str(e)}, status=500)
     
 

@@ -6,10 +6,16 @@ from django.conf import settings
 from supabase import create_client
 from ..models import Session, Participant
 from django.urls import reverse
-from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
+from django.shortcuts import get_object_or_404, redirect
 
-supabase = create_client(settings.SUPABASE_URL, settings.SUPABASE_KEY)
+# Use service role server-side only; never send to client
+def _server_supabase():
+    key = settings.SUPABASE_SERVICE_ROLE_KEY or settings.SUPABASE_ANON_KEY
+    return create_client(settings.SUPABASE_URL, key)
+
+# Remove any use of settings.SUPABASE_KEY; use the helper instead.
+supabase = _server_supabase()
 logger = logging.getLogger(__name__)
 
 def safe_view(func):
@@ -48,20 +54,14 @@ def whiteboard_view(request, session_id):
     # --- Get snapshot from Supabase Storage ---
     snapshot_url = None
     try:
-        file_path = f"{session_id}.png"
+        sb = _server_supabase()
         bucket = settings.SUPABASE_BUCKET
+        file_path = f"{session_id}.png"
+        objs = sb.storage.from_(bucket).list(path="")
+        if any(obj.get("name") == file_path for obj in objs or []):
+            snapshot_url = sb.storage.from_(bucket).get_public_url(file_path)
 
-        # Try fetching the file list (checks if file exists)
-        res = supabase.storage.from_(bucket).list(path="")
-        if any(obj["name"] == file_path for obj in res):
-            snapshot_url = supabase.storage.from_(bucket).get_public_url(file_path)
-
-        # Add cache-buster to prevent old cache images
-        if snapshot_url:
-            snapshot_url = f"{snapshot_url.split('?')[0]}?v={int(systime.time())}"
-
-    except Exception as e:
-        logger.warning(f"⚠️ Snapshot lookup failed for session {session_id}: {e}")
+    except Exception:
         snapshot_url = None
 
     # Determine Back URL
@@ -80,6 +80,8 @@ def whiteboard_view(request, session_id):
             "snapshot_url": snapshot_url,
             "can_draw": can_draw,
             "back_url": back_url,
+            "SUPABASE_URL": settings.SUPABASE_URL,
+            "SUPABASE_ANON_KEY": settings.SUPABASE_ANON_KEY,
         },
     )
 

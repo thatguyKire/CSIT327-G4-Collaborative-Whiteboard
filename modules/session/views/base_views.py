@@ -84,7 +84,30 @@ def offline_view(request, session_id):
     Only available if `is_offline_available=True`.
     """
     session = get_object_or_404(Session, id=session_id, is_offline_available=True)
+
+    # Optional: only owner or participants can view
+    if request.user != session.created_by and not session.participants.filter(user=request.user).exists():
+        return HttpResponse(status=403)
+
+    # Fallback: accept either stored URL or FileField
+    snapshot_url = getattr(session, "snapshot_url", None)
+    if not snapshot_url:
+        snap = getattr(session, "snapshot", None)
+        if snap:
+            snapshot_url = getattr(snap, "url", None)
+
     return render(request, "session/offline_view.html", {
         "session": session,
-        "snapshot_url": session.snapshot_url,
+        "snapshot_url": snapshot_url,
     })
+
+@login_required
+@safe_view
+def saved_sessions(request):
+    qs = Session.objects.filter(created_by=request.user).order_by("-id")
+    items = []
+    for s in qs:
+        snap = getattr(s, "snapshot", None)
+        snapshot_url = snap.url if snap else getattr(s, "snapshot_url", None)
+        items.append({"id": s.id, "title": getattr(s, "title", f"Session {s.id}"), "snapshot_url": snapshot_url})
+    return render(request, "session/saved_sessions.html", {"items": items})

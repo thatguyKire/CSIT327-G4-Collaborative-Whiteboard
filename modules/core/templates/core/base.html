@@ -80,12 +80,12 @@
     <nav class="menu">
       {% if user.role == "teacher" %}
         <a href="{% url 'teacher_dashboard' %}" class="menu-btn">My Dashboard</a>
+        <a href="{% url 'saved_sessions' %}" class="menu-btn">Saved Sessions</a> <!-- optional -->
       {% elif user.role == "admin" %}
         <a href="{% url 'admin_dashboard' %}" class="menu-btn">My Dashboard</a>
       {% else %}
         <a href="{% url 'student_dashboard' %}" class="menu-btn">My Dashboard</a>
       {% endif %}
-
       <a href="{% url 'profile' %}" class="menu-btn">My Profile</a>
       <a href="#" class="menu-btn" id="sidebarChatBtn">Chats</a>
       <a href="{% url 'help' %}" class="menu-btn">Help</a>
@@ -107,7 +107,6 @@
   <!-- 🧠 Core Scripts -->
   <script src="{% static 'core/js/dashboard-sidebar.js' %}" defer></script>
   <script src="{% static 'dashboard/js/dashboard-ui.js' %}" defer></script>
-  
   {% block extra_js %}{% endblock %}
 </body>
 </html>

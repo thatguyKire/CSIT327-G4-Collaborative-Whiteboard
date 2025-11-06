@@ -14,7 +14,9 @@ from .views import (
     toggle_draw_permission,
     offline_view,
     upload_views,
+    saved_sessions,
 )
+from .views.manage_views import toggle_draw_permission
 
 urlpatterns = [
     # Teacher-side
@@ -36,6 +38,7 @@ urlpatterns = [
 
     # Teacher permission toggle
     path('<int:user_id>/toggle_draw/', toggle_draw_permission, name='toggle_draw'),
+    path("<uuid:session_id>/participants/<int:user_id>/can-draw/", toggle_draw_permission, name="toggle_draw_permission"),
 
 
     # Offline view
@@ -43,4 +46,5 @@ urlpatterns = [
 
     # ✅ Upload
     path('<uuid:session_id>/upload/', upload_views.upload_attachment, name='upload_attachment'),
+    path('sessions/saved/', saved_sessions, name='saved_sessions'),
 ]
