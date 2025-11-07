@@ -80,14 +80,13 @@ def whiteboard_view(request, session_id):
             "snapshot_url": snapshot_url,
             "can_draw": can_draw,
             "back_url": back_url,
-            "SUPABASE_URL": settings.SUPABASE_URL,
-            "SUPABASE_ANON_KEY": settings.SUPABASE_ANON_KEY,
+            "SUPABASE_URL": getattr(settings, "SUPABASE_URL", ""),
+            "SUPABASE_ANON_KEY": getattr(settings, "SUPABASE_ANON_KEY", ""),
         },
     )
 
 
 @login_required
-@safe_view
 def student_whiteboard_view(request, session_id):
     """
     Student version of the whiteboard.

@@ -48,26 +48,27 @@
       if (data.ok || data.file_url) {
         setStatus(`✅ ${file.name}`, "success");
         setTimeout(() => uploadStatus && (uploadStatus.textContent = ""), 2000);
-
         // Preview list
         if (uploadedFiles && data.file_url) {
           const li = document.createElement("li");
           li.innerHTML = `<img src="${data.file_url}" class="upload-preview" alt="${file.name}">`;
           uploadedFiles.appendChild(li);
         }
-
-        // Add to board
+        // Add to board + broadcast
         if (data.file_url && window.WhiteboardApp?.addImageFromUrl) {
-          const placed = await window.WhiteboardApp.addImageFromUrl(data.file_url);
-          // Broadcast normalized placement so others render it in the same spot
+          const id = (crypto.randomUUID && crypto.randomUUID()) || `${Date.now()}-${Math.random().toString(36).slice(2,8)}`;
+          const placed = await window.WhiteboardApp.addImageFromUrl(data.file_url, { id });
+          // Broadcast normalized placement so others add the same image and track it by id
           const canvas = document.getElementById("whiteboardCanvas");
           const rect = canvas.getBoundingClientRect();
           const payload = {
+            t: "add",
+            id,
             url: data.file_url,
             x: placed.x / rect.width,
             y: placed.y / rect.height,
             w: placed.width / rect.width,
-            h: placed.height / rect.height,
+            h: placed.height / rect.height
           };
           window.WhiteboardChannel?.send({ type: "broadcast", event: "image", payload });
         }
