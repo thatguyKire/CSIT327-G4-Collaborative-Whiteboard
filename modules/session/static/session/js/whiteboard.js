@@ -21,6 +21,9 @@
   const snapshotImg = document.getElementById("snapshotImg");
   const undoBtn = document.getElementById("undoBtn");
   const redoBtn = document.getElementById("redoBtn");
+  const fileInput = document.getElementById("fileInput");
+  const drawToolbar = document.getElementById("drawToolbar");
+  const viewOnlyBanner = document.getElementById("viewOnlyBanner");
 
   // Accessibility: add ARIA to toolbar controls
   const addA11yButton = (el, label, pressed = null) => {
@@ -369,6 +372,36 @@
   }
   if (canDraw) bindDrawingHandlers(); else unbindDrawingHandlers();
 
+  // Enable/disable tools instantly when permission changes
+  function setDisabled(el, v){ if (el) el.disabled = !!v; }
+  function updatePermissionUI() {
+    if (canDraw) {
+      viewOnlyBanner.style.display = "none";
+      drawToolbar.style.display = "flex";
+      bindDrawingHandlers();
+      canvas.style.pointerEvents = "auto";
+    } else {
+      viewOnlyBanner.style.display = "block";
+      drawToolbar.style.display = "none";
+      drawing = false; dragging = false; resizing = false; activeImage = null;
+      unbindDrawingHandlers();
+      canvas.style.pointerEvents = "none";
+    }
+  }
+  updatePermissionUI();
+
+  // Expose permission apply function
+  window.WhiteboardApp = {
+    get canDraw(){ return canDraw; },
+    applyPermission(can){
+      canDraw = !!can;
+      updatePermissionUI();
+    },
+    addImageFromUrl,
+    showToast,
+    getCookie
+  };
+
   // ========================================
   // IMAGE INTERACTIONS
   // ========================================
@@ -658,13 +691,15 @@
         }
 
         // If coords provided (from realtime), use them; else center
-        const useAbs = !!opts.absolute;
         const x = Number.isFinite(opts.x) ? opts.x : (rect.width / 2 - width / 2);
         const y = Number.isFinite(opts.y) ? opts.y : (rect.height / 2 - height / 2);
         if (Number.isFinite(opts.width))  width  = opts.width;
         if (Number.isFinite(opts.height)) height = opts.height;
 
-        const item = { id: nextImageId++, img, x, y, width, height, rotation: 0 };
+        const item = {
+          id: opts.id != null ? String(opts.id) : String(nextImageId++),
+          img, x, y, width, height, rotation: 0
+        };
         images.push(item);
         activeImage = item;
 
@@ -748,6 +783,29 @@
     console.log("Realtime status:", status, channelName);
   });
 
+  // Helper to find image by shared id
+  function findImageById(id) {
+    return images.find(i => String(i.id) === String(id));
+  }
+  // Broadcast image changes (normalized coords)
+  function sendImageUpdate(t, item) {
+    if (!channel || !item || !item.id) return;
+    const rect = canvas.getBoundingClientRect();
+    channel.send({
+      type: "broadcast",
+      event: "image",
+      payload: {
+        t,
+        id: String(item.id),
+        x: item.x / rect.width,
+        y: item.y / rect.height,
+        w: item.width / rect.width,
+        h: item.height / rect.height
+      }
+    });
+  }
+
+  // Strokes from others
   channel?.on("broadcast", { event: "stroke" }, ({ payload }) => {
     if (payload.sid && String(payload.sid) === String(window.CURRENT_USER_ID)) return;
 
@@ -768,7 +826,6 @@
         strokeCtx.stroke();
         break;
       case "end":
-        // no-op; path already stroked
         break;
       case "clear":
         strokeCtx.clearRect(0, 0, rect.width, rect.height);
@@ -779,13 +836,48 @@
     scheduleRedraw();
   });
 
-  // Live permission toggle (remove undefined functions)
+  // Images from others
+  channel?.on("broadcast", { event: "image" }, ({ payload }) => {
+    const t = payload?.t || "add";
+    const id = payload?.id != null ? String(payload.id) : null;
+    const rect = canvas.getBoundingClientRect();
+    const px = (payload?.x || 0) * rect.width;
+    const py = (payload?.y || 0) * rect.height;
+    const pw = (payload?.w || 0.3) * rect.width;
+    const ph = (payload?.h || 0.3) * rect.height;
+
+    if (t === "add") {
+      if (!payload?.url) return;
+      // if already exists, just update its geometry
+      const ex = id ? findImageById(id) : null;
+      if (ex) { ex.x = px; ex.y = py; ex.width = pw; ex.height = ph; scheduleRedraw(); return; }
+      addImageFromUrl(payload.url, { id, x: px, y: py, width: pw, height: ph, absolute: true }).catch(() => {});
+      return;
+    }
+    if (!id) return;
+    const item = findImageById(id);
+    if (!item) return;
+    switch (t) {
+      case "move":
+      case "resize":
+        item.x = px; item.y = py; item.width = pw; item.height = ph; break;
+      case "rotate":
+        item.rotation = payload.rotation || 0; break;
+      case "delete":
+        images = images.filter(i => i !== item);
+        if (activeImage && String(activeImage.id) === id) activeImage = null;
+        break;
+    }
+    scheduleRedraw();
+  });
+
+  // Live permission toggle
   channel?.on("broadcast", { event: "perm" }, ({ payload }) => {
     const { uid, can } = payload || {};
     if (!uid || String(uid) !== String(window.CURRENT_USER_ID)) return;
     canDraw = !!can;
-    if (canDraw) { bindDrawingHandlers(); showToast("You can draw now.", "success"); }
-    else { unbindDrawingHandlers(); showToast("Drawing permission removed.", "info"); }
+    updatePermissionUI();
+    showToast(canDraw ? "You can draw now." : "Drawing permission removed.", canDraw ? "success" : "info");
   });
 
   // Clear button: also broadcast
@@ -799,5 +891,44 @@
     scheduleRedraw();
     snapshotState("clear");
     send("clear");
+  });
+
+  // Realtime for image drag/resize/rotate/delete (teacher or any canDraw user)
+  let imgBroadcastRAF = false;
+  canvas.addEventListener("pointermove", (e) => {
+    if (!canDraw) return;
+    if ((dragging || resizing) && activeImage && !imgBroadcastRAF) {
+      imgBroadcastRAF = true;
+      requestAnimationFrame(() => {
+        sendImageUpdate(resizing ? "resize" : "move", activeImage);
+        imgBroadcastRAF = false;
+      });
+    }
+  });
+  canvas.addEventListener("pointerup", () => {
+    if (!canDraw) return;
+    if ((dragging || resizing) && activeImage) {
+      // final position
+      sendImageUpdate(resizing ? "resize" : "move", activeImage);
+    }
+  });
+  // wheel rotate broadcast (debounced already)
+  const _oldWheelDebounce = wheelRotateDebounce;
+  canvas.addEventListener("wheel", (e) => {
+    if (activeImage && e.shiftKey && canDraw) {
+      clearTimeout(wheelRotateDebounce);
+      wheelRotateDebounce = setTimeout(() => {
+        sendImageUpdate("rotate", activeImage);
+      }, 250);
+    }
+  }, { passive: false });
+  // delete broadcast
+  document.addEventListener("keydown", (e) => {
+    if (!canDraw) return;
+    if ((e.key === "Delete" || e.key === "Backspace") && activeImage) {
+      const id = activeImage.id;
+      // ...existing delete code...
+      sendImageUpdate("delete", { id, x:0,y:0,w:0,h:0 });
+    }
   });
 })();
