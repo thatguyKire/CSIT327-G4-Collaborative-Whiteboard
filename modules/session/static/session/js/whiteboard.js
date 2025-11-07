@@ -351,6 +351,13 @@
     drawing = false;
     snapshotState("stroke");
     send("end", e);
+    // increment strokes on server
+    if (window.CURRENT_SESSION_ID) {
+      fetch(`/session/${window.CURRENT_SESSION_ID}/stroke/`, {
+        method: "POST",
+        headers: { "X-CSRFToken": getCookie("csrftoken") }
+      }).catch(()=>{});
+    }
   }
 
   // bind/unbind so permission can toggle live

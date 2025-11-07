@@ -136,7 +136,8 @@ img { max-width: 100%; height: auto; display: inline-block; }
   min-height: calc(100vh - var(--topbar-height));
   background: #FFFAE7; 
   transition: margin-left 0.28s ease;
-  overflow:auto;
+  overflow-y:auto;
+  overscroll-behavior: contain;
 }
 
 .sidebar.collapsed ~ .main { margin-left: var(--sidebar-collapsed); }
@@ -145,6 +146,54 @@ img { max-width: 100%; height: auto; display: inline-block; }
 .dashboard-wrapper { 
   max-width: 1200px; 
   margin: 0 auto; 
+  padding-bottom: 120px; /* space so last element not hidden */
+}
+
+/* Graph area (ensure visible + scroll) */
+.dashboard-graph {
+  background:#ffffff;
+  border:2px solid #e8e8e8;
+  border-radius:14px;
+  padding:28px 32px;
+  margin-top:32px;
+  min-height:300px;
+  box-shadow:0 3px 10px rgba(0,0,0,0.05);
+  display:flex;
+  flex-direction:column;
+  gap:16px;
+}
+.dashboard-graph h3 {
+  margin:0;
+  font-size:22px;
+  font-weight:600;
+  color:#2c3e50;
+}
+.graph-canvas-wrapper {
+  flex:1;
+  min-height:220px;
+  overflow:auto; /* allow internal chart overflow */
+}
+
+/* Keep .main scrollable */
+.main {
+  margin-top: var(--topbar-height);
+  margin-left: var(--sidebar-expanded);
+  padding: 48px 40px;
+  min-height: calc(100vh - var(--topbar-height));
+  background: #FFFAE7; 
+  transition: margin-left 0.28s ease;
+  overflow-y:auto;
+  overscroll-behavior: contain;
+}
+
+/* Improve mobile scroll feel */
+@media (max-width: 640px) {
+  .main {
+    padding: 32px 20px 120px;
+  }
+  .dashboard-graph {
+    padding:22px 20px;
+  }
 }
 
 .dashboard-intro {
@@ -317,6 +366,67 @@ img { max-width: 100%; height: auto; display: inline-block; }
   transform: none;
   border-color: #d0d0d0;
   box-shadow: 0 2px 6px rgba(0,0,0,0.03);
+}
+
+/* ---------- Performance Summary ---------- */
+.perf-summary {
+  display:flex;
+  flex-wrap:wrap;
+  gap:14px;
+  margin-top:8px;
+}
+.perf-badge {
+  flex:1 1 140px;
+  background:#fff;
+  border:2px solid #333;
+  border-radius:12px;
+  padding:10px 14px;
+  box-shadow:4px 4px 0 #333;
+  display:flex;
+  flex-direction:column;
+  gap:4px;
+}
+.perf-badge .label {
+  font-size:12px;
+  text-transform:uppercase;
+  letter-spacing:.5px;
+  color:#555;
+}
+.perf-badge .value {
+  font-size:20px;
+  font-weight:700;
+  color:#2c3e50;
+}
+.graph-host {
+  position:relative;
+  background:#fff;
+  border:2px dashed #ccc;
+  border-radius:14px;
+  padding:16px 18px;
+}
+.perf-table {
+  width:100%;
+  margin-top:20px;
+  border-collapse:collapse;
+  background:#fff;
+  font-size:14px;
+}
+.perf-table th, .perf-table td {
+  padding:8px 10px;
+  border-bottom:1px solid #e2e2e2;
+  text-align:left;
+}
+.perf-table th {
+  background:#f7f7f7;
+  font-weight:600;
+}
+.perf-table tbody tr:hover {
+  background:#fafafa;
+}
+@media (max-width: 780px) {
+  .perf-summary { gap:10px; }
+  .perf-badge { flex:1 1 46%; }
+  .perf-table { font-size:13px; }
 }
 
 /* ---------- Responsive ---------- */

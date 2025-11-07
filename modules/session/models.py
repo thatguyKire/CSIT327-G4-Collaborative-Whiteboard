@@ -34,6 +34,9 @@ class Participant(models.Model):
     session = models.ForeignKey(Session, on_delete=models.CASCADE, related_name='participants')
     can_draw = models.BooleanField(default=False)
     joined_at = models.DateTimeField(auto_now_add=True)
+    strokes_count = models.PositiveIntegerField(default=0)
+    uploads_count = models.PositiveIntegerField(default=0)
+    last_active = models.DateTimeField(null=True, blank=True)
 
     def __str__(self):
         return f"{self.user.username} in {self.session.title}"

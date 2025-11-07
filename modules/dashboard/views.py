@@ -2,6 +2,11 @@ import logging
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from modules.authentication.decorators import role_required  # ✅ adjust path if needed
+from django.utils import timezone
+from django.db.models import Count, Max
+from modules.session.models import Participant, UploadedFile, ChatMessage, Session
+
+
 
 
 logger = logging.getLogger(__name__)
@@ -23,9 +28,21 @@ def student_dashboard(request):
     """
     Displays sessions joined by the student.
     """
-    joined_sessions = Participant.objects.filter(user=request.user).select_related('session')
+    joined = Participant.objects.filter(user=request.user).select_related("session")
+    sessions = [p.session for p in joined]
+    uploads_map = {
+        r["session_id"]: r["cnt"]
+        for r in UploadedFile.objects.filter(session__in=sessions)
+              .values("session_id").annotate(cnt=Count("id"))
+    }
+    performance_chart = {
+        "labels": [p.session.title or "Session" for p in joined],
+        "strokes": [p.strokes_count for p in joined],
+        "uploads": [uploads_map.get(p.session_id, 0) for p in joined],
+    }
     return render(request, "dashboard/student_dashboard.html", {
-        'joined_sessions': joined_sessions
+        "joined_sessions": joined,
+        "student_perf_chart": performance_chart,
     })
 
 
@@ -34,77 +51,93 @@ def student_dashboard(request):
 @role_required(['teacher'])
 def teacher_dashboard(request):
     """
-    Displays the teacher dashboard.
-    Shows open sessions and total active classes (if Session model exists).
+    Teacher dashboard with performance metrics.
     """
-    open_sessions = []
-    active_classes_count = 0
+    user = request.user
 
-    # Count active classes based on available models
-    class_attempts = [
-        ("classes.models", "Class"),
-        ("courses.models", "Course"),
-        ("classroom.models", "Classroom"),
-        ("school.models", "SchoolClass"),
-        ("courses.models", "CourseClass"),
-    ]
+    # Sessions owned by teacher
+    sessions_qs = Session.objects.filter(created_by=user)
 
-    for module_path, model_name in class_attempts:
-        try:
-            module = __import__(module_path, fromlist=[model_name])
-            Model = getattr(module, model_name)
-            qs = Model.objects.all()
+    # Open sessions subset (recent)
+    order_by = "-created_at"
+    open_sessions = sessions_qs.order_by(order_by)[:10]
 
-            if hasattr(Model, "teacher"):
-                qs = qs.filter(teacher=request.user)
-            elif hasattr(Model, "owner"):
-                qs = qs.filter(owner=request.user)
-            elif hasattr(Model, "created_by"):
-                qs = qs.filter(created_by=request.user)
+    active_classes_count = sessions_qs.count()
 
-            if hasattr(Model, "is_active"):
-                qs = qs.filter(is_active=True)
+    # Participants across teacher sessions
+    participants_qs = Participant.objects.filter(session__in=sessions_qs).select_related("user")
 
-            active_classes_count = qs.count()
-            break
-        except Exception:
-            continue
+    # Per-user uploads
+    uploads_agg = UploadedFile.objects.filter(session__in=sessions_qs) \
+        .values("uploaded_by_id").annotate(upload_count=Count("id"), last_upload=Max("uploaded_at"))
 
-    # Fallback to sessions if no other class model found
-    if active_classes_count == 0 and Session is not None:
-        try:
-            qs = Session.objects.all()
-            if hasattr(Session, "created_by"):
-                qs = qs.filter(created_by=request.user)
-            elif hasattr(Session, "teacher"):
-                qs = qs.filter(teacher=request.user)
-            if hasattr(Session, "is_active"):
-                qs = qs.filter(is_active=True)
-            active_classes_count = qs.count()
-        except Exception:
-            active_classes_count = 0
+    uploads_map = {u["uploaded_by_id"]: u for u in uploads_agg}
 
-    # Fetch open sessions (most recent)
-    if Session is not None:
-        try:
-            qs = Session.objects.all()
-            owner_fields = ["created_by", "creator", "teacher", "owner", "user"]
-            for f in owner_fields:
-                if hasattr(Session, f):
-                    qs = qs.filter(**{f: request.user})
-                    break
+    # Per-user messages
+    msgs_agg = ChatMessage.objects.filter(session__in=sessions_qs) \
+        .values("sender_id").annotate(msg_count=Count("id"), last_msg=Max("timestamp"))
 
-            if hasattr(Session, "is_active"):
-                qs = qs.filter(is_active=True)
+    msgs_map = {m["sender_id"]: m for m in msgs_agg}
 
-            order_by = "-updated_at" if hasattr(Session, "updated_at") else "-created_at" if hasattr(Session, "created_at") else "-id"
-            open_sessions = qs.order_by(order_by)[:10]
-        except Exception:
-            logger.exception("Failed to fetch open sessions for teacher dashboard")
+    today = timezone.now().date()
+
+    performance_rows = []
+    for p in participants_qs:
+        uid = p.user_id
+        up = uploads_map.get(uid)
+        ms = msgs_map.get(uid)
+
+        uploads_count = up["upload_count"] if up else 0
+        messages_count = ms["msg_count"] if ms else 0
+
+        # Placeholder strokes (not tracked yet)
+        strokes_count = 0
+
+        last_active_candidates = [
+            up["last_upload"] if up else None,
+            ms["last_msg"] if ms else None,
+            p.joined_at
+        ]
+        last_active = max([d for d in last_active_candidates if d is not None], default=p.joined_at)
+
+        performance_rows.append({
+            "username": p.user.username,
+            "strokes": strokes_count,
+            "uploads": uploads_count,
+            "messages": messages_count,
+            "last_active": last_active,
+        })
+
+    total_students = participants_qs.values("user_id").distinct().count()
+    total_uploads = sum(r["uploads"] for r in performance_rows)
+    total_messages = sum(r["messages"] for r in performance_rows)
+    # Active today: any upload or message today
+    active_today = sum(
+        1 for r in performance_rows
+        if (r["last_active"] and r["last_active"].date() == today)
+    )
+
+    performance_totals = {
+        "total_students": total_students,
+        "active_today": active_today,
+        "total_strokes": sum(r["strokes"] for r in performance_rows),
+        "total_uploads": total_uploads,
+        "total_messages": total_messages,
+    }
+
+    performance_chart = {
+        "labels": [r["username"] for r in performance_rows],
+        "uploads": [r["uploads"] for r in performance_rows],
+        "messages": [r["messages"] for r in performance_rows],
+        "strokes": [r["strokes"] for r in performance_rows],
+    }
 
     context = {
         "open_sessions": open_sessions,
         "active_classes_count": active_classes_count,
+        "performance_rows": performance_rows,
+        "performance_totals": performance_totals,
+        "performance_chart": performance_chart,
     }
     return render(request, "dashboard/teacher_dashboard.html", context)
 

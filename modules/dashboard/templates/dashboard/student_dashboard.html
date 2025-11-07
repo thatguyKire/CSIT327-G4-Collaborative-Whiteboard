@@ -15,7 +15,6 @@
   </div>
 
   <div class="sessions-row">
-    <!-- ✅ Join session card -->
     <a href="{% url 'join_session' %}" class="session-card" aria-label="Join a session">
       <img src="{% static 'core/icons/plus.png' %}" alt="Join session" class="icon-plus">
       <p class="session-label">Join Session</p>
@@ -35,5 +34,18 @@
     {% endfor %}
   </ul>
   {% endif %}
+
+  <!-- Graph / analytics section (placeholder) -->
+  <div class="dashboard-graph">
+    <h3>Participation Overview</h3>
+    <div class="graph-canvas-wrapper">
+      <div id="participationGraph" style="min-height:320px;">Loading graph...</div>
+    </div>
+  </div>
 </section>
+
+<!-- Scripts -->
+{{ student_perf_chart|json_script:"student_perf_data" }}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script src="{% static 'dashboard/js/participation_chart.js' %}"></script>
 {% endblock %}
