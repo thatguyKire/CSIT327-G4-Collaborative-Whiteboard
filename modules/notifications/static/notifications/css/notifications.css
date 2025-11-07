@@ -1,4 +1,4 @@
-
+/* Floating panel (if you use bell dropdown) */
 .notifications-panel {
   display: none;
   position: absolute;
@@ -13,42 +13,33 @@
   transition: transform 0.2s ease, opacity 0.2s ease;
   transform-origin: top right;
 }
-
 .notifications-panel.active {
   display: block;
   opacity: 1;
   transform: scale(1);
 }
-
 .notifications-panel h3 {
   margin: 10px;
   font-size: 1rem;
   color: #2c3e50;
   font-weight: 700;
 }
-
 .notif-list {
   max-height: 180px;
   overflow-y: auto;
   margin-bottom: 10px;
 }
-
 .notification-item {
   padding: 10px;
   border-bottom: 1px dashed #aaa;
   font-size: 14px;
 }
-
-.notification-item:last-child {
-  border-bottom: none;
-}
-
+.notification-item:last-child { border-bottom: none; }
 .notification-item p {
   margin: 0;
   color: #333;
   font-weight: 500;
 }
-
 .notification-item time {
   display: block;
   font-size: 12px;
@@ -56,6 +47,7 @@
   margin-top: 4px;
 }
 
+/* Buttons */
 .btn-secondary {
   display: block;
   text-align: center;
@@ -70,18 +62,20 @@
   box-shadow: 3px 3px 0 #333;
   transition: transform 0.2s ease, background 0.2s ease;
 }
-
 .btn-secondary:hover {
   transform: translateY(-2px);
   background: #23915a;
 }
 
-.notifications-page {
-  padding: 40px;
+/* Full notifications page */
+.notifications-container {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 44px 40px 120px;
   background: #fffbe6;
-  min-height: calc(100vh - 60px);
+  min-height: calc(100vh - var(--topbar-height, 72px));
+  box-sizing: border-box;
 }
-
 .page-title {
   font-size: 2rem;
   font-weight: 800;
@@ -89,17 +83,20 @@
   text-shadow: 1px 1px 0 #333;
   margin-bottom: 8px;
 }
-
 .page-subtitle {
   color: #555;
   margin-bottom: 25px;
   font-size: 1rem;
 }
 
+/* List of cards */
 .notifications-list {
   display: flex;
   flex-direction: column;
   gap: 18px;
+  margin: 24px 0 0;
+  padding: 0;
+  list-style: none;
 }
 
 .notif-card {
@@ -113,31 +110,35 @@
   box-shadow: 4px 4px 0 #333;
   transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
-
 .notif-card:hover {
   transform: translateY(-3px);
   box-shadow: 6px 6px 0 #222;
 }
-
 .notif-icon {
   font-size: 1.8rem;
   line-height: 1;
 }
-
 .notif-content h3 {
   margin: 0;
   font-size: 1.1rem;
   color: #2c3e50;
   font-weight: 700;
 }
-
 .notif-content p {
   margin: 5px 0 4px;
   color: #333;
   font-size: 0.95rem;
 }
-
 .notif-content time {
   font-size: 0.8rem;
   color: #777;
+}
+
+/* Mobile */
+@media (max-width: 640px) {
+  .notifications-container {
+    padding: 32px 20px 140px;
+  }
+  .notif-card { padding: 14px 16px; }
+  .page-title { font-size: 1.7rem; }
 }

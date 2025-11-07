@@ -1,6 +1,5 @@
 {% extends "core/base.html" %}
 {% load static %}
-
 {% block title %}Teacher Dashboard - COLLABoard{% endblock %}
 
 {% block extra_css %}
@@ -21,11 +20,7 @@
       <p class="active-class-text">
         You currently have
         <span class="active-class-count">{{ active_classes_count }}</span>
-        {% if active_classes_count == 1 %}
-          active class
-        {% else %}
-          active classes
-        {% endif %}
+        {% if active_classes_count == 1 %}active class{% else %}active classes{% endif %}
       </p>
     </div>
 
@@ -47,22 +42,72 @@
           {% endfor %}
         </ul>
       {% else %}
-        <div class="empty-state">
-          <p>No active sessions right now.</p>
-        </div>
+        <div class="empty-state"><p>No active sessions right now.</p></div>
       {% endif %}
       <div class="card-footer" style="margin-top:16px;">
         <a href="{% url 'session_list' %}" class="btn">Manage Sessions</a>
       </div>
     </div>
 
-    <!-- Optional Future Feature -->
-    <div class="card">
+    <!-- Student Performance -->
+    <div class="card" style="grid-column: span 2;">
       <h3>Student Performance</h3>
-      <p>Analyze progress and participation in real-time.</p>
-      <a href="#" class="btn btn-secondary">Coming Soon</a>
+      <p class="small muted">Realtime participation metrics (strokes, uploads, active time).</p>
+
+      <!-- Summary badges -->
+      <div class="perf-summary">
+        <div class="perf-badge">
+          <span class="label">Total Students</span>
+          <span class="value">{{ performance_totals.total_students }}</span>
+        </div>
+        <div class="perf-badge">
+          <span class="label">Active Today</span>
+          <span class="value">{{ performance_totals.active_today }}</span>
+        </div>
+        <div class="perf-badge">
+          <span class="label">Total Strokes</span>
+          <span class="value">{{ performance_totals.total_strokes }}</span>
+        </div>
+        <div class="perf-badge">
+          <span class="label">Uploads</span>
+          <span class="value">{{ performance_totals.total_uploads }}</span>
+        </div>
+      </div>
+
+      <div id="teacherPerformanceGraph" class="graph-host" style="min-height:320px; margin-top:18px;">
+        Loading performance graph...
+      </div>
+
+      <table class="perf-table">
+        <thead>
+          <tr>
+            <th>Student</th>
+            <th>Strokes</th>
+            <th>Uploads</th>
+            <th>Last Active</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in performance_rows %}
+          <tr>
+            <td>{{ row.username }}</td>
+            <td>{{ row.strokes }}</td>
+            <td>{{ row.uploads }}</td>
+            <td>{{ row.last_active|default:"—" }}</td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="4">No data yet.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
     </div>
 
   </div>
 </section>
+
+{{ performance_chart|json_script:"teacher_perf_data" }}
+
+<!-- Scripts -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script src="{% static 'dashboard/js/teacher_performance_chart.js' %}"></script>
 {% endblock %}

@@ -60,4 +60,6 @@ document.addEventListener('DOMContentLoaded', () => {
     updateNotifTimes();
     setInterval(updateNotifTimes, 30000);
   }
+
+
 });

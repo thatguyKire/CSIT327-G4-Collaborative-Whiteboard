@@ -15,8 +15,9 @@ from .views import (
     offline_view,
     upload_views,
     saved_sessions,
+    record_stroke,
 )
-from .views.manage_views import toggle_draw_permission
+
 
 urlpatterns = [
     # Teacher-side
@@ -47,4 +48,5 @@ urlpatterns = [
     # ✅ Upload
     path('<uuid:session_id>/upload/', upload_views.upload_attachment, name='upload_attachment'),
     path('sessions/saved/', saved_sessions, name='saved_sessions'),
+    path("<uuid:session_id>/stroke/", record_stroke, name="record_stroke"),
 ]
