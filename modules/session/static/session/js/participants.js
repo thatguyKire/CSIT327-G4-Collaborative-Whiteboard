@@ -1,34 +1,47 @@
 document.addEventListener("DOMContentLoaded", function () {
   const forms = document.querySelectorAll(".toggle-draw-form");
 
-  forms.forEach(form => {
+  function getCookie(name) {
+    const m = document.cookie.match('(^|;)\\s*' + name + '\\s*=\\s*([^;]+)');
+    return m ? m.pop() : "";
+  }
+
+  forms.forEach((form) => {
     form.addEventListener("change", async (e) => {
       e.preventDefault();
       const userId = form.dataset.userId;
+      const url = form.dataset.url; // {% url 'toggle_draw_permission' session.id p.user.id %}
       const checked = form.querySelector("input[name='can_draw']").checked;
 
-      const csrftoken = document.cookie.split('; ')
-        .find(row => row.startsWith('csrftoken='))
-        ?.split('=')[1];
-
       try {
-        const res = await fetch(`/session/${userId}/toggle_draw/`, {
+        const res = await fetch(url, {
           method: "POST",
           headers: {
-            "X-CSRFToken": csrftoken,
-            "Content-Type": "application/json"
+            "Content-Type": "application/json",
+            "X-CSRFToken": getCookie("csrftoken"),
           },
-          body: JSON.stringify({ can_draw: checked })
+          body: JSON.stringify({ can_draw: checked }),
         });
 
-        const data = await res.json();
-        if (data.ok) {
-          console.log(`✅ Updated draw permission for user ${userId}`);
+        const ct = res.headers.get("content-type") || "";
+        const data = ct.includes("application/json")
+          ? await res.json()
+          : { ok: false, error: await res.text() };
+
+        if (res.ok && data.ok) {
+          // broadcast live permission change
+          window.WhiteboardChannel?.send({
+            type: "broadcast",
+            event: "perm",
+            payload: { uid: Number(userId), can: !!checked },
+          });
         } else {
-          alert("⚠️ Failed to update permission");
+          console.error("Toggle failed:", data.error || res.statusText);
+          alert("Failed to update permission.");
         }
       } catch (err) {
-        console.error("Error updating permission:", err);
+        console.error("Request error:", err);
+        alert("Network error updating permission.");
       }
     });
   });

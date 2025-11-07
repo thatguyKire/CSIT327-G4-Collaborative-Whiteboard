@@ -46,8 +46,10 @@
 .snapshot-image {
   display: block;
   max-width: 100%;
-  max-height: 70vh;
+  max-height: 75vh;
   object-fit: contain;
+  transform-origin: center center;
+  /* transform is set dynamically by JS */
 }
 
 .no-snapshot {
@@ -74,4 +76,91 @@
 .offline-back .btn:hover {
   background: #5f6a73;
   transform: translateY(-2px);
+}
+
+.offline-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  max-width: 1024px;
+  margin: 0 auto 12px auto;
+}
+
+.offline-toolbar .btn {
+  padding: 6px 10px;
+  border-radius: 8px;
+  border: 2px solid #333;
+  background: #f1f3f5;
+  color: #2c3e50;
+  font-weight: 600;
+  box-shadow: 3px 3px 0 #333;
+}
+
+.offline-toolbar .btn:hover {
+  background: #e6e9ec;
+  transform: translateY(-1px);
+}
+
+.zoom-level {
+  min-width: 64px;
+  text-align: center;
+  font-weight: 700;
+  color: #253444;
+}
+
+.snapshot-viewport {
+  position: relative;
+  width: 100%;
+  max-width: 90vw;
+  max-height: 75vh;
+  overflow: hidden;
+  cursor: default;
+  background: repeating-conic-gradient(#fafafa 0% 25%, #fff 0% 50%) 50% / 20px 20px;
+  border-radius: 8px;
+}
+
+.snapshot-viewport.pannable {
+  cursor: grab;
+}
+
+.snapshot-viewport.panning {
+  cursor: grabbing;
+}
+
+.snapshot-skeleton {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, #eee 25%, #f5f5f5 37%, #eee 63%);
+  background-size: 400% 100%;
+  animation: shimmer 1.2s infinite;
+  border-radius: 8px;
+  z-index: 1;
+}
+
+@keyframes shimmer {
+  0% { background-position: 100% 0; }
+  100% { background-position: 0 0; }
+}
+
+/* Print: focus on image */
+@media print {
+  .offline-header, .offline-back, .offline-toolbar {
+    display: none !important;
+  }
+  .offline-container {
+    background: #fff !important;
+    padding: 0 !important;
+  }
+  .snapshot-frame {
+    box-shadow: none;
+    border: none;
+    padding: 0;
+    margin: 0;
+  }
+  .snapshot-image {
+    max-height: none;
+    width: 100%;
+  }
 }
