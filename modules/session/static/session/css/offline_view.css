@@ -93,7 +93,7 @@
   border-radius: 8px;
   border: 2px solid #333;
   background: #f1f3f5;
-  color: #2c3e50;
+  color: #253444 !important; /* ensure readable over light background */
   font-weight: 600;
   box-shadow: 3px 3px 0 #333;
 }
@@ -101,6 +101,12 @@
 .offline-toolbar .btn:hover {
   background: #e6e9ec;
   transform: translateY(-1px);
+}
+
+/* clearer disabled state */
+.offline-toolbar .btn:disabled {
+  opacity: 0.75;
+  color: #8b8f96 !important;
 }
 
 .zoom-level {
