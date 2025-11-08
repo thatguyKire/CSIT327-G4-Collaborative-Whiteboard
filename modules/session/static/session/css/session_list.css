@@ -201,3 +201,11 @@
   color: #666;
 }
 
+/* Saved Sessions: make the top "Back" button readable on light bg */
+.dashboard-wrapper > a.btn.btn-secondary {
+  background: #f1f3f5;
+  color: #253444 !important;
+  border: 2px solid #333;
+  box-shadow: 3px 3px 0 #333;
+}
+

@@ -277,7 +277,7 @@ img {
   text-decoration: none;
   font-weight: 600;
   font-size: 14px;
-  color: var(--accent);
+  color: var(--accent) !important; /* override .btn { color:#fff } */
   background: #f8f9fa;
   border: 2px solid var(--border);
   border-radius: 8px;
