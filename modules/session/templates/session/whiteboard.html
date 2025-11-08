@@ -21,6 +21,9 @@
         <button id="undoBtn" class="btn btn-secondary">Undo</button>
         <button id="redoBtn" class="btn btn-secondary">Redo</button>
         <button id="clearBtn" class="btn btn-danger">Clear All</button>
+        <!-- NEW: annotate tools -->
+        <button id="highlightBtn" class="btn btn-secondary" title="Highlight">Highlight</button>
+        <button id="pinBtn" class="btn btn-secondary" title="Pin">Pin</button>
         {% if user == session.created_by %}
         <button id="saveBtn" class="btn btn-success" data-save-url="{% url 'save_snapshot' session.id %}">Save</button>
         {% endif %}
@@ -44,10 +47,13 @@
         <img id="snapshotImg" src="{{ snapshot_url }}" hidden alt="Previous snapshot">
       {% endif %}
 
-      <canvas id="whiteboardCanvas"
-              style="width:100%; height:600px; background:#fff; display:block;"
-              width="1200" height="600"
-              aria-label="Whiteboard drawing area"></canvas>
+      <!-- CHANGED: wrap canvas to host overlay safely -->
+      <div id="whiteboardHost" class="canvas-stack">
+        <canvas id="whiteboardCanvas"
+                style="width:100%; height:600px; background:#fff; display:block;"
+                width="1200" height="600"
+                aria-label="Whiteboard drawing area"></canvas>
+      </div>
     </div>
 
     {% if user == session.created_by %}
@@ -89,4 +95,6 @@
 <script src="{% static 'session/js/participants.js' %}"></script>
 {% endif %}
 <script src="{% static 'session/js/upload.js' %}" defer></script>
+<!-- NEW: overlay + tools logic (safe even if no realtime) -->
+<script src="{% static 'session/js/annotations.js' %}" defer></script>
 {% endblock %}

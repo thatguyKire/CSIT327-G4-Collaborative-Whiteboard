@@ -201,34 +201,32 @@ html, body {
 .canvas-stack {
   position: relative;
   width: 100%;
-  height: 100%;
   flex: 1;
   overflow: hidden;
+  /* ensure it expands with its content */
+  min-height: 600px;
 }
 
-.canvas-stack canvas {
-  position: absolute;
-  top: 0;
-  left: 0;
+/* Remove absolute positioning for base canvas to keep container height */
+.canvas-stack #whiteboardCanvas {
+  position: relative;
+  z-index: 1;
   width: 100%;
   height: 100%;
   display: block;
-}
-
-/* 🖼️ Image layer (below) */
-#imageCanvas {
-  z-index: 1;
-  cursor: default;
-}
-
-/* ✏️ Drawing canvas (on top) */
-#whiteboardCanvas {
-  z-index: 2;
   cursor: crosshair;
   touch-action: none;
   user-select: none;
   image-rendering: pixelated;
-  pointer-events: auto; /* Default: drawing mode */
+  pointer-events: auto;
+}
+
+/* Overlay (annotations) */
+#annoCanvas {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
 }
 
 /* ---------- Buttons ---------- */

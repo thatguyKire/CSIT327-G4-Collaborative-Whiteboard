@@ -1,9 +1,25 @@
 (() => {
   "use strict";
-
   const canvas = document.getElementById("whiteboardCanvas");
   if (!canvas) return;
 
+  // Dynamic fit-to-viewport (keeps toolbar + participants visible)
+  function resizeMainCanvas() {
+    const toolbar = document.getElementById("drawToolbar");
+    const availableH = window.innerHeight
+      - (toolbar ? toolbar.getBoundingClientRect().height : 0)
+      - 140; // padding + title + margins
+    const targetH = Math.max(500, availableH);
+    canvas.style.height = targetH + "px";
+    canvas.height = targetH; // sync internal resolution (simple 1:1; add DPR if needed)
+    canvas.width = canvas.clientWidth;
+    // Trigger overlay ResizeObserver (annotations.js) automatically
+  }
+
+  window.addEventListener("resize", resizeMainCanvas);
+  resizeMainCanvas();
+
+  // If you already had drawing logic below, keep it here.
   const ctx = canvas.getContext("2d", { willReadFrequently: true });
   let canDraw = typeof window.CAN_DRAW === "boolean"
     ? window.CAN_DRAW
