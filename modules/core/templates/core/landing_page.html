@@ -1,0 +1,77 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Collaborative Whiteboard</title>
+
+  <!-- Global look & feel -->
+  <link rel="stylesheet" href="{% static 'core/css/base.css' %}">
+  <link rel="stylesheet" href="{% static 'core/css/style.css' %}">
+  <!-- Auth form look (inputs/buttons) -->
+  <link rel="stylesheet" href="{% static 'authentication/css/auth.css' %}">
+  <!-- Landing-specific tweaks -->
+  <link rel="stylesheet" href="{% static 'core/css/landing.css' %}">
+</head>
+<body class="landing-body">
+  <!-- Simple Nav -->
+  <header class="landing-nav">
+    <div class="nav-inner">
+      <div class="brand">
+        <img src="{% static 'core/icons/collaboard-logo.png' %}" alt="COLLABoard" class="brand-logo">
+        <span class="brand-text">COLLABoard</span>
+      </div>
+      <nav class="nav-actions">
+        <a href="{% url 'auth:signup' %}" class="btn btn-secondary">Get Started</a>
+        <button id="openLogin" class="btn btn-primary">Login</button>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Hero -->
+  <main class="hero">
+    <h1 class="hero-title">Collaborative Whiteboard</h1>
+    <p class="hero-tagline">Brainstorm. Create. Collaborate — in real time.</p>
+
+    <div class="hero-cta">
+      <a href="{% url 'auth:signup' %}" class="btn btn-success">Get Started</a>
+      <button id="openLoginHero" class="btn btn-secondary">Login</button>
+    </div>
+  </main>
+
+  <!-- Decorative grid paper background -->
+  <div class="grid-overlay" aria-hidden="true"></div>
+
+  <!-- Login Modal -->
+  <dialog id="loginDialog" class="login-dialog">
+    <button id="closeLogin" class="btn btn-secondary dialog-close" aria-label="Close">×</button>
+    <div class="auth-card modal-card">
+      <h2>Login</h2>
+
+      {% if messages %}
+        <div class="alert-box">
+          {% for message in messages %}
+            <div class="alert {{ message.tags }}">{{ message }}</div>
+          {% endfor %}
+        </div>
+      {% endif %}
+
+      {% if form.non_field_errors %}
+        <div class="alert-box">
+          {% for error in form.non_field_errors %}
+            <div class="alert error">{{ error }}</div>
+          {% endfor %}
+        </div>
+      {% endif %}
+
+      {% include "authentication/_login_form.html" %}
+      <p class="switch-auth center">
+        Don’t have an account? <a href="{% url 'auth:signup' %}">Sign up here</a>
+      </p>
+    </div>
+  </dialog>
+
+  <script src="{% static 'core/js/landing.js' %}" defer></script>
+</body>
+</html>

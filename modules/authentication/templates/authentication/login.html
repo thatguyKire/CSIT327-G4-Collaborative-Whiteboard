@@ -9,8 +9,6 @@
 </head>
 <body>
 <div class="page-container">
-
-  <!-- Curved SVG Title -->
   <div class="title-wrapper">
     <svg viewBox="0 0 2000 300" class="curved-title">
       <path id="curve" d="M 100 200 Q 1000 50 1900 200" fill="transparent" />
@@ -41,26 +39,7 @@
       </div>
     {% endif %}
 
-    <form method="post" novalidate>
-      {% csrf_token %}
-      <div class="form-group">
-        <label for="id_username">Username / Institutional Email</label>
-        {{ form.username }}
-        {% if form.username.errors %}
-          <p class="error-text">{{ form.username.errors.0 }}</p>
-        {% endif %}
-      </div>
-
-      <div class="form-group">
-        <label for="id_password">Password</label>
-        {{ form.password }}
-        {% if form.password.errors %}
-          <p class="error-text">{{ form.password.errors.0 }}</p>
-        {% endif %}
-      </div>
-
-      <button type="submit" class="btn">Login</button>
-    </form>
+    {% include "authentication/_login_form.html" %}
 
     <p class="switch-auth">
       Don’t have an account? <a href="{% url 'auth:signup' %}">Sign up here</a>

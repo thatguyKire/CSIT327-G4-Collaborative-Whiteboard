@@ -18,23 +18,26 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
+from modules.core import views as core_views  # import landing view
 
 urlpatterns = [
-    # Core landing page (redirects to login)
-    path('', include('modules.core.urls')),
+    # Root → landing page
+    path("", core_views.landing, name="landing"),
+
+    # Admin
+    path("admin/", admin.site.urls),
 
     # Authentication
-    path('auth/', include(('modules.authentication.urls', 'authentication'), namespace='auth')),
+    path("auth/", include(("modules.authentication.urls", "authentication"), namespace="auth")),
 
     # Other modules
-    path('profiles/', include('modules.profiles.urls')),
-    path('dashboard/', include('modules.dashboard.urls')),
-    path('settings/', include('modules.settings_app.urls')),
-    path('notifications/', include('modules.notifications.urls')),
-    path('help/', include('modules.help_app.urls')),
-    path('session/', include('modules.session.urls')),
+    path("profiles/", include("modules.profiles.urls")),
+    path("dashboard/", include("modules.dashboard.urls")),
+    path("settings/", include("modules.settings_app.urls")),
+    path("notifications/", include("modules.notifications.urls")),
+    path("help/", include("modules.help_app.urls")),
+    path("session/", include("modules.session.urls")),
     path("chat/", include("modules.chat.urls")),
-
 ]
 
 # Serve media files in development
