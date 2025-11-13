@@ -71,6 +71,16 @@ body {
   background: #fff0f0;
 }
 
+.form-group.has-error input,
+.form-group.has-error select {
+  border-color: #e74c3c !important;
+  background: #fff6f6;
+}
+
+.form-group.has-error label {
+  color: #8a1f1f;
+}
+
 /* Button */
 .btn {
   width: 100%;
@@ -92,7 +102,28 @@ body {
   box-shadow: 6px 6px 0px #333;
 }
 
+.btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: 4px 4px 0px #333;
+}
 
+/* Make validation errors very visible */
+.errors-list {
+  margin: 8px 0 0 18px;
+  text-align: left;
+}
+
+/* Disabled button (e.g., while submitting) */
+.btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: 4px 4px 0px #333;
+}
+
+/* Switch */
 .switch-auth {
   margin-top: 15px;
   font-size: 14px;

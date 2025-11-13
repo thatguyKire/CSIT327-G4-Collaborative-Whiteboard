@@ -1,8 +1,9 @@
 from django.urls import path
 from django.contrib.auth import views as auth_views
+from django.urls import reverse_lazy  # added
 from . import views
 
-app_name = "authentication"  # optional but recommended for namespacing
+app_name = "authentication"  # app namespace inside this module
 
 urlpatterns = [
     # -----------------------------
@@ -12,7 +13,7 @@ urlpatterns = [
     path(
         "login/",
         auth_views.LoginView.as_view(
-            template_name="authentication/login.html"
+            template_name="authentication/login.html"  # includes authentication/_login_form.html
         ),
         name="login",
     ),
@@ -20,7 +21,7 @@ urlpatterns = [
         "logout/",
         auth_views.LogoutView.as_view(
             template_name="authentication/logout.html",
-            next_page="authentication:login",  # clean redirect
+            next_page=reverse_lazy("landing"),  # send users to landing page after logout
         ),
         name="logout",
     ),
@@ -32,7 +33,7 @@ urlpatterns = [
         "password_change/",
         auth_views.PasswordChangeView.as_view(
             template_name="authentication/password_change.html",
-            success_url="/auth/password_change_done/",
+            success_url=reverse_lazy("auth:password_change_done"),
         ),
         name="password_change",
     ),
@@ -52,7 +53,7 @@ urlpatterns = [
         auth_views.PasswordResetView.as_view(
             template_name="authentication/password_reset.html",
             email_template_name="authentication/password_reset_email.html",
-            success_url="/auth/password_reset_done/",
+            success_url=reverse_lazy("auth:password_reset_done"),
         ),
         name="password_reset",
     ),
@@ -67,7 +68,7 @@ urlpatterns = [
         "reset/<uidb64>/<token>/",
         auth_views.PasswordResetConfirmView.as_view(
             template_name="authentication/password_reset_confirm.html",
-            success_url="/auth/password_reset_complete/",
+            success_url=reverse_lazy("auth:password_reset_complete"),
         ),
         name="password_reset_confirm",
     ),
