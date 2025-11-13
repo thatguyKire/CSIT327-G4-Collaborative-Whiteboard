@@ -19,52 +19,56 @@
       </div>
     {% endif %}
 
+    {% if form.errors %}
+      <div class="alert error" role="alert">
+        <strong>Please correct the errors below.</strong>
+        <ul class="errors-list">
+          {% for field, errors in form.errors.items %}
+            {% for error in errors %}
+              <li>{% if field != '__all__' %}<b>{{ field|capfirst }}:</b> {% endif %}{{ error }}</li>
+            {% endfor %}
+          {% endfor %}
+        </ul>
+      </div>
+    {% endif %}
+
     <form method="post" novalidate>
       {% csrf_token %}
 
-      <div class="form-group">
-        <label for="id_username">Username</label>
+      <div class="form-group{% if form.username.errors %} has-error{% endif %}">
+        <label for="{{ form.username.id_for_label }}">Username</label>
         {{ form.username }}
-        {% if form.username.errors %}
-          <p class="error-text">{{ form.username.errors.0 }}</p>
-        {% endif %}
+        {% if form.username.errors %}<p class="error-text">{{ form.username.errors|striptags }}</p>{% endif %}
       </div>
 
-      <div class="form-group">
-        <label for="id_email">Institutional Email</label>
+      <div class="form-group{% if form.email.errors %} has-error{% endif %}">
+        <label for="{{ form.email.id_for_label }}">Institutional Email</label>
         {{ form.email }}
-        {% if form.email.errors %}
-          <p class="error-text">{{ form.email.errors.0 }}</p>
-        {% endif %}
+        {% if form.email.errors %}<p class="error-text">{{ form.email.errors|striptags }}</p>{% endif %}
       </div>
 
-      <div class="form-group" id="student-id-group">
-        <label for="id_student_id">Student ID Number</label>
+      <div class="form-group{% if form.student_id.errors %} has-error{% endif %}" id="student-id-group">
+        <label for="{{ form.student_id.id_for_label }}">Student ID Number</label>
         {{ form.student_id }}
-        {% if form.student_id.errors %}
-          <p class="error-text">{{ form.student_id.errors.0 }}</p>
-        {% endif %}
+        {% if form.student_id.errors %}<p class="error-text">{{ form.student_id.errors|striptags }}</p>{% endif %}
       </div>
 
-      <div class="form-group">
-        <label for="role">Role:</label>
+      <div class="form-group{% if form.role.errors %} has-error{% endif %}">
+        <label for="{{ form.role.id_for_label }}">Role:</label>
         {{ form.role }}
+        {% if form.role.errors %}<p class="error-text">{{ form.role.errors|striptags }}</p>{% endif %}
       </div>
 
-      <div class="form-group">
-        <label for="id_password1">Password</label>
+      <div class="form-group{% if form.password1.errors %} has-error{% endif %}">
+        <label for="{{ form.password1.id_for_label }}">Password</label>
         {{ form.password1 }}
-        {% if form.password1.errors %}
-          <p class="error-text">{{ form.password1.errors.0 }}</p>
-        {% endif %}
+        {% if form.password1.errors %}<p class="error-text">{{ form.password1.errors|striptags }}</p>{% endif %}
       </div>
 
-      <div class="form-group">
-        <label for="id_password2">Confirm Password</label>
+      <div class="form-group{% if form.password2.errors %} has-error{% endif %}">
+        <label for="{{ form.password2.id_for_label }}">Confirm Password</label>
         {{ form.password2 }}
-        {% if form.password2.errors %}
-          <p class="error-text">{{ form.password2.errors.0 }}</p>
-        {% endif %}
+        {% if form.password2.errors %}<p class="error-text">{{ form.password2.errors|striptags }}</p>{% endif %}
       </div>
 
       <button type="submit" class="btn">Create Account</button>

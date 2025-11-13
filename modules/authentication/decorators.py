@@ -14,11 +14,11 @@ def role_required(allowed_roles):
         def wrapper(request, *args, **kwargs):
             if not request.user.is_authenticated:
                 messages.error(request, "⚠️ You must be logged in to access this page.")
-                return redirect("login")
+                return redirect("auth:login")  # use namespaced URL
 
             if getattr(request.user, "role", None) not in allowed_roles:
                 messages.error(request, "🚫 You do not have permission to access this page.")
-                return redirect("redirect_dashboard")
+                return redirect("redirect_dashboard")  # adjust if needed
 
             return view_func(request, *args, **kwargs)
         return wrapper
