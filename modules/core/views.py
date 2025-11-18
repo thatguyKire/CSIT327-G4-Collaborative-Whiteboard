@@ -1,5 +1,10 @@
 from django.shortcuts import redirect
+from django.contrib.auth.forms import AuthenticationForm
+
+def landing(request):
+    # Redirect root to the login page
+    return redirect("auth:login")
 
 def home(request):
-    # Redirect base domain to the login page
+    # Legacy path → also go to login
     return redirect("auth:login")

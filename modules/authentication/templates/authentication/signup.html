@@ -3,11 +3,14 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Sign Up - COLLABoard</title>
+  <title>Sign Up - COLLABOARD</title>
   <link rel="stylesheet" href="{% static 'authentication/css/auth.css' %}">
   <script src="{% static 'authentication/js/auth.js' %}" defer></script>
 </head>
-<body>
+<body class="auth-bg">  <!-- added auth-bg -->
+{% include 'authentication/partials/draw_lines.html' %}
+{% include 'authentication/partials/paper_noise.html' %}
+
   <div class="auth-card">
     <h2>Sign Up</h2>
 

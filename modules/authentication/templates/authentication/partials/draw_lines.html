@@ -1,0 +1,182 @@
+<svg id="scribble-bg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 1200" preserveAspectRatio="xMidYMid slice" style="
+  position: fixed; inset: 0; z-index: -1; width: 100%; height: 100%;
+">
+  <defs>
+    <!-- Multiple loop shapes for variety -->
+    <path id="loop1" d="
+      M50 60
+      C80 20, 140 20, 160 60
+      C180 100, 120 140, 180 180
+      C240 220, 300 160, 340 200
+      C380 240, 300 300, 360 360
+      C420 420, 520 380, 580 340
+      C640 300, 700 360, 720 420
+      C740 480, 680 540, 620 520
+      C560 500, 520 600, 600 640
+      C680 680, 780 620, 820 660
+      C860 700, 800 760, 860 820" />
+    <path id="loop2" d="
+      M90 220
+      C140 160, 220 160, 250 220
+      C280 280, 210 320, 270 360
+      C330 400, 430 340, 470 380
+      C510 420, 430 470, 500 520
+      C570 570, 680 520, 710 560
+      C740 600, 670 650, 740 720" />
+    <path id="loop3" d="
+      M40 420
+      C100 380, 160 440, 200 400
+      C240 360, 280 420, 320 460
+      C360 500, 440 480, 500 450
+      C560 420, 640 470, 660 530
+      C680 590, 620 640, 560 620
+      C500 600, 470 680, 540 740" />
+    <path id="loop4" d="
+      M120 900
+      C180 850, 260 860, 300 900
+      C340 940, 280 980, 330 1020
+      C380 1060, 470 1010, 520 1040
+      C570 1070, 650 1030, 700 1060" />
+  </defs>
+
+  <!-- Base style: thinner lines, more density -->
+  <g fill="none" stroke="#2e2e2e" stroke-linecap="round" opacity="0.35">
+    <!-- Row 1 -->
+    <g stroke-width="2.6">
+      <use href="#loop1" transform="translate(0,0) scale(1.0)">
+        <animate attributeName="stroke-dasharray" values="0,2200;2200,0" dur="10s" repeatCount="indefinite"/>
+        <animate attributeName="stroke-dashoffset" values="0;2200;0" dur="10s" repeatCount="indefinite"/>
+      </use>
+      <use href="#loop2" transform="translate(280,-60) scale(1.05)">
+        <animate attributeName="stroke-dasharray" values="0,2000;2000,0" dur="11s" repeatCount="indefinite"/>
+        <animate attributeName="stroke-dashoffset" values="2000;0;2000" dur="11s" repeatCount="indefinite"/>
+      </use>
+      <use href="#loop3" transform="translate(560,-40) scale(0.95)">
+        <animate attributeName="stroke-dasharray" values="0,1800;1800,0" dur="9.5s" repeatCount="indefinite"/>
+        <animate attributeName="stroke-dashoffset" values="0;1800;0" dur="9.5s" repeatCount="indefinite"/>
+      </use>
+      <use href="#loop2" transform="translate(840,-20) scale(1.15)">
+        <animate attributeName="stroke-dasharray" values="0,2400;2400,0" dur="12.5s" repeatCount="indefinite"/>
+        <animate attributeName="stroke-dashoffset" values="2400;0;2400" dur="12.5s" repeatCount="indefinite"/>
+      </use>
+    </g>
+
+    <!-- Row 2 -->
+    <g stroke-width="2.4">
+      <use href="#loop3" transform="translate(120,180) scale(1.05)">
+        <animate attributeName="stroke-dasharray" values="0,2100;2100,0" dur="12s" repeatCount="indefinite"/>
+        <animate attributeName="stroke-dashoffset" values="0;2100;0" dur="12s" repeatCount="indefinite"/>
+      </use>
+      <use href="#loop1" transform="translate(380,220) scale(0.92)">
+        <animate attributeName="stroke-dasharray" values="0,2000;2000,0" dur="9s" repeatCount="indefinite"/>
+        <animate attributeName="stroke-dashoffset" values="2000;0;2000" dur="9s" repeatCount="indefinite"/>
+      </use>
+      <use href="#loop2" transform="translate(660,200) scale(1.0)">
+        <animate attributeName="stroke-dasharray" values="0,2200;2200,0" dur="11.5s" repeatCount="indefinite"/>
+        <animate attributeName="stroke-dashoffset" values="0;2200;0" dur="11.5s" repeatCount="indefinite"/>
+      </use>
+      <use href="#loop3" transform="translate(940,220) scale(0.98)">
+        <animate attributeName="stroke-dasharray" values="0,2000;2000,0" dur="10.5s" repeatCount="indefinite"/>
+        <animate attributeName="stroke-dashoffset" values="2000;0;2000" dur="10.5s" repeatCount="indefinite"/>
+      </use>
+    </g>
+
+    <!-- Row 3 -->
+    <g stroke-width="2.2" opacity="0.33">
+      <use href="#loop4" transform="translate(-40,420) scale(1.05)">
+        <animate attributeName="stroke-dasharray" values="0,1600;1600,0" dur="13s" repeatCount="indefinite"/>
+        <animate attributeName="stroke-dashoffset" values="0;1600;0" dur="13s" repeatCount="indefinite"/>
+      </use>
+      <use href="#loop1" transform="translate(240,440) scale(1.1)">
+        <animate attributeName="stroke-dasharray" values="0,2400;2400,0" dur="12.2s" repeatCount="indefinite"/>
+        <animate attributeName="stroke-dashoffset" values="2400;0;2400" dur="12.2s" repeatCount="indefinite"/>
+      </use>
+      <use href="#loop2" transform="translate(520,460) scale(0.9)">
+        <animate attributeName="stroke-dasharray" values="0,1700;1700,0" dur="9.8s" repeatCount="indefinite"/>
+        <animate attributeName="stroke-dashoffset" values="0;1700;0" dur="9.8s" repeatCount="indefinite"/>
+      </use>
+      <use href="#loop3" transform="translate(800,440) scale(1.05)">
+        <animate attributeName="stroke-dasharray" values="0,2100;2100,0" dur="11.8s" repeatCount="indefinite"/>
+        <animate attributeName="stroke-dashoffset" values="2100;0;2100" dur="11.8s" repeatCount="indefinite"/>
+      </use>
+    </g>
+
+    <!-- Row 4 -->
+    <g stroke-width="2.8" opacity="0.28">
+      <use href="#loop2" transform="translate(60,700) scale(1.1)">
+        <animate attributeName="stroke-dasharray" values="0,2200;2200,0" dur="12.8s" repeatCount="indefinite"/>
+        <animate attributeName="stroke-dashoffset" values="0;2200;0" dur="12.8s" repeatCount="indefinite"/>
+      </use>
+      <use href="#loop4" transform="translate(320,720) scale(1.05)">
+        <animate attributeName="stroke-dasharray" values="0,1500;1500,0" dur="10.8s" repeatCount="indefinite"/>
+        <animate attributeName="stroke-dashoffset" values="1500;0;1500" dur="10.8s" repeatCount="indefinite"/>
+      </use>
+      <use href="#loop1" transform="translate(580,700) scale(0.95)">
+        <animate attributeName="stroke-dasharray" values="0,2000;2000,0" dur="10.2s" repeatCount="indefinite"/>
+        <animate attributeName="stroke-dashoffset" values="0;2000;0" dur="10.2s" repeatCount="indefinite"/>
+      </use>
+      <use href="#loop3" transform="translate(860,720) scale(1.08)">
+        <animate attributeName="stroke-dasharray" values="0,2200;2200,0" dur="12.4s" repeatCount="indefinite"/>
+        <animate attributeName="stroke-dashoffset" values="2200;0;2200" dur="12.4s" repeatCount="indefinite"/>
+      </use>
+    </g>
+
+    <!-- Extra foreground accents (fewer, a bit bolder) -->
+    <g stroke-width="3.2" opacity="0.38">
+      <use href="#loop2" transform="translate(180,960) scale(1.12) rotate(3)">
+        <animate attributeName="stroke-dasharray" values="0,2200;2200,0" dur="9.6s" repeatCount="indefinite"/>
+        <animate attributeName="stroke-dashoffset" values="2200;0;2200" dur="9.6s" repeatCount="indefinite"/>
+      </use>
+      <use href="#loop1" transform="translate(720,960) scale(1.0) rotate(-2)">
+        <animate attributeName="stroke-dasharray" values="0,2200;2200,0" dur="11.1s" repeatCount="indefinite"/>
+        <animate attributeName="stroke-dashoffset" values="0;2200;0" dur="11.1s" repeatCount="indefinite"/>
+      </use>
+    </g>
+
+    <!-- LEFT-SIDE FILLERS -->
+    <g opacity="0.30">
+      <g stroke-width="2.5">
+        <use href="#loop1" transform="translate(-180,40) scale(1.05)">
+          <animate attributeName="stroke-dasharray" values="0,2200;2200,0" dur="12s" begin="-3s" repeatCount="indefinite"/>
+          <animate attributeName="stroke-dashoffset" values="2200;0;2200" dur="12s" begin="-3s" repeatCount="indefinite"/>
+        </use>
+        <use href="#loop2" transform="translate(-60,200) scale(0.95)">
+          <animate attributeName="stroke-dasharray" values="0,2000;2000,0" dur="10.5s" begin="-1.2s" repeatCount="indefinite"/>
+          <animate attributeName="stroke-dashoffset" values="0;2000;0" dur="10.5s" begin="-1.2s" repeatCount="indefinite"/>
+        </use>
+        <use href="#loop3" transform="translate(60,380) scale(1.00)">
+          <animate attributeName="stroke-dasharray" values="0,1900;1900,0" dur="11.2s" begin="-2.3s" repeatCount="indefinite"/>
+          <animate attributeName="stroke-dashoffset" values="1900;0;1900" dur="11.2s" begin="-2.3s" repeatCount="indefinite"/>
+        </use>
+        <use href="#loop4" transform="translate(120,560) scale(1.05)">
+          <animate attributeName="stroke-dasharray" values="0,1600;1600,0" dur="12.6s" begin="-0.8s" repeatCount="indefinite"/>
+          <animate attributeName="stroke-dashoffset" values="0;1600;0" dur="12.6s" begin="-0.8s" repeatCount="indefinite"/>
+        </use>
+      </g>
+      <g stroke-width="2.0" opacity="0.28">
+        <use href="#loop2" transform="translate(0,60) scale(1.08)">
+          <animate attributeName="stroke-dasharray" values="0,1800;1800,0" dur="9.8s" begin="-1.6s" repeatCount="indefinite"/>
+          <animate attributeName="stroke-dashoffset" values="1800;0;1800" dur="9.8s" begin="-1.6s" repeatCount="indefinite"/>
+        </use>
+        <use href="#loop1" transform="translate(200,740) scale(0.92) rotate(-2)">
+          <animate attributeName="stroke-dasharray" values="0,2000;2000,0" dur="10.9s" begin="-2.9s" repeatCount="indefinite"/>
+          <animate attributeName="stroke-dashoffset" values="0;2000;0" dur="10.9s" begin="-2.9s" repeatCount="indefinite"/>
+        </use>
+      </g>
+    </g>
+
+    <!-- SUBTLE MIRRORED COPY FOR BALANCE -->
+    <g transform="translate(1200,0) scale(-1,1)" opacity="0.18">
+      <g stroke-width="2.2">
+        <use href="#loop3" transform="translate(140,180) scale(0.92)">
+          <animate attributeName="stroke-dasharray" values="0,1900;1900,0" dur="12.4s" begin="-4s" repeatCount="indefinite"/>
+          <animate attributeName="stroke-dashoffset" values="1900;0;1900" dur="12.4s" begin="-4s" repeatCount="indefinite"/>
+        </use>
+        <use href="#loop2" transform="translate(520,420) scale(0.96)">
+          <animate attributeName="stroke-dasharray" values="0,2000;2000,0" dur="11.7s" begin="-5.2s" repeatCount="indefinite"/>
+          <animate attributeName="stroke-dashoffset" values="0;2000;0" dur="11.7s" begin="-5.2s" repeatCount="indefinite"/>
+        </use>
+      </g>
+    </g>
+  </g>
+</svg>

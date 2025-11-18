@@ -6,7 +6,6 @@ from django.contrib.auth.views import LoginView, LogoutView
 from django.db import IntegrityError
 from django.urls import reverse_lazy
 
-from modules.authentication.models import CustomUser  # ✅ correct
 from .forms import CustomSignupForm
 
 logger = logging.getLogger(__name__)
@@ -20,7 +19,7 @@ def signup_view(request):
                 user = form.save()
                 login(request, user)
                 messages.success(request, f"✅ Welcome, {user.username}!")
-                return redirect("redirect_dashboard")  # adjust to your dashboard route
+                return redirect("landing")
             except IntegrityError:
                 messages.error(request, "⚠️ That Student ID or email is already in use.")
         else:
