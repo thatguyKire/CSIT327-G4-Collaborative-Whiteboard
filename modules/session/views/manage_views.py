@@ -63,6 +63,7 @@ def delete_session(request, session_id):
 
 @login_required
 @require_POST
+@safe_view
 def toggle_draw_permission(request, session_id, user_id):
     try:
         session = get_object_or_404(Session, id=session_id)

@@ -7,25 +7,40 @@
 }
 
 body {
-  background: #fefefe url("https://www.transparenttextures.com/patterns/graphy.png");
+  /* layout only; remove background duplication */
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   min-height: 100vh;
   text-align: center;
+  /* removed background-color/image/animation from body */
+}
+
+/* Keep a single keyframes block (this one) */
+@keyframes moveBg {
+  0% { background-position: 0 0; }
+  100% { background-position: 400px 200px; }
+}
+
+/* Base animated paper background: one source of truth */
+.auth-bg {
+  background: #f9f4e6; /* paper-like */
 }
 
 /* Card container */
 .auth-card {
   background: #fffbe6;
-  border: 3px solid #333;
+  border: 3px solid #2f2f2f;
   border-radius: 20px;
-  padding: 30px;
-  width: 380px;
-  box-shadow: 6px 6px 0px #333;
+  padding: 40px;               /* was 30px */
+  width: min(560px, 92vw);     /* was 380px */
+  box-shadow: 4px 4px 0px rgba(51,51,51,0.85);
   text-align: center;
   animation: floaty 3s ease-in-out infinite;
+  position: relative;
+  margin-left: clamp(0px, 28vw, 420px); /* was 395px */
+  z-index: 2;
 }
 
 @keyframes floaty {
@@ -34,11 +49,29 @@ body {
 }
 
 .auth-card h2 {
-  font-size: 2rem;
+  font-size: 2.4rem;           /* was 2rem */
   font-weight: bold;
   color: #2c3e50;
-  margin-bottom: 20px;
+  margin-bottom: 24px;         /* was 20px */
   text-shadow: 2px 2px #ffe066;
+}
+
+/* Logo pseudo-element (smaller, softened, lighter contrast) */
+.auth-card::before {
+  content: "";
+  position: absolute;
+  left: calc(-1 * clamp(0px, 28vw, 395px));
+  top: 50%;
+  transform: translateY(-50%);
+  width: clamp(200px, 28vw, 360px);            /* scaled down ~15% */
+  height: clamp(200px, 28vw, 360px);
+  background:
+    url("/static/authentication/img/collaboard-logo.png") center/contain no-repeat;
+  filter: drop-shadow(3px 3px 0 rgba(34,34,34,0.7))
+          brightness(0.97) contrast(0.92) saturate(1.05); /* soften outline */
+  pointer-events: none;
+  z-index: 1;
+  opacity: 0.95;                               /* subtle fade so form leads */
 }
 
 /* Form fields */
@@ -49,18 +82,18 @@ body {
 
 .form-group label {
   display: block;
-  font-size: 14px;
-  margin-bottom: 6px;
+  font-size: 16px;             /* was 14px */
+  margin-bottom: 8px;          /* was 6px */
   font-weight: bold;
   color: #444;
 }
 
 .form-group input {
   width: 100%;
-  padding: 12px;
+  padding: 14px 16px;          /* was 12px */
   border: 2px dashed #333;
   border-radius: 12px;
-  font-size: 1rem;
+  font-size: 1.125rem;         /* was 1rem */
   background: #fff;
   outline: none;
   transition: 0.2s;
@@ -84,12 +117,12 @@ body {
 /* Button */
 .btn {
   width: 100%;
-  padding: 12px;
+  padding: 14px 18px;          /* was 12px */
   background: #6bcB77;
   color: #fff;
   border: 3px solid #333;
   border-radius: 15px;
-  font-size: 1.1rem;
+  font-size: 1.2rem;           /* was 1.1rem */
   font-weight: bold;
   cursor: pointer;
   transition: 0.2s;
@@ -215,4 +248,78 @@ body {
 /* Optional: slightly reduce space if it feels too far apart */
 .title-wrapper {
   margin-bottom: 60px; /* was 100px — you can adjust */
+}
+
+/* Respect user's reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+  body { animation: none; }
+}
+
+/* Animated lines layer (behind content, above paper noise) */
+.draw-lines {
+  position: fixed;
+  inset: 0;
+  z-index: 1;           /* paper-noise is 0; content is 2 */
+  pointer-events: none; /* it's decorative */
+  overflow: hidden;
+}
+.draw-svg { width: 100%; height: 100%; }
+
+/* Ensure content sits above backgrounds */
+.page-container, .auth-card { position: relative; z-index: 2; }
+
+/* Respect reduced motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  .draw-lines { display: none; }
+}
+
+/* Reduce motion/density on small screens */
+@media (max-width: 640px) {
+  .draw-lines { display: none; }        /* hide scribbles on small devices */
+  .title-wrapper { margin-bottom: 32px; }
+}
+
+/* Paper noise layer (behind everything) */
+.paper-noise {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+
+/* Paper-like base (no doodle-light.png) */
+.auth-bg {
+  background: #f9f4e6;
+}
+
+/* Show the logo to the left of the login card via CSS only */
+.auth-card {
+  position: relative;
+  /* Make space for the logo on wide screens; 0 on small */
+  margin-left: clamp(0px, 28vw, 395px);
+  z-index: 2; /* above animated backgrounds */
+}
+
+/* Stack layout on smaller screens (hide the logo) */
+@media (max-width: 980px) {
+  .auth-card { margin-left: 0; width: 92vw; } /* keeps it big but fluid */
+  .auth-card::before { content: none; }
+}
+
+/* Optional: reduce scribble intensity behind form for readability */
+.auth-card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: rgba(255,251,230,0.6);
+  z-index: -1;
+  border-radius: 18px;
+}
+
+@media (max-width: 480px) {
+  .auth-card { padding: 28px; }
+  .auth-card h2 { font-size: 2rem; }
+  .form-group label { font-size: 14px; }
+  .form-group input { font-size: 1rem; padding: 12px 14px; }
+  .btn { font-size: 1.05rem; padding: 12px 16px; }
 }
