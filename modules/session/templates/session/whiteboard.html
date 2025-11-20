@@ -46,13 +46,15 @@
       {% if snapshot_url %}
         <img id="snapshotImg" src="{{ snapshot_url }}" hidden alt="Previous snapshot">
       {% endif %}
-
+                                   
       <!-- CHANGED: wrap canvas to host overlay safely -->
       <div id="whiteboardHost" class="canvas-stack">
         <canvas id="whiteboardCanvas"
                 style="width:100%; height:600px; background:#fff; display:block;"
                 width="1200" height="600"
                 aria-label="Whiteboard drawing area"></canvas>
+        <!-- Removed pinLayer (handled by annoCanvas now) -->
+        <!-- <div id="pinLayer" class="pin-layer" aria-label="Pins layer"></div> -->
       </div>
     </div>
 

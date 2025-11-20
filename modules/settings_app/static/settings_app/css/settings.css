@@ -197,6 +197,64 @@ html, body {
   color: #a93226;
 }
 
+/* Password change page layout */
+.password-change-wrapper {
+  min-height: calc(100vh - 72px); /* adjust if header height differs */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 24px;
+}
+
+.password-change-card.profile-container {
+  max-width: 520px;
+  width: 100%;
+  margin: 0 auto; /* override any left/right offsets */
+}
+
+/* Password change card action buttons fix */
+.password-change-card .profile-actions {
+  display: flex;
+  gap: 14px;
+  margin-top: 12px;
+  flex-wrap: wrap;
+}
+
+.password-change-card .action-btn {
+  flex: 1 1 180px;
+  text-align: center;
+  padding: 14px 20px;
+  font-weight: 600;
+  border-radius: 12px;
+  text-decoration: none;
+  transition: all .18s ease;
+  letter-spacing: .3px;
+}
+
+.password-change-card .action-btn.outline {
+  background: #fff;
+  color: #1e9145;
+  border: 2px solid #1e9145;
+}
+
+.password-change-card .action-btn.outline:hover {
+  background: #1e9145;
+  color: #fff;
+  transform: translateY(-2px);
+}
+
+.password-change-card .action-btn:active {
+  transform: translateY(0);
+  box-shadow: none;
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+  .password-change-wrapper {
+    padding: 32px 16px;
+  }
+}
+
 /* Responsive */
 @media (max-width: 900px) {
   .settings-page {

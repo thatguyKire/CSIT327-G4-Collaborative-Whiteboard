@@ -20,7 +20,7 @@
         </div>
         <div class="session-actions">
           {% if it.snapshot_url %}
-            <a class="btn btn-primary" href="{% url 'offline_view' it.id %}">View Snapshot</a>
+            <a class="btn btn-primary" href="{{ it.snapshot_url }}" target="_blank" rel="noopener">Open Snapshot</a>
             <a class="btn btn-secondary" href="{{ it.snapshot_url }}" download>Download</a>
           {% else %}
             <span class="empty">No snapshot</span>

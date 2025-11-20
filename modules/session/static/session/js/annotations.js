@@ -5,7 +5,7 @@
   const host = document.getElementById("whiteboardHost") || base?.parentElement;
   if (!base || !host) return;
 
-  // Create / reuse overlay
+  // Overlay canvas (annotations layer)
   let overlay = document.getElementById("annoCanvas");
   if (!overlay) {
     overlay = document.createElement("canvas");
@@ -14,17 +14,27 @@
   }
   const ctx = overlay.getContext("2d");
 
+  // UI
   const highlightBtn = document.getElementById("highlightBtn");
   const pinBtn = document.getElementById("pinBtn");
   const clearBtn = document.getElementById("clearBtn");
-  const channel = window.WhiteboardChannel; // if realtime exists
 
-  let tool = "none";
-  let highlights = [];
-  let pins = [];
+  // Permissions (only allow if can draw)
+  function canAnnotate() {
+    return !!window.CAN_DRAW;
+  }
 
+  // Realtime channel (created in whiteboard.js)
+  const channel = window.WhiteboardChannel;
+
+  // Data
+  let tool = "none";            // "highlight" | "pin" | "none"
+  let dragStart = null;
+  const highlights = [];        // {id,x,y,w,h,color}
+  const pins = [];              // {id,x,y,text}
+
+  // Resize overlay with base canvas
   function resizeOverlay() {
-    // Use base canvas rect (not host) to avoid collapsed host issues
     const r = base.getBoundingClientRect();
     const dpr = window.devicePixelRatio || 1;
     overlay.width = Math.max(1, Math.floor(r.width * dpr));
@@ -34,23 +44,20 @@
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     drawAll();
   }
-
-  // Initial + reactive sizing
   resizeOverlay();
   window.addEventListener("resize", resizeOverlay);
-  // Observe base canvas for size changes
-  if (window.ResizeObserver) {
-    new ResizeObserver(resizeOverlay).observe(base);
-  }
+  if (window.ResizeObserver) new ResizeObserver(resizeOverlay).observe(base);
 
+  // Draw all annotations
   function drawAll() {
     ctx.clearRect(0, 0, overlay.width, overlay.height);
+    // Highlights
     for (const h of highlights) {
       ctx.save();
-      ctx.fillStyle = "rgba(255,235,59,0.35)";
-      ctx.strokeStyle = "rgba(255,193,7,0.9)";
+      ctx.fillStyle = h.color || "rgba(255,235,59,0.30)";
+      ctx.strokeStyle = "rgba(255,193,7,0.95)";
       ctx.lineWidth = 2;
-      const x2 = h.x + h.w, y2 = h.y + h.h, r = 8;
+      const x2 = h.x + h.w, y2 = h.y + h.h, r = 10;
       ctx.beginPath();
       ctx.moveTo(h.x + r, h.y);
       ctx.arcTo(x2, h.y, x2, y2, r);
@@ -61,6 +68,7 @@
       ctx.fill(); ctx.stroke();
       ctx.restore();
     }
+    // Pins
     for (const p of pins) {
       ctx.save();
       ctx.fillStyle = "#e53935";
@@ -70,7 +78,7 @@
       ctx.arc(p.x, p.y, 8, 0, Math.PI * 2);
       ctx.fill(); ctx.stroke();
       if (p.text) {
-        ctx.font = "bold 12px system-ui,sans-serif";
+        ctx.font = "bold 12px system-ui";
         ctx.fillStyle = "#1b1b1b";
         ctx.fillText(p.text, p.x + 12, p.y + 4);
       }
@@ -78,33 +86,37 @@
     }
   }
 
+  // Tool toggle
   function setTool(next) {
+    if (!canAnnotate()) return;
     tool = tool === next ? "none" : next;
     overlay.style.pointerEvents = tool === "none" ? "none" : "auto";
     highlightBtn?.classList.toggle("active", tool === "highlight");
     pinBtn?.classList.toggle("active", tool === "pin");
   }
-
   highlightBtn?.addEventListener("click", () => setTool("highlight"));
   pinBtn?.addEventListener("click", () => setTool("pin"));
 
-  let dragStart = null;
-
+  // Pointer events on overlay
   overlay.addEventListener("pointerdown", (e) => {
-    if (tool === "none") return;
-    const r = base.getBoundingClientRect(); // align with drawing canvas
+    if (!canAnnotate() || tool === "none") return;
+    const r = base.getBoundingClientRect();
     const x = e.clientX - r.left;
     const y = e.clientY - r.top;
+
     if (tool === "pin") {
-      pins.push({ id: Date.now() + "", x, y, text: "" });
+      const pin = { id: Date.now() + "", x, y, text: "" };
+      pins.push(pin);
       drawAll();
+      broadcastPin(pin);
       return;
     }
+    // highlight start
     dragStart = { x, y };
   });
 
   overlay.addEventListener("pointermove", (e) => {
-    if (!dragStart || tool !== "highlight") return;
+    if (!dragStart || tool !== "highlight" || !canAnnotate()) return;
     const r = base.getBoundingClientRect();
     const x = e.clientX - r.left;
     const y = e.clientY - r.top;
@@ -121,39 +133,110 @@
   });
 
   function endHighlight(e) {
-    if (!dragStart || tool !== "highlight") return;
+    if (!dragStart || tool !== "highlight" || !canAnnotate()) return;
     const r = base.getBoundingClientRect();
     const x = e.clientX - r.left;
     const y = e.clientY - r.top;
     const x0 = Math.min(dragStart.x, x), y0 = Math.min(dragStart.y, y);
     const w = Math.abs(x - dragStart.x), h = Math.abs(y - dragStart.y);
     dragStart = null;
-    highlights.push({ id: Date.now() + "", x: x0, y: y0, w, h });
+    // Skip zero-size
+    if (w < 4 || h < 4) { drawAll(); return; }
+    const hl = { id: Date.now() + "", x: x0, y: y0, w, h, color: "rgba(255,235,59,0.30)" };
+    highlights.push(hl);
     drawAll();
+    broadcastHighlight(hl);
   }
-
   overlay.addEventListener("pointerup", endHighlight);
   overlay.addEventListener("pointerleave", endHighlight);
 
+  // Local clear
   function clearAnnotationsLocal() {
-    highlights = [];
-    pins = [];
+    highlights.length = 0;
+    pins.length = 0;
     drawAll();
   }
   window.clearAnnotations = clearAnnotationsLocal;
 
-  // Hook Clear All button
+  // Hook Clear All button (already broadcasts stroke clear elsewhere)
   clearBtn?.addEventListener("click", () => {
     clearAnnotationsLocal();
-    // Broadcast to others (optional)
-    channel?.send?.({ type: "broadcast", event: "anno", payload: { t: "clear" } });
+    // Also broadcast anno clear so remote overlays wipe even if stroke clear lost.
+    channel?.send({ type: "broadcast", event: "anno", payload: { t: "clear" } });
   });
 
-  // Listen for remote clear
-  channel?.on?.("broadcast", { event: "anno" }, ({ payload }) => {
+  // ---------- Realtime Broadcast Helpers ----------
+  function broadcastHighlight(hl) {
+    if (!channel) return;
+    const r = base.getBoundingClientRect();
+    channel.send({
+      type: "broadcast",
+      event: "anno",
+      payload: {
+        t: "hl",
+        id: hl.id,
+        x: hl.x / r.width,
+        y: hl.y / r.height,
+        w: hl.w / r.width,
+        h: hl.h / r.height,
+        c: hl.color
+      }
+    });
+  }
+  function broadcastPin(pin) {
+    if (!channel) return;
+    const r = base.getBoundingClientRect();
+    channel.send({
+      type: "broadcast",
+      event: "anno",
+      payload: {
+        t: "pin",
+        id: pin.id,
+        x: pin.x / r.width,
+        y: pin.y / r.height,
+        txt: pin.text || ""
+      }
+    });
+  }
+
+  // ---------- Realtime Receive ----------
+  channel?.on("broadcast", { event: "anno" }, ({ payload }) => {
     if (!payload) return;
-    if (payload.t === "clear") {
-      clearAnnotationsLocal();
+    const r = base.getBoundingClientRect();
+    switch (payload.t) {
+      case "hl": {
+        // avoid duplicates by id
+        if (highlights.some(h => h.id === payload.id)) return;
+        highlights.push({
+          id: payload.id,
+          x: (payload.x || 0) * r.width,
+          y: (payload.y || 0) * r.height,
+          w: (payload.w || 0) * r.width,
+          h: (payload.h || 0) * r.height,
+          color: payload.c || "rgba(255,235,59,0.30)"
+        });
+        drawAll();
+        break;
+      }
+      case "pin": {
+        if (pins.some(p => p.id === payload.id)) return;
+        pins.push({
+          id: payload.id,
+          x: (payload.x || 0) * r.width,
+          y: (payload.y || 0) * r.height,
+          text: payload.txt || ""
+        });
+        drawAll();
+        break;
+      }
+      case "clear":
+        clearAnnotationsLocal();
+        break;
     }
+  });
+
+  // Also clear annotations if stroke layer cleared (teacher pressed Clear)
+  channel?.on("broadcast", { event: "stroke" }, ({ payload }) => {
+    if (payload?.t === "clear") clearAnnotationsLocal();
   });
 })();

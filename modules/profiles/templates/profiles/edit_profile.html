@@ -24,7 +24,12 @@
     {% csrf_token %}
     <div class="profile-info">
       <label for="username">Username</label>
-      <input type="text" id="username" name="username" value="{{ user.username }}">
+      <input type="text"
+             id="username"
+             name="username"
+             value="{{ user.username }}"
+             readonly>
+      
     </div>
 
     <div class="profile-info">
@@ -37,8 +42,7 @@
       <label for="student_id">Student ID</label>
       <input type="text" id="student_id" name="student_id"
              value="{{ user.student_id }}"
-             readonly
-             style="background-color:#f3f3f3; color:#555; cursor:not-allowed;">
+             readonly>
       <small class="text-muted">Student ID cannot be changed once registered.</small>
     </div>
     {% endif %}

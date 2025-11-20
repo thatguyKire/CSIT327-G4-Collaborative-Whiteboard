@@ -12,7 +12,6 @@ from .views import (
     export_session_pdf,
     duplicate_session,
     toggle_draw_permission,
-    offline_view,
     upload_views,
     saved_sessions,
     record_stroke,
@@ -42,8 +41,6 @@ urlpatterns = [
     path("<uuid:session_id>/participants/<int:user_id>/can-draw/", toggle_draw_permission, name="toggle_draw_permission"),
 
 
-    # Offline view
-    path('<uuid:session_id>/offline/', offline_view, name='offline_view'),
 
     # ✅ Upload
     path('<uuid:session_id>/upload/', upload_views.upload_attachment, name='upload_attachment'),
