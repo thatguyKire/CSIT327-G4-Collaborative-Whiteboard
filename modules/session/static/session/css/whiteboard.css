@@ -346,6 +346,14 @@ input:checked + .slider:before { transform: translateX(18px); }
   flex: 1;
 }
 
+/* Remove old pin overlay styles if pinLayer removed
+.pin-layer { position:absolute; inset:0; pointer-events:none; }
+.pin-marker { position:absolute; width:26px; height:26px; transform:translate(-50%, -100%); animation: pin-pop .25s ease; }
+.pin-marker::before { content:"📍"; font-size:24px; line-height:1; }
+@keyframes pin-pop { from { transform:translate(-50%, -100%) scale(.4); opacity:0; } to { transform:translate(-50%, -100%) scale(1); opacity:1; } }
+*/
+
+
 /* ---------- Responsive ---------- */
 @media (max-width: 1024px) {
   .whiteboard-layout {

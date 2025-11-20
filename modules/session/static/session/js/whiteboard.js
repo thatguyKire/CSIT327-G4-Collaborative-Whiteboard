@@ -40,6 +40,12 @@
   const fileInput = document.getElementById("fileInput");
   const drawToolbar = document.getElementById("drawToolbar");
   const viewOnlyBanner = document.getElementById("viewOnlyBanner");
+  const highlightBtn = document.getElementById("highlightBtn");
+  const pinBtn = document.getElementById("pinBtn");
+  const pinLayer = document.getElementById("pinLayer");
+
+  let highlightMode = false;
+  let pinMode = false;
 
   // Accessibility: add ARIA to toolbar controls
   const addA11yButton = (el, label, pressed = null) => {
@@ -336,13 +342,15 @@
   // draw handlers (single binding point)
   function startDraw(e) {
     if (!canDraw) return;
+    // remove highlight handling; keep normal stroke
     const p = getCoords(e);
-    if (hitTest(p.x, p.y)) return; // avoid drawing over image drag
+    if (hitTest(p.x, p.y)) return;
     drawing = true;
     lastX = p.x; lastY = p.y;
     strokeCtx.lineWidth = lineWidth;
     strokeCtx.lineCap = "round";
     strokeCtx.strokeStyle = erasing ? "#fff" : currentColor;
+    strokeCtx.globalAlpha = 1;
     strokeCtx.beginPath();
     strokeCtx.moveTo(lastX, lastY);
     scheduleRedraw();
@@ -352,8 +360,8 @@
     if (!drawing || !canDraw) return;
     const p = getCoords(e);
     strokeCtx.lineWidth = lineWidth;
-    strokeCtx.lineCap = "round";
     strokeCtx.strokeStyle = erasing ? "#fff" : currentColor;
+    strokeCtx.globalAlpha = 1;
     strokeCtx.beginPath();
     strokeCtx.moveTo(lastX, lastY);
     strokeCtx.lineTo(p.x, p.y);
@@ -365,15 +373,16 @@
   function stopDraw(e) {
     if (!drawing) return;
     drawing = false;
+    strokeCtx.globalAlpha = 1;
     snapshotState("stroke");
     send("end", e);
-    // increment strokes on server
-    if (window.CURRENT_SESSION_ID) {
-      fetch(`/session/${window.CURRENT_SESSION_ID}/stroke/`, {
-        method: "POST",
-        headers: { "X-CSRFToken": getCookie("csrftoken") }
-      }).catch(()=>{});
-    }
+    // Removed unused POST ping that caused 403 (Forbidden)
+    // if (window.CURRENT_SESSION_ID) {
+    //   fetch(`/session/${window.CURRENT_SESSION_ID}/stroke/`, {
+    //     method: "POST",
+    //     headers: { "X-CSRFToken": getCookie("csrftoken") }
+    //   }).catch(()=>{});
+    // }
   }
 
   // bind/unbind so permission can toggle live
@@ -831,7 +840,6 @@
   // Strokes from others
   channel?.on("broadcast", { event: "stroke" }, ({ payload }) => {
     if (payload.sid && String(payload.sid) === String(window.CURRENT_USER_ID)) return;
-
     const rect = canvas.getBoundingClientRect();
     const x = (payload.x || 0) * rect.width;
     const y = (payload.y || 0) * rect.height;
@@ -843,12 +851,14 @@
         strokeCtx.strokeStyle = payload.c || "#000";
         strokeCtx.lineWidth = payload.w || 2;
         strokeCtx.lineCap = "round";
+        strokeCtx.globalAlpha = payload.h ? 0.35 : 1;
         break;
       case "draw":
         strokeCtx.lineTo(x, y);
         strokeCtx.stroke();
         break;
       case "end":
+        strokeCtx.globalAlpha = 1;
         break;
       case "clear":
         strokeCtx.clearRect(0, 0, rect.width, rect.height);

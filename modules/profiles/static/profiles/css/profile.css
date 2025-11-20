@@ -54,6 +54,27 @@
   box-sizing: border-box;
 }
 
+.profile-info input[readonly] {
+  background: #f3f3f3;
+  color: #555;
+  cursor: not-allowed;
+}
+
+/* Readonly inputs (username, student_id) */
+.profile-info input[readonly] {
+  background: #f3f3f3;
+  color: #555;
+  cursor: not-allowed;
+}
+
+/* Muted helper text */
+.text-muted {
+  display: block;
+  margin-top: 4px;
+  font-size: 0.8rem;
+  color: #666;
+}
+
 .profile-actions {
   display: flex;
   justify-content: space-between;

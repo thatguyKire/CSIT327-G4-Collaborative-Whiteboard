@@ -10,8 +10,13 @@ def profile_view(request):
 def edit_profile(request):
     user = request.user
     if request.method == "POST":
-        user.username = request.POST.get("username")
-        user.email = request.POST.get("email")
+        # Do NOT allow username changes (login uses username)
+        # user.username = request.POST.get("username")
+
+        # Allow email change
+        new_email = request.POST.get("email")
+        if new_email and new_email != user.email:
+            user.email = new_email
 
         if user.role != "student" and "student_id" in request.POST:
             user.student_id = request.POST.get("student_id")
