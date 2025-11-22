@@ -26,6 +26,12 @@
         <button id="pinBtn" class="btn btn-secondary" title="Pin">Pin</button>
         {% if user == session.created_by %}
         <button id="saveBtn" class="btn btn-success" data-save-url="{% url 'save_snapshot' session.id %}">Save</button>
+        <!-- NEW: Chat toggle button for the teacher -->
+        <button id="chatToggleBtn"
+                class="btn btn-secondary"
+                data-toggle-url="{% url 'toggle_chat' session.id %}">
+          {% if session.chat_enabled %}Disable Chat{% else %}Enable Chat{% endif %}
+        </button>
         {% endif %}
         <button id="exportBtn" class="btn btn-primary">Export</button>
         <div class="upload-section">
@@ -100,3 +106,6 @@
 <!-- NEW: overlay + tools logic (safe even if no realtime) -->
 <script src="{% static 'session/js/annotations.js' %}" defer></script>
 {% endblock %}
+
+<!-- Ensure chat UI is present on the page -->
+{% include "chat/chat_box.html" %}

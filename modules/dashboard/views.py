@@ -4,10 +4,8 @@ from django.contrib.auth.decorators import login_required
 from modules.authentication.decorators import role_required  # ✅ adjust path if needed
 from django.utils import timezone
 from django.db.models import Count, Max
+from django.db import ProgrammingError
 from modules.session.models import Participant, UploadedFile, ChatMessage, Session
-
-
-
 
 logger = logging.getLogger(__name__)
 
@@ -68,9 +66,11 @@ def teacher_dashboard(request):
     participants_qs = Participant.objects.filter(session__in=sessions_qs).select_related("user")
 
     # Per-user uploads
-    uploads_agg = UploadedFile.objects.filter(session__in=sessions_qs) \
-        .values("uploaded_by_id").annotate(upload_count=Count("id"), last_upload=Max("uploaded_at"))
-
+    try:
+        uploads_agg = UploadedFile.objects.filter(session__in=sessions_qs) \
+            .values("uploaded_by_id").annotate(upload_count=Count("id"), last_upload=Max("uploaded_at"))
+    except ProgrammingError:
+        uploads_agg = []
     uploads_map = {u["uploaded_by_id"]: u for u in uploads_agg}
 
     # Per-user messages

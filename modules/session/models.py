@@ -16,8 +16,7 @@ class Session(models.Model):
     code = models.CharField(max_length=8, unique=True)
     scheduled_for = models.DateTimeField(blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
-
-    # Snapshot / Save system (CW-23, CW-35)
+    chat_enabled = models.BooleanField(default=True)  # <-- added
     snapshot_url = models.URLField(blank=True, null=True)
     is_saved = models.BooleanField(default=False)
     is_offline_available = models.BooleanField(default=False)
@@ -48,11 +47,11 @@ class Participant(models.Model):
 class ChatMessage(models.Model):
     session = models.ForeignKey(Session, on_delete=models.CASCADE, related_name="messages")
     sender = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
-    message = models.TextField()
+    content = models.TextField(default="", blank=True)  # rename from message
     timestamp = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"{self.sender.username}: {self.message[:30]}"
+        return f"{self.sender.username}: {self.content[:30]}"
 
     class Meta:
         ordering = ['-timestamp']

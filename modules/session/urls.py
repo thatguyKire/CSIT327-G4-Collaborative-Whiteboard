@@ -15,7 +15,11 @@ from .views import (
     upload_views,
     saved_sessions,
     record_stroke,
+    toggle_chat,
+    manage_views,
+    whiteboard_views
 )
+
 
 
 urlpatterns = [
@@ -36,14 +40,17 @@ urlpatterns = [
     path('export_pdf/<uuid:session_id>/', export_session_pdf, name='export_session_pdf'),
     path('duplicate/<uuid:session_id>/', duplicate_session, name='duplicate_session'),
 
-    # Teacher permission toggle
-    path('<int:user_id>/toggle_draw/', toggle_draw_permission, name='toggle_draw'),
+    # Teacher permission toggle (remove invalid path)
     path("<uuid:session_id>/participants/<int:user_id>/can-draw/", toggle_draw_permission, name="toggle_draw_permission"),
-
-
 
     # ✅ Upload
     path('<uuid:session_id>/upload/', upload_views.upload_attachment, name='upload_attachment'),
     path('sessions/saved/', saved_sessions, name='saved_sessions'),
     path("<uuid:session_id>/stroke/", record_stroke, name="record_stroke"),
+
+    # 🎤 Chat
+    path("toggle-chat/<uuid:session_id>/", toggle_chat, name="toggle_chat"),
+    path("<uuid:session_id>/toggle-chat/", manage_views.toggle_chat, name="toggle_chat"),
+    # whiteboard page (if not already routed elsewhere)
+    # path("<uuid:session_id>/", whiteboard_views.whiteboard, name="whiteboard"),
 ]

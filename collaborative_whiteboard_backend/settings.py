@@ -59,11 +59,12 @@ INSTALLED_APPS = [
 # -------------------------------------------------------------
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware',  # for static files on Render
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'modules.core.middleware.no_cache.NoCacheForAuthMiddleware',  # renamed to match actual class
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
@@ -112,6 +113,7 @@ AUTH_USER_MODEL = "authentication.CustomUser"
 
 LOGIN_REDIRECT_URL = "/dashboard/redirect/"
 LOGOUT_REDIRECT_URL = "/auth/login/"
+LOGIN_URL = "/auth/login/"
 
 # -------------------------------------------------------------
 # PASSWORD VALIDATION

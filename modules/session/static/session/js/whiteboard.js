@@ -43,6 +43,7 @@
   const highlightBtn = document.getElementById("highlightBtn");
   const pinBtn = document.getElementById("pinBtn");
   const pinLayer = document.getElementById("pinLayer");
+  const chatToggleBtn = document.getElementById("chatToggleBtn");
 
   let highlightMode = false;
   let pinMode = false;
@@ -425,10 +426,7 @@
   // Expose permission apply function
   window.WhiteboardApp = {
     get canDraw(){ return canDraw; },
-    applyPermission(can){
-      canDraw = !!can;
-      updatePermissionUI();
-    },
+    set canDraw(v){ canDraw = !!v; updatePermissionUI(); },
     addImageFromUrl,
     showToast,
     getCookie
@@ -447,6 +445,30 @@
     }
     return null;
   }
+
+  // Image realtime broadcast helper
+  function broadcastImage(action, img) {
+    if (!channel || !img) return;
+    const rect = canvas.getBoundingClientRect();
+    const payload = {
+      t: action,
+      id: img.id,
+      x: img.x / rect.width,
+      y: img.y / rect.height,
+      w: img.width / rect.width,
+      h: img.height / rect.height,
+      r: img.rotation || 0
+    };
+    channel.send({ type: "broadcast", event: "image", payload });
+  }
+
+  function broadcastDelete(imgId) {
+    if (!channel) return;
+    channel.send({ type: "broadcast", event: "image", payload: { t: "delete", id: imgId } });
+  }
+
+  let lastMoveSent = 0;
+  const MOVE_INTERVAL = 80; // ms throttle
 
   canvas.addEventListener("pointerdown", (e) => {
     if (!canDraw) return;
@@ -496,10 +518,20 @@
       activeImage.x = p.x - offsetX;
       activeImage.y = p.y - offsetY;
       scheduleRedraw();
+      const now = performance.now();
+      if (now - lastMoveSent > MOVE_INTERVAL) {
+        lastMoveSent = now;
+        broadcastImage("move", activeImage);
+      }
     } else if (resizing && activeImage) {
       activeImage.width = Math.max(30, p.x - activeImage.x);
       activeImage.height = Math.max(30, p.y - activeImage.y);
       scheduleRedraw();
+      const now = performance.now();
+      if (now - lastMoveSent > MOVE_INTERVAL) {
+        lastMoveSent = now;
+        broadcastImage("resize", activeImage);
+      }
     }
   });
 
@@ -508,6 +540,9 @@
       dragging = false;
       resizing = false;
       snapshotState("image-transform");
+      if (activeImage) {
+        broadcastImage("transform", activeImage);
+      }
     }
   });
 
@@ -518,7 +553,10 @@
       activeImage.rotation = (activeImage.rotation || 0) + e.deltaY * -0.1;
       scheduleRedraw();
       clearTimeout(wheelRotateDebounce);
-      wheelRotateDebounce = setTimeout(() => snapshotState("image-rotate"), 250);
+      wheelRotateDebounce = setTimeout(() => {
+        snapshotState("image-rotate");
+        if (activeImage) broadcastImage("rotate", activeImage);
+      }, 250);
     }
   }, { passive: false });
 
@@ -527,10 +565,12 @@
     if (!activeImage || !canDraw) return;
     if (e.key === "Delete" || e.key === "Backspace") {
       e.preventDefault();
+      const deletedId = activeImage.id;                 // fix: keep id before nulling
       images = images.filter(i => i !== activeImage);
       activeImage = null;
       scheduleRedraw();
       snapshotState("delete-image");
+      broadcastDelete(deletedId);                       // fix: broadcast correct id
     }
   });
 
@@ -592,6 +632,9 @@
     scheduleRedraw();
     snapshotState("clear");
     showToast("Board cleared.", "success");
+
+    channel?.send({ type: "broadcast", event: "stroke", payload: { t: "clear" } });
+    channel?.send({ type: "broadcast", event: "image", payload: { t: "clear" } });
   });
 
   // ========================================
@@ -758,7 +801,7 @@
   // Expose limited API for other modules
   window.WhiteboardApp = {
     get canDraw(){ return canDraw; },
-    set canDraw(v){ canDraw = !!v; },
+    set canDraw(v){ canDraw = !!v; updatePermissionUI(); },
     addImageFromUrl,
     showToast,
     getCookie
@@ -815,153 +858,191 @@
     console.log("Realtime status:", status, channelName);
   });
 
-  // Helper to find image by shared id
-  function findImageById(id) {
-    return images.find(i => String(i.id) === String(id));
+  // Realtime meta events (chat toggle)
+  channel?.on("broadcast", { event: "meta" }, ({ payload }) => {
+    if (!payload || payload.t !== "chat") return;
+    const enabled = !!payload.enabled;
+    window.CHAT_ENABLED = enabled;
+    // Delegate UI/state to chat.js
+    if (typeof window.applyChatEnabled === "function") {
+      window.applyChatEnabled(enabled);
+    }
+    const btn = document.getElementById("chatToggleBtn");
+    if (btn) btn.textContent = enabled ? "Disable Chat" : "Enable Chat";
+    console.log("Realtime chat state applied:", enabled);
+  });
+
+  // Teacher chat toggle button (broadcast + update)
+  let toggleInFlight = false;
+  chatToggleBtn?.addEventListener("click", () => {
+    if (toggleInFlight) return; // debounce overlapping toggles
+    const url = chatToggleBtn.dataset.toggleUrl;
+    if (!url) {
+      console.error("No toggle URL on chat button");
+      return;
+    }
+
+    toggleInFlight = true;
+    chatToggleBtn.disabled = true;
+    const prevText = chatToggleBtn.textContent;
+    chatToggleBtn.textContent = "Toggling...";
+
+    fetch(url, {
+      method: "POST",
+      headers: { "X-CSRFToken": getCookie("csrftoken") }
+    })
+      .then(r => {
+        console.log("Toggle response status:", r.status);
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        return r.json();
+      })
+      .then(d => {
+        console.log("Toggle response data:", d);
+        if (!d.ok) throw new Error(d.error || "Unknown error");
+
+        const enabled = !!d.chat_enabled;
+        window.CHAT_ENABLED = enabled;
+
+        // Immediate local apply (avoid waiting for broadcast echo)
+        if (typeof window.applyChatEnabled === "function") {
+            window.applyChatEnabled(enabled);
+        }
+
+        chatToggleBtn.textContent = enabled ? "Disable Chat" : "Enable Chat";
+
+        // Broadcast to all participants (others will update via listener)
+        console.log("Broadcasting chat toggle:", enabled);
+        channel?.send({
+          type: "broadcast",
+          event: "meta",
+          payload: { t: "chat", enabled }
+        });
+
+        showToast?.(`Chat ${enabled ? "enabled" : "disabled"}`, "success");
+      })
+      .catch(err => {
+        console.error("Chat toggle error:", err);
+        showToast?.("Failed to toggle chat", "error");
+        chatToggleBtn.textContent = prevText;
+      })
+      .finally(() => {
+        chatToggleBtn.disabled = false;
+        toggleInFlight = false;
+      });
+  });
+
+  // Remote strokes handling
+  const remoteStrokeLayers = {}; // sid -> offscreen canvas context
+
+  function getRemoteCtx(sid) {
+    if (!remoteStrokeLayers[sid]) {
+      const c = document.createElement("canvas");
+      c.width = strokeCanvas.width;
+      c.height = strokeCanvas.height;
+      const rc = c.getContext("2d", { willReadFrequently: true });
+      remoteStrokeLayers[sid] = { canvas: c, ctx: rc };
+    }
+    return remoteStrokeLayers[sid].ctx;
   }
-  // Broadcast image changes (normalized coords)
-  function sendImageUpdate(t, item) {
-    if (!channel || !item || !item.id) return;
-    const rect = canvas.getBoundingClientRect();
-    channel.send({
-      type: "broadcast",
-      event: "image",
-      payload: {
-        t,
-        id: String(item.id),
-        x: item.x / rect.width,
-        y: item.y / rect.height,
-        w: item.width / rect.width,
-        h: item.height / rect.height
-      }
+
+  function redrawWithRemotes() {
+    redrawAll();
+    // draw remote layers on top of base strokes
+    Object.values(remoteStrokeLayers).forEach(obj => {
+      ctx.drawImage(obj.canvas, 0, 0, canvas.width / (window.devicePixelRatio||1), canvas.height / (window.devicePixelRatio||1));
     });
   }
 
-  // Strokes from others
   channel?.on("broadcast", { event: "stroke" }, ({ payload }) => {
-    if (payload.sid && String(payload.sid) === String(window.CURRENT_USER_ID)) return;
+    if (!payload || !payload.t) return;
+    // Ignore own strokes (already applied locally)
+    if (String(payload.sid) === String(window.CURRENT_USER_ID)) return;
     const rect = canvas.getBoundingClientRect();
     const x = (payload.x || 0) * rect.width;
     const y = (payload.y || 0) * rect.height;
-
+    const rc = getRemoteCtx(payload.sid);
     switch (payload.t) {
       case "begin":
-        strokeCtx.beginPath();
-        strokeCtx.moveTo(x, y);
-        strokeCtx.strokeStyle = payload.c || "#000";
-        strokeCtx.lineWidth = payload.w || 2;
-        strokeCtx.lineCap = "round";
-        strokeCtx.globalAlpha = payload.h ? 0.35 : 1;
+        rc.lineWidth = payload.w || 3;
+        rc.strokeStyle = payload.c || "#000";
+        rc.lineCap = "round";
+        rc.beginPath();
+        rc.moveTo(x, y);
         break;
       case "draw":
-        strokeCtx.lineTo(x, y);
-        strokeCtx.stroke();
+        rc.lineTo(x, y);
+        rc.stroke();
         break;
       case "end":
-        strokeCtx.globalAlpha = 1;
+        rc.lineTo(x, y);
+        rc.stroke();
         break;
       case "clear":
-        strokeCtx.clearRect(0, 0, rect.width, rect.height);
-        images = [];
-        activeImage = null;
+        rc.clearRect(0, 0, rc.canvas.width, rc.canvas.height);
         break;
     }
-    scheduleRedraw();
+    redrawWithRemotes();
   });
 
-  // Images from others
   channel?.on("broadcast", { event: "image" }, ({ payload }) => {
-    const t = payload?.t || "add";
-    const id = payload?.id != null ? String(payload.id) : null;
+    if (!payload || !payload.t || !payload.id && payload.t !== "clear") return;
+    // Ignore events originating from this user if we ever include sender id (not included yet)
     const rect = canvas.getBoundingClientRect();
-    const px = (payload?.x || 0) * rect.width;
-    const py = (payload?.y || 0) * rect.height;
-    const pw = (payload?.w || 0.3) * rect.width;
-    const ph = (payload?.h || 0.3) * rect.height;
-
-    if (t === "add") {
-      if (!payload?.url) return;
-      // if already exists, just update its geometry
-      const ex = id ? findImageById(id) : null;
-      if (ex) { ex.x = px; ex.y = py; ex.width = pw; ex.height = ph; scheduleRedraw(); return; }
-      addImageFromUrl(payload.url, { id, x: px, y: py, width: pw, height: ph, absolute: true }).catch(() => {});
-      return;
-    }
-    if (!id) return;
-    const item = findImageById(id);
-    if (!item) return;
-    switch (t) {
+    switch (payload.t) {
+      case "add": {
+        // prevent duplicate add
+        if (images.some(i => i.id === payload.id)) return;
+        addImageFromUrl(payload.url, {
+          id: payload.id,
+          x: (payload.x || 0) * rect.width,
+          y: (payload.y || 0) * rect.height,
+          width: (payload.w || 0.3) * rect.width,
+          height: (payload.h || 0.3) * rect.height
+        }).then(img => {
+          img.rotation = payload.r || 0;
+          scheduleRedraw();
+        }).catch(()=>{});
+        break;
+      }
       case "move":
       case "resize":
-        item.x = px; item.y = py; item.width = pw; item.height = ph; break;
-      case "rotate":
-        item.rotation = payload.rotation || 0; break;
-      case "delete":
-        images = images.filter(i => i !== item);
-        if (activeImage && String(activeImage.id) === id) activeImage = null;
+      case "transform":
+      case "rotate": {
+        const img = images.find(i => i.id === payload.id);
+        if (!img) return;
+        if (payload.x != null) img.x = payload.x * rect.width;
+        if (payload.y != null) img.y = payload.y * rect.height;
+        if (payload.w != null) img.width = payload.w * rect.width;
+        if (payload.h != null) img.height = payload.h * rect.height;
+        if (payload.r != null) img.rotation = payload.r;
+        scheduleRedraw();
         break;
+      }
+      case "delete": {
+        const existing = images.find(i => i.id === payload.id);
+        if (!existing) return;
+        images = images.filter(i => i.id !== payload.id);
+        if (activeImage && activeImage.id === payload.id) activeImage = null;
+        scheduleRedraw();
+        break;
+      }
+      case "clear": {
+        images = [];
+        activeImage = null;
+        scheduleRedraw();
+        break;
+      }
     }
-    scheduleRedraw();
   });
 
-  // Live permission toggle
   channel?.on("broadcast", { event: "perm" }, ({ payload }) => {
-    const { uid, can } = payload || {};
-    if (!uid || String(uid) !== String(window.CURRENT_USER_ID)) return;
-    canDraw = !!can;
-    updatePermissionUI();
-    showToast(canDraw ? "You can draw now." : "Drawing permission removed.", canDraw ? "success" : "info");
-  });
-
-  // Clear button: also broadcast
-  clearBtn?.addEventListener("click", () => {
-    if (!canDraw) return showToast("You don't have permission to clear.", "error");
-    if (!confirm("Clear everything?")) return;
-    const rect = canvas.getBoundingClientRect();
-    strokeCtx.clearRect(0, 0, rect.width, rect.height);
-    images = [];
-    activeImage = null;
-    scheduleRedraw();
-    snapshotState("clear");
-    send("clear");
-  });
-
-  // Realtime for image drag/resize/rotate/delete (teacher or any canDraw user)
-  let imgBroadcastRAF = false;
-  canvas.addEventListener("pointermove", (e) => {
-    if (!canDraw) return;
-    if ((dragging || resizing) && activeImage && !imgBroadcastRAF) {
-      imgBroadcastRAF = true;
-      requestAnimationFrame(() => {
-        sendImageUpdate(resizing ? "resize" : "move", activeImage);
-        imgBroadcastRAF = false;
-      });
-    }
-  });
-  canvas.addEventListener("pointerup", () => {
-    if (!canDraw) return;
-    if ((dragging || resizing) && activeImage) {
-      // final position
-      sendImageUpdate(resizing ? "resize" : "move", activeImage);
-    }
-  });
-  // wheel rotate broadcast (debounced already)
-  const _oldWheelDebounce = wheelRotateDebounce;
-  canvas.addEventListener("wheel", (e) => {
-    if (activeImage && e.shiftKey && canDraw) {
-      clearTimeout(wheelRotateDebounce);
-      wheelRotateDebounce = setTimeout(() => {
-        sendImageUpdate("rotate", activeImage);
-      }, 250);
-    }
-  }, { passive: false });
-  // delete broadcast
-  document.addEventListener("keydown", (e) => {
-    if (!canDraw) return;
-    if ((e.key === "Delete" || e.key === "Backspace") && activeImage) {
-      const id = activeImage.id;
-      // ...existing delete code...
-      sendImageUpdate("delete", { id, x:0,y:0,w:0,h:0 });
+    if (!payload || payload.uid == null) return;
+    if (String(payload.uid) === String(window.CURRENT_USER_ID)) {
+      const newVal = !!payload.can;
+      if (window.WhiteboardApp?.canDraw !== newVal) {
+        window.WhiteboardApp.canDraw = newVal;
+        showToast?.(newVal ? "You can now draw." : "You are in view-only mode.", "info");
+      }
     }
   });
 })();

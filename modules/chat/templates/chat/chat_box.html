@@ -24,6 +24,21 @@
     <div class="chat-empty">No messages yet. Start the conversation!</div>
   </div>
 
+  <!-- POPUP WHEN DISABLED -->
+  <div id="chatDisabledPopup"
+       class="chat-disabled-popup hidden"
+       role="alertdialog"
+       aria-modal="false"
+       aria-labelledby="chatDisabledTitle"
+       aria-describedby="chatDisabledDesc"
+       tabindex="-1">
+    <h4 id="chatDisabledTitle">Chat Disabled</h4>
+    <p id="chatDisabledDesc" class="chat-disabled-text">The teacher has disabled chat for now.</p>
+    <button id="chatDisabledCloseBtn" type="button" class="chat-disabled-close" aria-label="Close notice">OK</button>
+  </div>
+
+  <div id="chatDisabledNotice" class="hidden" aria-hidden="true"></div> <!-- legacy hook -->
+
   <div class="chat-input-container">
     <input type="text" id="chatInput" placeholder="Type a message..." autocomplete="off" maxlength="500" aria-label="Type a message">
     <button id="chatSendBtn" class="chat-send" type="button" aria-label="Send message">

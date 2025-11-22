@@ -1,272 +1,291 @@
-document.addEventListener("DOMContentLoaded", () => {
-  const chatBubble = document.getElementById("chatBubble");
-  const chatWindow = document.getElementById("chatWindow");
+(function(){
+  if (window.__chatInit) return;
+  window.__chatInit = true;
+
+  const bubble = document.getElementById("chatBubble");
+  const win = document.getElementById("chatWindow");
+  const input = document.getElementById("chatInput");
+  const sendBtn = document.getElementById("chatSendBtn");
   const closeBtn = document.getElementById("closeBtn");
   const minimizeBtn = document.getElementById("minimizeBtn");
-  const chatMessages = document.getElementById("chatMessages");
-  const chatInput = document.getElementById("chatInput");
-  const sendBtn = document.getElementById("chatSendBtn");
-  const unreadBadge = document.getElementById("unreadBadge");
-  const chatStatus = document.getElementById("chatStatus");
+  const messagesEl = document.getElementById("chatMessages");
+  const disabledNotice = document.getElementById("chatDisabledNotice");
+  const sidebarBtn = document.getElementById("sidebarChatBtn");
+  const disabledPopup = document.getElementById("chatDisabledPopup");
+  const disabledCloseBtn = document.getElementById("chatDisabledCloseBtn");
 
-  // State
-  let isOpen = false;
-  let isMinimized = false;
-  let isDragging = false;
-  let offsetX = 0, offsetY = 0;
+  if (!bubble || !win) return;
+
+  const sessionId = window.CURRENT_SESSION_ID;
+  if (!sessionId) console.warn("[chat] No CURRENT_SESSION_ID");
+
+  let enabled = typeof window.CHAT_ENABLED === "boolean" ? window.CHAT_ENABLED : true;
   let roomId = null;
-  let pollingTimer = null;
-  let inFlight = false;
-  let lastMessageId = 0;
+  let polling = null;
+  let fetching = false;
+  let fetchingRoom = false;
+  let open = false;
+  const seen = new Set();
+  let lastEnableAttemptTime = 0;
 
-  // =========================
-  // UI helpers
-  // =========================
-  function setStatus(ok) {
-    if (!chatStatus) return;
-    chatStatus.style.color = ok ? "#2ecc71" : "#bdc3c7";
-    chatStatus.title = ok ? "Connected" : "Offline";
-  }
-  function incrementUnread(by = 1) {
-    if (!unreadBadge) return;
-    const current = parseInt(unreadBadge.textContent || "0", 10) || 0;
-    const next = current + by;
-    unreadBadge.textContent = String(next);
-    unreadBadge.style.display = next > 0 ? "inline-block" : "none";
-  }
-  function resetUnread() {
-    if (!unreadBadge) return;
-    unreadBadge.textContent = "0";
-    unreadBadge.style.display = "none";
-  }
+  function log(...a){ console.log("[chat]", ...a); }
 
-  function openChat() {
-    chatWindow.classList.remove("hidden");
-    chatWindow.classList.remove("minimized");
-    chatBubble.style.display = "none";
-    isOpen = true;
-    isMinimized = false;
-    resetUnread();
-    chatInput?.focus();
-  }
-  function closeChat() {
-    chatWindow.classList.add("hidden");
-    chatBubble.style.display = "flex";
-    isOpen = false;
-  }
-  function toggleMinimize() {
-    chatWindow.classList.toggle("minimized");
-    isMinimized = chatWindow.classList.contains("minimized");
-  }
+  function safeJson(r){ return r.text().then(t=>{ try{return [r,JSON.parse(t)];}catch{return [r,{}];} }); }
 
-  // Open via keyboard
-  chatBubble.addEventListener("keydown", (e) => {
-    if (e.key === "Enter" || e.key === " ") {
-      e.preventDefault();
-      openChat();
+  function showDisabled(msg="Chat is disabled.") {
+    if (disabledNotice) {
+      disabledNotice.textContent = msg;
+      disabledNotice.classList.remove("hidden");
     }
-  });
-
-  // Open/Close/Minimize
-  chatBubble.addEventListener("click", openChat);
-  closeBtn?.addEventListener("click", closeChat);
-  minimizeBtn?.addEventListener("click", toggleMinimize);
-
-  // Escape closes/minimizes
-  document.addEventListener("keydown", (e) => {
-    if (e.key === "Escape" && isOpen) {
-      if (!isMinimized) toggleMinimize();
-      else closeChat();
+    if (disabledPopup) {
+      disabledPopup.classList.remove("hidden");
+      const desc = disabledPopup.querySelector(".chat-disabled-text");
+      if (desc) desc.textContent = msg;
+      // focus popup for accessibility
+      disabledPopup.focus();
     }
-  });
-
-  // =========================
-  // Draggable bubble
-  // =========================
-  chatBubble.addEventListener("mousedown", (e) => {
-    isDragging = true;
-    const rect = chatBubble.getBoundingClientRect();
-    offsetX = e.clientX - rect.left;
-    offsetY = e.clientY - rect.top;
-    chatBubble.style.transition = "none";
-    chatBubble.style.cursor = "grabbing";
-  });
-  document.addEventListener("mousemove", (e) => {
-    if (!isDragging) return;
-    e.preventDefault();
-    const x = e.clientX - offsetX;
-    const y = e.clientY - offsetY;
-    const maxX = window.innerWidth - chatBubble.offsetWidth;
-    const maxY = window.innerHeight - chatBubble.offsetHeight;
-    chatBubble.style.left = Math.max(0, Math.min(maxX, x)) + "px";
-    chatBubble.style.top = Math.max(0, Math.min(maxY, y)) + "px";
-    chatBubble.style.bottom = "auto";
-    chatBubble.style.right = "auto";
-  });
-  document.addEventListener("mouseup", () => {
-    if (!isDragging) return;
-    isDragging = false;
-    chatBubble.style.transition = "transform 0.2s ease";
-    chatBubble.style.cursor = "grab";
-  });
-
-  // =========================
-  // Chat API
-  // =========================
-  // Only init chat when a session id is explicitly provided (e.g., on whiteboard pages)
-  const sessionId = window.CURRENT_SESSION_ID || null;
-  if (!sessionId) {
-    // No session context on this page; hide/disable bubble to avoid errors
-    document.getElementById("chatBubble")?.classList.add("hidden");
-    document.getElementById("chatWindow")?.classList.add("hidden");
-    return;
+    // hide input while disabled
+    sendBtn?.setAttribute("disabled","disabled");
+    input?.setAttribute("disabled","disabled");
   }
 
-  async function initChat() {
-    try {
-      const res = await fetch(`/chat/session/${sessionId}/`);
-      const data = await res.json();
-      if (!res.ok || !data.room_id) throw new Error("Chat init failed");
-      roomId = data.room_id;
-      setStatus(true);
-      await loadMessages(true);
-      startPolling();
-    } catch (err) {
-      setStatus(false);
-      window.WhiteboardApp?.showToast?.("Chat unavailable.", "error");
+  function hideDisabled(){
+    if (disabledNotice){
+      disabledNotice.classList.add("hidden");
+      disabledNotice.textContent = "";               // clear stale text
+    }
+    if (disabledPopup){
+      disabledPopup.classList.add("hidden");
+    }
+    sendBtn?.removeAttribute("disabled");
+    input?.removeAttribute("disabled");
+  }
+
+  function applyEnabled(v){
+    const prev = enabled;
+    enabled = !!v;
+    window.CHAT_ENABLED = enabled;
+    if (enabled) lastEnableAttemptTime = Date.now();
+    log("applyEnabled:", enabled, "roomId:", roomId, "open:", open, "wasEnabled:", prev);
+
+    if (enabled){
+      bubble.classList.remove("hidden");
+      bubble.style.display = "flex";
+      hideDisabled();
+      // If previously disabled, force room re-fetch when window already open
+      if (open && !roomId && !fetchingRoom) ensureRoom();
+    } else {
+      showDisabled();
+      stopPolling();
+      // Keep window visible (teacher sees notice) but clear room
+      roomId = null;
     }
   }
+  // Expose for whiteboard.js
+  window.applyChatEnabled = applyEnabled;
 
-  function startPolling() {
-    clearInterval(pollingTimer);
-    const intervalVisible = 3000;
-    const intervalHidden = 10000;
-    const computeInterval = () => (document.hidden ? intervalHidden : intervalVisible);
-    let currentInterval = computeInterval();
-    pollingTimer = setInterval(loadMessages, currentInterval);
-    document.addEventListener("visibilitychange", () => {
-      const next = computeInterval();
-      if (next !== currentInterval) {
-        clearInterval(pollingTimer);
-        currentInterval = next;
-        pollingTimer = setInterval(loadMessages, currentInterval);
-      }
+  function ensureRoom(){
+    if (!enabled || !sessionId || fetchingRoom) {
+      log("ensureRoom blocked:", {enabled, sessionId, fetchingRoom});
+      return;
+    }
+    fetchingRoom = true;
+    log("Fetching room for session:", sessionId);
+    fetch(`/chat/session/${sessionId}/`)
+      .then(safeJson)
+      .then(([r,d])=>{
+        log("Room response:", r.status, r.statusText, d);
+        if (r.status===403 || d.chat_enabled===false){
+          // Same stale check after enable
+          const sinceEnable = Date.now() - lastEnableAttemptTime;
+          if (enabled && sinceEnable < 3000) {
+            log("Room 403 right after enable; scheduling retry");
+            setTimeout(()=> { if (enabled) ensureRoom(); }, 700);
+            return;
+          }
+          applyEnabled(false);
+          return;
+        }
+        if (!r.ok || !d.room_id) return;
+        roomId = d.room_id;
+        hideDisabled();                               // ensure UI clears once room ready
+        log("Room ID set:", roomId);
+        loadMessages(true);
+        if (open) startPolling();
+      })
+      .catch(err=> log("ensureRoom error:", err))
+      .finally(()=> fetchingRoom = false);
+  }
+
+  function render(list, initial){
+    if (initial){ messagesEl.innerHTML=""; seen.clear(); }
+    list.forEach(m=>{
+      if (seen.has(m.id)) return;
+      seen.add(m.id);
+      const el = document.createElement("div");
+      el.className = "chat-message";
+      el.innerHTML = `<div class="chat-meta"><span class="sender">${m.sender}</span><span class="time"> (${m.timestamp})</span></div><div class="chat-body"></div>`;
+      el.querySelector(".chat-body").textContent = m.content;
+      messagesEl.appendChild(el);
     });
+    messagesEl.scrollTop = messagesEl.scrollHeight;
   }
 
-  function createMessageElement(msg) {
-    const wrap = document.createElement("div");
-    wrap.classList.add("chat-message");
-
-    const meta = document.createElement("div");
-    meta.classList.add("chat-meta");
-
-    const sender = document.createElement("span");
-    sender.classList.add("sender");
-    sender.textContent = msg.sender;
-
-    const time = document.createElement("span");
-    time.classList.add("time");
-    time.textContent = ` (${msg.timestamp})`;
-
-    meta.appendChild(sender);
-    meta.appendChild(time);
-
-    const body = document.createElement("div");
-    body.classList.add("chat-body");
-    body.textContent = msg.content; // prevents XSS
-
-    wrap.appendChild(meta);
-    wrap.appendChild(body);
-    return wrap;
+  function loadMessages(initial=false){
+    if (!roomId || fetching || !enabled){
+      log("loadMessages blocked:", {roomId, fetching, enabled});
+      return;
+    }
+    fetching = true;
+    fetch(`/chat/${roomId}/messages/`)
+      .then(safeJson)
+      .then(([r,d])=>{
+        if (r.status===403 || d.chat_enabled===false){
+          const sinceEnable = Date.now() - lastEnableAttemptTime;
+          if (enabled && sinceEnable < 3000) {
+            log("403 right after enable; will retry room & messages");
+            // Do NOT flip to disabled; re-fetch room then messages
+            setTimeout(()=> {
+              if (enabled) {
+                ensureRoom();
+                loadMessages(true);
+              }
+            }, 700);
+            return;
+          }
+          log("Chat disabled while loading messages");
+          applyEnabled(false);
+          return;
+        }
+        if (!r.ok || !Array.isArray(d.messages)) return;
+        render(d.messages, initial);
+      })
+      .catch(err=> log("loadMessages error:", err))
+      .finally(()=> fetching = false);
   }
 
-  async function loadMessages(initial = false) {
-    if (!roomId || inFlight) return;
-    inFlight = true;
-    try {
-      const res = await fetch(`/chat/${roomId}/messages/`);
-      const data = await res.json();
-      if (!res.ok || !Array.isArray(data.messages)) throw new Error("Fetch error");
-      setStatus(true);
-
-      const msgs = data.messages;
-      const newMsgs = lastMessageId ? msgs.filter(m => m.id > lastMessageId) : msgs;
-
-      if (initial) {
-        chatMessages.innerHTML = "";
-      }
-      if (newMsgs.length) {
-        chatMessages.querySelector(".chat-empty")?.remove();
-        newMsgs.forEach(m => {
-          const el = createMessageElement(m);
-          chatMessages.appendChild(el);
-          lastMessageId = Math.max(lastMessageId, m.id);
-        });
-        chatMessages.scrollTop = chatMessages.scrollHeight;
-
-        if (!isOpen || isMinimized) incrementUnread(newMsgs.length);
-      } else if (initial && !msgs.length) {
-        // keep "No messages yet" placeholder if present
-      }
-    } catch (e) {
-      setStatus(false);
-    } finally {
-      inFlight = false;
+  function startPolling(){
+    stopPolling();
+    if (!enabled || !roomId){
+      log("startPolling blocked:", {enabled, roomId});
+      return;
+    }
+    log("Starting polling");
+    polling = setInterval(()=> loadMessages(false), 5000);
+  }
+  function stopPolling(){
+    if (polling){
+      clearInterval(polling);
+      polling = null;
+      log("Stopped polling");
     }
   }
 
-  async function sendMessage() {
-    if (!roomId) return;
-    const message = chatInput.value.trim();
-    if (!message) return;
+  function openWindow(){
+    if (!sessionId){
+      showDisabled("Session not initialized.");
+      win.classList.remove("hidden","minimized");
+      return;
+    }
+    if (!enabled){
+      showDisabled();
+      win.classList.remove("hidden","minimized");
+      return;
+    }
+    win.classList.remove("hidden","minimized");
+    hideDisabled();
+    open = true;
+    if (!roomId && !fetchingRoom) ensureRoom(); else if (roomId) { loadMessages(true); startPolling(); }
+    input && input.focus();
+  }
 
+  function closeWindow(){
+    win.classList.add("hidden");
+    open = false;
+    stopPolling();
+  }
+
+  function toggleMin(){
+    if (!open) return;
+    win.classList.toggle("minimized");
+  }
+
+  bubble.addEventListener("click", e=>{
+    e.stopPropagation();
+    log("Bubble clicked", {open, enabled, roomId});
+    open ? closeWindow() : openWindow();
+  });
+  sidebarBtn?.addEventListener("click", e=>{ e.preventDefault(); openWindow(); });
+  bubble.addEventListener("keydown", e=>{
+    if (e.key==="Enter"||e.key===" ") { e.preventDefault(); bubble.click(); }
+  });
+  closeBtn?.addEventListener("click", closeWindow);
+  minimizeBtn?.addEventListener("click", toggleMin);
+
+  function sendMessage(){
+    if (!enabled){ showDisabled(); return; }
+    if (!roomId){
+      log("No roomId, ensuring room then retry");
+      if (!fetchingRoom) ensureRoom();
+      setTimeout(()=> {
+        if (roomId) sendMessage();
+      }, 800);
+      return;
+    }
+    const text = (input.value||"").trim();
+    if (!text) return;
     sendBtn.disabled = true;
-    try {
-      const r = await fetch(`/chat/${roomId}/send/`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "X-CSRFToken": getCookie("csrftoken"),
-        },
-        body: JSON.stringify({ content: message }),
-      });
-      const d = await r.json().catch(() => ({}));
-      if (!r.ok || d.error) throw new Error(d.error || "Send failed");
-      chatInput.value = "";
-      await loadMessages();
-    } catch (e) {
-      window.WhiteboardApp?.showToast?.(e.message || "Failed to send message", "error");
-    } finally {
-      sendBtn.disabled = false;
-      chatInput.focus();
-    }
+    fetch(`/chat/${roomId}/send/`, {
+      method:"POST",
+      headers:{
+        "Content-Type":"application/json",
+        "X-CSRFToken": (document.cookie.match(/csrftoken=([^;]+)/)||[])[1]||""
+      },
+      body: JSON.stringify({content:text})
+    })
+      .then(safeJson)
+      .then(([r,d])=>{
+        if (r.status===403 || d.chat_enabled===false){
+          applyEnabled(false);
+          return;
+        }
+        if (!r.ok || !d.message) return;
+        render([d.message], false);
+        input.value = "";
+      })
+      .catch(err=> log("sendMessage error:", err))
+      .finally(()=> { sendBtn.disabled=false; input.focus(); });
   }
-
   sendBtn?.addEventListener("click", sendMessage);
-  chatInput?.addEventListener("keydown", (e) => {
-    if (e.key === "Enter") sendMessage();
+  input?.addEventListener("keydown", e=>{
+    if (e.key==="Enter"){ e.preventDefault(); sendMessage(); }
   });
 
-  // =========================
-  // Helper
-  // =========================
-  function getCookie(name) {
-    const match = document.cookie.match(`(^|;)\\s*${name}\\s*=\\s*([^;]+)`);
-    return match ? match.pop() : "";
-  }
-
-  // Init
-  initChat();
-
-  // Sidebar "Chats" button opens chat
-  const sidebarChatsBtn = Array.from(document.querySelectorAll(".menu-btn"))
-    .find(btn => btn.textContent.trim() === "Chats");
-  if (sidebarChatsBtn) {
-    sidebarChatsBtn.addEventListener("click", (e) => {
-      e.preventDefault();
-      openChat();
-      window.scrollTo({ top: 0, behavior: "smooth" });
+  // Late bind realtime listener (channel appears later)
+  function bindRealtime(){
+    if (!window.WhiteboardChannel || window.__chatRealtimeBound) return;
+    window.__chatRealtimeBound = true;
+    window.WhiteboardChannel.on("broadcast",{event:"meta"}, ({payload})=>{
+      if (payload?.t==="chat"){
+        log("Realtime toggle (late bind):", payload.enabled);
+        applyEnabled(payload.enabled);
+      }
     });
+    log("Realtime listener bound");
   }
-});
+  const rtInterval = setInterval(()=>{
+    bindRealtime();
+    if (window.__chatRealtimeBound) clearInterval(rtInterval);
+  }, 500);
+
+  disabledCloseBtn?.addEventListener("click", () => {
+    disabledPopup?.classList.add("hidden");
+  });
+
+  applyEnabled(enabled);
+  if (sessionId){
+    bubble.classList.remove("hidden");
+    bubble.style.display = "flex";
+  }
+  log("Chat initialized", {sessionId, enabled});
+})();
