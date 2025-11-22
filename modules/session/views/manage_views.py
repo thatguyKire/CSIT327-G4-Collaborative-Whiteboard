@@ -162,6 +162,22 @@ def export_session(request, session_id):
     response["Content-Disposition"] = f'attachment; filename="session_{session_id}_export.txt"'
     return response
 
+@login_required
+@require_POST
+@safe_view
+def toggle_chat(request, session_id):
+    session = get_object_or_404(Session, id=session_id)
+    # Only the session owner can toggle
+    if request.user != session.created_by and not request.user.is_staff:
+        return JsonResponse({"ok": False, "error": "forbidden"}, status=403)
+    # Ensure field exists
+    if not hasattr(session, "chat_enabled"):
+        # default to True if missing, then add via migration later
+        session.chat_enabled = True
+    session.chat_enabled = not session.chat_enabled
+    session.save(update_fields=["chat_enabled"])
+    return JsonResponse({"ok": True, "chat_enabled": session.chat_enabled, "session_id": str(session.id)})
+
 # Optional helper views (useful if you later add routes / templates)
 @login_required
 @safe_view

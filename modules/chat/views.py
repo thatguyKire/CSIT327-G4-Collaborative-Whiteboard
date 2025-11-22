@@ -2,54 +2,64 @@ from django.shortcuts import get_object_or_404
 from django.http import JsonResponse
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_http_methods
-from django.utils import timezone
-from modules.session.models import Session
+from modules.session.models import Session, Participant
 from .models import ChatRoom, Message
 import json
+
+def _authorized(user, session: Session):
+    return user == session.created_by or Participant.objects.filter(session=session, user=user).exists()
 
 @login_required
 @require_http_methods(["GET"])
 def get_or_create_session_chat(request, session_id):
     session = get_object_or_404(Session, id=session_id)
-    room, _ = ChatRoom.objects.get_or_create(session=session, defaults={
-        "name": f"Chat for {getattr(session, 'title', f'Session {session.id}')}",
-        "chat_type": "session",
-    })
-    room.participants.add(request.user)
-    return JsonResponse({"room_id": room.id})
+    if not _authorized(request.user, session):
+        return JsonResponse({"error": "Forbidden"}, status=403)
+    session.refresh_from_db()
+    if not session.chat_enabled:
+        return JsonResponse({"chat_enabled": False}, status=403)
+    room, _ = ChatRoom.objects.get_or_create(session=session, defaults={"name": f"Session {session_id} Chat"})
+    return JsonResponse({"room_id": room.id, "chat_enabled": True})
 
 @login_required
 @require_http_methods(["GET"])
 def fetch_messages(request, room_id):
     room = get_object_or_404(ChatRoom, id=room_id)
-    if not room.participants.filter(id=request.user.id).exists():
-        return JsonResponse({"error": "Forbidden"}, status=403)
-    msgs = Message.objects.filter(room=room).select_related("sender").order_by("id")
-    data = []
-    for m in msgs:
-        ts = getattr(m, "timestamp", None) or getattr(m, "created_at", None) or getattr(m, "created", None)
-        ts_str = timezone.localtime(ts).strftime("%H:%M") if ts else ""
-        data.append({"id": m.id, "sender": m.sender.username, "content": m.content, "timestamp": ts_str})
-    return JsonResponse({"messages": data})
+    session = room.session
+    if session and (not _authorized(request.user, session) or not session.chat_enabled):
+        return JsonResponse({"chat_enabled": False}, status=403)
+    msgs = room.messages.select_related("sender")
+    data = [{
+        "id": m.id,
+        "sender": m.sender.username,
+        "content": m.content,
+        "timestamp": m.timestamp.strftime("%H:%M"),
+    } for m in msgs]
+    return JsonResponse({"chat_enabled": True, "messages": data})
 
 @login_required
 @require_http_methods(["POST"])
 def send_message(request, room_id):
     room = get_object_or_404(ChatRoom, id=room_id)
-    if not room.participants.filter(id=request.user.id).exists():
-        return JsonResponse({"error": "Forbidden"}, status=403)
+    session = room.session
+    if session and (not _authorized(request.user, session) or not session.chat_enabled):
+        return JsonResponse({"chat_enabled": False}, status=403)
     try:
-        body = json.loads(request.body or "{}")
+        payload = json.loads(request.body)
     except json.JSONDecodeError:
-        return JsonResponse({"error": "Invalid JSON"}, status=400)
-    content = (body.get("content") or "").strip()
+        return JsonResponse({"error": "Bad JSON"}, status=400)
+    content = (payload.get("content") or "").strip()
     if not content:
-        return JsonResponse({"error": "Message cannot be empty"}, status=400)
-    if len(content) > 500:
-        return JsonResponse({"error": "Message too long"}, status=400)
-    m = Message.objects.create(room=room, sender=request.user, content=content)
-    ts = getattr(m, "timestamp", None) or getattr(m, "created_at", None) or getattr(m, "created", None)
+        return JsonResponse({"error": "Empty"}, status=400)
+    if len(content) > 1000:
+        return JsonResponse({"error": "Too long"}, status=400)
+    msg = Message.objects.create(room=room, sender=request.user, content=content)
     return JsonResponse({
-        "id": m.id, "sender": m.sender.username, "content": m.content,
-        "timestamp": timezone.localtime(ts).strftime("%H:%M") if ts else "",
+        "chat_enabled": True,
+        "message": {
+            "id": msg.id,
+            "sender": msg.sender.username,
+            "content": msg.content,
+            "timestamp": msg.timestamp.strftime("%H:%M"),
+        }
     })
