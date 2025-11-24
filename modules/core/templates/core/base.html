@@ -5,6 +5,9 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="username" content="{{ request.user.username }}">
+  <meta name="user-id" content="{{ request.user.id }}">
+  <meta name="supabase-url" content="{{ SUPABASE_URL }}">
+  <meta name="supabase-key" content="{{ SUPABASE_ANON_KEY }}">
   <title>{% block title %}COLLABoard{% endblock %}</title>
 
   <!-- 🎨 Favicon -->
@@ -38,21 +41,23 @@
 
     <div class="topbar-right">
       <!-- Notifications -->
-      <img src="{% static 'core/icons/bell.png' %}" id="notifBell" class="tb-icon" alt="Notifications" />
-
-      <div class="notifications-panel" id="notificationsPanel">
-        <h3>Notifications</h3>
-        <div class="notif-list">
-          <div class="notification-item">
-            <p>Welcome to COLLABoard 🎉</p>
-            <time>Just now</time>
-          </div>
-          <div class="notification-item">
-            <p>New feature: Whiteboard sessions now exportable as PDF!</p>
-            <time>10 mins ago</time>
-          </div>
+      <div class="tb-icon-wrap" id="notifWrap">
+        <button id="notifBell"
+                type="button"
+                class="tb-icon notif-bell-btn"
+                aria-haspopup="true"
+                aria-expanded="false"
+                aria-controls="notificationsPanel">
+          <img src="{% static 'core/icons/bell.png' %}" alt="Notifications" class="bell-img">
+          <span id="notifBadge" class="notif-badge {% if notif_unread_count == 0 %}hidden{% endif %}">
+            {{ notif_unread_count|default:0 }}
+          </span>
+        </button>
+        <div class="notifications-panel" id="notificationsPanel" role="region" aria-label="Notifications dropdown">
+          <h3>Notifications</h3>
+          <div class="notif-list" role="list"></div>
+          <a href="{% url 'notifications:notifications' %}" class="btn-secondary see-all-btn">See all</a>
         </div>
-        <a href="{% url 'notifications' %}" class="btn-secondary">See all</a>
       </div>
 
       <!-- Account Dropdown -->
@@ -108,5 +113,8 @@
   <script src="{% static 'core/js/dashboard-sidebar.js' %}" defer></script>
   <script src="{% static 'dashboard/js/dashboard-ui.js' %}" defer></script>
   {% block extra_js %}{% endblock %}
+  <!-- 🎵 Notifications (Supabase UMD + realtime Bell) -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js" defer></script>
+  <script src="{% static 'notifications/js/Bell.js' %}" defer></script>
 </body>
 </html>

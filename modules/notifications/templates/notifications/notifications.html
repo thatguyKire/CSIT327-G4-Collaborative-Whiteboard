@@ -1,53 +1,32 @@
 {% extends "core/base.html" %}
 {% load static %}
-
+{% load notify_extras %}
 {% block title %}Notifications - COLLABoard{% endblock %}
-
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'notifications/css/notifications.css' %}">
 {% endblock %}
-
 {% block content %}
 <section class="notifications-container">
   <h1 class="page-title">📢 Notifications</h1>
   <p class="page-subtitle">All your latest alerts, updates, and announcements.</p>
-
-  <div class="notifications-list">
-    <div class="notif-card">
-      <div class="notif-icon">🎨</div>
-      <div class="notif-content">
-        <h3>New Whiteboard Session Created</h3>
-        <p>Your teacher started a new collaborative session. Join now to participate!</p>
-        <time datetime="2025-10-04T18:30">5 minutes ago</time>
+  <div class="notifications-list" id="fullNotificationsList">
+    {% for n in items %}
+      <div class="notif-card" data-id="{{ n.id }}">
+        <div class="notif-icon">{% if n.is_urgent %}⚠️{% else %}🔔{% endif %}</div>
+        <div class="notif-content">
+          <h3>{{ n.content|notif_title }}</h3>
+          {% with n.content|notif_body as body %}
+            {% if body %}<p>{{ body }}</p>{% else %}<p class="muted">—</p>{% endif %}
+          {% endwith %}
+          <time datetime="{{ n.created_at|date:'c' }}">{{ n.created_at|timesince }} ago</time>
+        </div>
       </div>
-    </div>
-
-    <div class="notif-card">
-      <div class="notif-icon">🗓️</div>
-      <div class="notif-content">
-        <h3>Session Scheduled</h3>
-        <p>You have an upcoming whiteboard session tomorrow at 9:00 AM.</p>
-        <time datetime="2025-10-03T22:00">2 hours ago</time>
-      </div>
-    </div>
-
-    <div class="notif-card">
-      <div class="notif-icon">📢</div>
-      <div class="notif-content">
-        <h3>Announcement</h3>
-        <p>Don’t forget to upload your activity file before 5 PM today!</p>
-        <time datetime="2025-10-02T14:00">Yesterday</time>
-      </div>
-    </div>
-
-    <div class="notif-card">
-      <div class="notif-icon">✅</div>
-      <div class="notif-content">
-        <h3>Profile Updated</h3>
-        <p>Your account settings were successfully updated.</p>
-        <time datetime="2025-10-01T10:30">2 days ago</time>
-      </div>
-    </div>
+    {% empty %}
+      <p>No notifications yet.</p>
+    {% endfor %}
   </div>
 </section>
+{% endblock %}
+{% block extra_js %}
+<script src="{% static 'notifications/js/notifications_live.js' %}" defer></script>
 {% endblock %}

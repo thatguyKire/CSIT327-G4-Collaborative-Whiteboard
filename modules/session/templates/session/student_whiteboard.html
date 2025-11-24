@@ -4,6 +4,7 @@
 {% block content %}
 <link rel="stylesheet" href="{% static 'session/css/whiteboard.css' %}">
 <link rel="stylesheet" href="{% static 'session/css/upload.css' %}">
+<link rel="stylesheet" href="{% static 'session/css/whiteboard_announcements.css' %}">
 
 <h2 class="session-title">{{ session_title }}</h2>
 
@@ -30,6 +31,16 @@
   <canvas id="whiteboardCanvas"
           style="width:100%; height:600px; background:#fff; display:block;"
           width="1200" height="600"></canvas>
+
+  <!-- STUDENT: announcements panel -->
+  <aside class="announcement-box" id="studentAnnouncementBox"
+         data-list-url="{% url 'notifications:session_student_announcements_json' session.id %}"
+         aria-label="Session announcements">
+    <h3>📢 Announcements</h3>
+    <div class="sent-list" id="studentAnnouncementsList">
+      <!-- JS will populate -->
+    </div>
+  </aside>
 </div>
 
 {{ can_draw|json_script:"can_draw_data" }}
@@ -42,5 +53,6 @@
 </script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.6/dist/umd/supabase.js"></script>
 <script src="{% static 'session/js/whiteboard.js' %}"></script>
+<script src="{% static 'session/js/student_announcements.js' %}" defer></script>
 <script src="{% static 'session/js/upload.js' %}" defer></script>
 {% endblock %}
