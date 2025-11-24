@@ -90,6 +90,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'modules.notifications.notifcounts.notif_counts',  # was wrong module path
             ],
         },
     },

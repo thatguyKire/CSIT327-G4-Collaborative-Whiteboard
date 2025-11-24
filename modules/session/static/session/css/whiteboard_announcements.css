@@ -1,0 +1,17 @@
+.announcement-box {
+  background:#fffbe6;
+  border:2px solid #333;
+  border-radius:12px;
+  padding:14px 16px;
+  max-width:340px;
+  box-shadow:4px 4px 0 #333;
+  margin:12px 0;
+}
+.announcement-box h3 { margin:0 0 8px; font-size:1rem; }
+.announcement-box textarea {
+  width:100%; resize:vertical; border:1px solid #999; border-radius:8px; padding:8px; font-family:inherit;
+}
+.sent-list { margin-top:10px; max-height:160px; overflow-y:auto; }
+.sent-item { font-size:0.85rem; padding:4px 0; border-bottom:1px dashed #bbb; }
+.sent-item:last-child { border-bottom:none; }
+.sent-item time { display:block; color:#666; font-size:0.7rem; }

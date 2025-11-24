@@ -4,14 +4,12 @@
 {% block content %}
 <link rel="stylesheet" href="{% static 'session/css/whiteboard.css' %}">
 <link rel="stylesheet" href="{% static 'session/css/upload.css' %}">
+<link rel="stylesheet" href="{% static 'session/css/whiteboard_announcements.css' %}">
 
 <div class="whiteboard-wrapper">
   <h2 class="session-title">{{ session_title }}</h2>
-
   <div class="whiteboard-layout">
     <div class="whiteboard-container">
-
-      <!-- Draw toolbar (always rendered) -->
       <div id="drawToolbar" class="toolbar" role="toolbar" aria-label="Whiteboard toolbar">
         <button id="backBtn" class="btn btn-secondary" data-back-url="{{ back_url }}">← Back</button>
         <label>Color: <input type="color" id="colorPicker" value="#000000"></label>
@@ -21,12 +19,10 @@
         <button id="undoBtn" class="btn btn-secondary">Undo</button>
         <button id="redoBtn" class="btn btn-secondary">Redo</button>
         <button id="clearBtn" class="btn btn-danger">Clear All</button>
-        <!-- NEW: annotate tools -->
         <button id="highlightBtn" class="btn btn-secondary" title="Highlight">Highlight</button>
         <button id="pinBtn" class="btn btn-secondary" title="Pin">Pin</button>
         {% if user == session.created_by %}
         <button id="saveBtn" class="btn btn-success" data-save-url="{% url 'save_snapshot' session.id %}">Save</button>
-        <!-- NEW: Chat toggle button for the teacher -->
         <button id="chatToggleBtn"
                 class="btn btn-secondary"
                 data-toggle-url="{% url 'toggle_chat' session.id %}">
@@ -44,7 +40,6 @@
         </div>
       </div>
 
-      <!-- View-only banner -->
       <div id="viewOnlyBanner" class="readonly-toolbar" aria-live="polite">
         👀 View-only mode — waiting for teacher permission
       </div>
@@ -52,15 +47,12 @@
       {% if snapshot_url %}
         <img id="snapshotImg" src="{{ snapshot_url }}" hidden alt="Previous snapshot">
       {% endif %}
-                                   
-      <!-- CHANGED: wrap canvas to host overlay safely -->
+
       <div id="whiteboardHost" class="canvas-stack">
         <canvas id="whiteboardCanvas"
                 style="width:100%; height:600px; background:#fff; display:block;"
                 width="1200" height="600"
                 aria-label="Whiteboard drawing area"></canvas>
-        <!-- Removed pinLayer (handled by annoCanvas now) -->
-        <!-- <div id="pinLayer" class="pin-layer" aria-label="Pins layer"></div> -->
       </div>
     </div>
 
@@ -84,6 +76,23 @@
         </li>
         {% endfor %}
       </ul>
+
+      <div class="announcement-box"
+           id="announcementBox"
+           data-session-id="{{ session.id }}"
+           data-announce-url="{% url 'notifications:send_announcement' session.id %}"
+           data-list-url="{% url 'notifications:session_announcements_json' session.id %}">
+        <h3>📢 Send Announcement</h3>
+        <form id="announcementForm">
+          {% csrf_token %}
+          <textarea name="message" id="announceMessage" rows="3" placeholder="Type announcement..."></textarea>
+          <label style="display:flex;align-items:center;gap:4px;font-size:.8rem;">
+            <input type="checkbox" name="urgent" value="1"> Urgent
+          </label>
+          <button type="submit" class="btn btn-secondary" style="width:100%;margin-top:6px;">Send</button>
+        </form>
+        <div class="sent-list" id="sentAnnouncements"></div>
+      </div>
     </aside>
     {% endif %}
   </div>
@@ -101,11 +110,9 @@
 <script src="{% static 'session/js/whiteboard.js' %}"></script>
 {% if user == session.created_by %}
 <script src="{% static 'session/js/participants.js' %}"></script>
+<script src="{% static 'session/js/announcements.js' %}" defer></script>
 {% endif %}
 <script src="{% static 'session/js/upload.js' %}" defer></script>
-<!-- NEW: overlay + tools logic (safe even if no realtime) -->
 <script src="{% static 'session/js/annotations.js' %}" defer></script>
 {% endblock %}
-
-<!-- Ensure chat UI is present on the page -->
 {% include "chat/chat_box.html" %}

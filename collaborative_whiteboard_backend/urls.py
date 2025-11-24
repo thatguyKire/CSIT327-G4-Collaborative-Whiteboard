@@ -31,7 +31,7 @@ urlpatterns = [
     path('profiles/', include('modules.profiles.urls')),
     path('dashboard/', include('modules.dashboard.urls')),
     path('settings/', include('modules.settings_app.urls')),
-    path('notifications/', include('modules.notifications.urls')),
+    path('notifications/', include(("modules.notifications.urls", "notifications"), namespace="notifications")),
     path('help/', include('modules.help_app.urls')),
     path('session/', include('modules.session.urls')),
     path("chat/", include("modules.chat.urls")),
