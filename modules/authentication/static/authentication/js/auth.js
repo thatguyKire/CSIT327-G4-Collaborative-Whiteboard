@@ -1,4 +1,18 @@
 document.addEventListener('DOMContentLoaded', () => {
+  // Performance: detect low-power / low-core devices and reduce decorative
+  // animations to avoid janky/low-FPS pages (especially on login/signup).
+  try {
+    const prefersReduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const hw = navigator.hardwareConcurrency || 4;
+    const mem = navigator.deviceMemory || 4;
+    // If user prefers reduced motion or device is low-end, add a class
+    if (prefersReduced || hw < 4 || mem < 2) {
+      document.body.classList.add('reduce-motion');
+    }
+  } catch (e) {
+    // silent fallback
+  }
+
   const roleSelect = document.getElementById('id_role') || document.getElementById('role');
   const studentIdGroup = document.getElementById('student-id-group');
   const studentIdInput = document.getElementById('id_student_id');

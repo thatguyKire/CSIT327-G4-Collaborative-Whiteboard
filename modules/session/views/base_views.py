@@ -5,6 +5,7 @@ from django.contrib import messages
 from django.utils.crypto import get_random_string
 from django.urls import reverse
 from ..models import Session, Participant
+from django.utils import timezone
 from django.http import JsonResponse, HttpResponseBadRequest, HttpResponse, StreamingHttpResponse, FileResponse
 from django.db.models import Q
 
@@ -70,7 +71,11 @@ def join_session(request):
         code = (request.POST.get("code") or "").strip().upper()
         session = Session.objects.filter(code__iexact=code).first()
         if session:
-            Participant.objects.get_or_create(user=request.user, session=session)
+            p, created = Participant.objects.get_or_create(user=request.user, session=session)
+            # Mark the participant as active now (joined or re-joined)
+            p.last_active = timezone.now()
+            # ensure joined_at is set on create (auto_now_add handles it)
+            p.save(update_fields=["last_active"]) 
             return redirect(reverse("student_whiteboard", kwargs={"session_id": session.id}))
         return render(request, "session/join_session.html", {"error": "Invalid session code"})
     return render(request, "session/join_session.html")
