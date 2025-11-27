@@ -21,14 +21,36 @@ document.addEventListener("DOMContentLoaded", () => {
     const lines = text.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
     const title = lines[0] || text.slice(0, 80);
     const body = lines.length > 1 ? lines.slice(1).join(" ") : "";
-    card.innerHTML = `
-      <div class="notif-icon">${urgentIcon}</div>
-      <div class="notif-content">
-        <h3>${title.length > 80 ? title.slice(0,80)+"…" : title}</h3>
-        ${body ? `<p>${body}</p>` : `<p class="muted">—</p>`}
-        <time datetime="${n.created_at}">just now</time>
-      </div>
-    `;
+    // build elements safely
+    const iconDiv = document.createElement('div');
+    iconDiv.className = 'notif-icon';
+    iconDiv.textContent = urgentIcon;
+
+    const contentDiv = document.createElement('div');
+    contentDiv.className = 'notif-content';
+
+    const h3 = document.createElement('h3');
+    h3.textContent = title.length > 80 ? title.slice(0,80) + '…' : title;
+    contentDiv.appendChild(h3);
+
+    if (body) {
+      const p = document.createElement('p');
+      p.textContent = body;
+      contentDiv.appendChild(p);
+    } else {
+      const p = document.createElement('p');
+      p.className = 'muted';
+      p.textContent = '—';
+      contentDiv.appendChild(p);
+    }
+
+    const time = document.createElement('time');
+    time.setAttribute('datetime', n.created_at);
+    time.textContent = 'just now';
+    contentDiv.appendChild(time);
+
+    card.appendChild(iconDiv);
+    card.appendChild(contentDiv);
     list.prepend(card);
   }
 

@@ -255,6 +255,22 @@ body {
   body { animation: none; }
 }
 
+/* Programmatic reduce-motion class: applied on low-power/low-core devices */
+.reduce-motion .draw-lines,
+.reduce-motion .paper-noise {
+  display: none !important;
+}
+
+.reduce-motion .auth-card,
+.reduce-motion .curved-title,
+.reduce-motion .auth-card::before {
+  animation: none !important;
+  transition: none !important;
+  filter: none !important; /* avoid expensive filters on low-end devices */
+}
+
+.reduce-motion .auth-card { transform: none !important; }
+
 /* Animated lines layer (behind content, above paper noise) */
 .draw-lines {
   position: fixed;

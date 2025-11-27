@@ -1,0 +1,50 @@
+{% extends "core/base.html" %}
+{% load static %}
+
+{% block title %}Attendance - {{ session.title }} - COLLABoard{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'dashboard/css/dashboard-shared.css' %}">
+<link rel="stylesheet" href="{% static 'dashboard/css/dashboard.css' %}">
+<link rel="stylesheet" href="{% static 'session/css/attendance.css' %}">
+{% endblock %}
+
+{% block content %}
+<section class="dashboard-section">
+  <h1>Attendance — {{ session.title|default:'Session' }}</h1>
+  <p class="subtitle">Student participation logs for this session.</p>
+
+  <div class="card">
+    <div class="card-actions" style="display:flex;gap:8px;align-items:center;justify-content:space-between;">
+      <div>
+        <a href="?export=csv" class="btn">Export CSV</a>
+        <a href="{% url 'session_list' %}" class="btn btn-secondary">Back to Sessions</a>
+      </div>
+      <div class="small muted">Last updated: {{ now|default:None }}</div>
+    </div>
+
+    <table class="attendance-table">
+      <thead>
+        <tr>
+          <th>Student</th>
+          <th>Email</th>
+          <th>Joined</th>
+          <th>Last Active</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for p in participants %}
+        <tr>
+          <td>{{ p.user.username }}</td>
+          <td>{{ p.user.email }}</td>
+          <td>{{ p.joined_at|date:"Y-m-d H:i" }}</td>
+          <td>{{ p.last_active|default:p.joined_at|date:"Y-m-d H:i" }}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="4">No participants yet.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+{% endblock %}

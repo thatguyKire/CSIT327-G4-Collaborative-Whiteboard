@@ -8,13 +8,38 @@ document.addEventListener("DOMContentLoaded", () => {
   const csrf = form.querySelector('input[name="csrfmiddlewaretoken"]')?.value || "";
 
   function render(items){
-    list.innerHTML = (items || []).map(i => `
-      <div class="sent-item">
-        <span>${i.is_urgent ? "⚠️" : "🔔"} ${i.content}</span>
-        <time>${new Date(i.created_at).toLocaleTimeString()}</time>
-        <small style="display:block;font-size:.65rem;color:#666;">Sent to ${i.recipient_count} participant${i.recipient_count===1?"":"s"}</small>
-      </div>
-    `).join("") || "<p style='font-size:.75rem;color:#666;'>No announcements yet.</p>";
+    // render safely without injecting raw HTML
+    while (list.firstChild) list.removeChild(list.firstChild);
+    const arr = items || [];
+    if (!arr.length) {
+      const p = document.createElement('p');
+      p.style.fontSize = '.75rem';
+      p.style.color = '#666';
+      p.textContent = 'No announcements yet.';
+      list.appendChild(p);
+      return;
+    }
+    arr.forEach(i => {
+      const wrapper = document.createElement('div');
+      wrapper.className = 'sent-item';
+
+      const span = document.createElement('span');
+      span.textContent = (i.is_urgent ? '⚠️ ' : '🔔 ') + String(i.content || '');
+      wrapper.appendChild(span);
+
+      const time = document.createElement('time');
+      time.textContent = new Date(i.created_at).toLocaleTimeString();
+      wrapper.appendChild(time);
+
+      const small = document.createElement('small');
+      small.style.display = 'block';
+      small.style.fontSize = '.65rem';
+      small.style.color = '#666';
+      small.textContent = `Sent to ${i.recipient_count} participant${i.recipient_count===1? '':'s'}`;
+      wrapper.appendChild(small);
+
+      list.appendChild(wrapper);
+    });
   }
 
   async function load(){

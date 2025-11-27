@@ -109,6 +109,14 @@
       pins.push(pin);
       drawAll();
       broadcastPin(pin);
+      // record annotation change in whiteboard history so undo/redo includes it
+      try {
+        if (window.WhiteboardApp && typeof window.WhiteboardApp.recordSnapshot === 'function') {
+          window.WhiteboardApp.recordSnapshot('pin-add');
+        } else if (typeof window.requestSnapshotLocal === 'function') {
+          window.requestSnapshotLocal('pin-add');
+        }
+      } catch(e) { console.warn('pin snapshot failed', e); }
       return;
     }
     // highlight start
@@ -146,6 +154,14 @@
     highlights.push(hl);
     drawAll();
     broadcastHighlight(hl);
+    // record annotation change in whiteboard history so undo/redo includes it
+    try {
+      if (window.WhiteboardApp && typeof window.WhiteboardApp.recordSnapshot === 'function') {
+        window.WhiteboardApp.recordSnapshot('highlight-add');
+      } else if (typeof window.requestSnapshotLocal === 'function') {
+        window.requestSnapshotLocal('highlight-add');
+      }
+    } catch(e) { console.warn('highlight snapshot failed', e); }
   }
   overlay.addEventListener("pointerup", endHighlight);
   overlay.addEventListener("pointerleave", endHighlight);
@@ -163,6 +179,7 @@
     clearAnnotationsLocal();
     // Also broadcast anno clear so remote overlays wipe even if stroke clear lost.
     channel?.send({ type: "broadcast", event: "anno", payload: { t: "clear" } });
+    try { window.WhiteboardApp?.recordSnapshot('anno-clear'); } catch(e) {}
   });
 
   // ---------- Realtime Broadcast Helpers ----------
@@ -216,6 +233,8 @@
           color: payload.c || "rgba(255,235,59,0.30)"
         });
         drawAll();
+        // ensure receivers record this annotation in their local history
+        try { if (typeof window.requestSnapshotLocal === 'function') window.requestSnapshotLocal('remote-highlight'); } catch(e) { console.warn('remote highlight snapshot failed', e); }
         break;
       }
       case "pin": {
@@ -227,10 +246,13 @@
           text: payload.txt || ""
         });
         drawAll();
+        // ensure receivers record this annotation in their local history
+        try { if (typeof window.requestSnapshotLocal === 'function') window.requestSnapshotLocal('remote-pin'); } catch(e) { console.warn('remote pin snapshot failed', e); }
         break;
       }
       case "clear":
         clearAnnotationsLocal();
+        try { if (typeof window.requestSnapshotLocal === 'function') window.requestSnapshotLocal('remote-anno-clear'); } catch(e) { console.warn('remote anno-clear snapshot failed', e); }
         break;
     }
   });
@@ -239,4 +261,21 @@
   channel?.on("broadcast", { event: "stroke" }, ({ payload }) => {
     if (payload?.t === "clear") clearAnnotationsLocal();
   });
+
+  // Expose a small API so the whiteboard's undo/redo snapshot system
+  // can include and restore annotation state.
+  window.AnnotationAPI = {
+    getState: () => ({ highlights: highlights.slice(), pins: pins.slice() }),
+    restoreState: (state) => {
+      try {
+        highlights.length = 0;
+        pins.length = 0;
+        if (!state) { drawAll(); return; }
+        if (Array.isArray(state.highlights)) highlights.push(...state.highlights);
+        if (Array.isArray(state.pins)) pins.push(...state.pins);
+        drawAll();
+      } catch (e) { console.warn('Annotation restore failed', e); }
+    },
+    clear: () => { clearAnnotationsLocal(); }
+  };
 })();
