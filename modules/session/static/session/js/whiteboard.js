@@ -891,7 +891,7 @@
 
   // subscribe so events flow
   channel?.subscribe((status) => {
-    console.log("Realtime status:", status, channelName);
+    if (window.DEBUG) console.log("Realtime status:", status, channelName);
   });
 
   // Realtime meta events (chat toggle)
@@ -905,7 +905,7 @@
     }
     const btn = document.getElementById("chatToggleBtn");
     if (btn) btn.textContent = enabled ? "Disable Chat" : "Enable Chat";
-    console.log("Realtime chat state applied:", enabled);
+    if (window.DEBUG) console.log("Realtime chat state applied:", enabled);
   });
 
   // Teacher chat toggle button (broadcast + update)
@@ -928,12 +928,12 @@
       headers: { "X-CSRFToken": getCookie("csrftoken") }
     })
       .then(r => {
-        console.log("Toggle response status:", r.status);
+        if (window.DEBUG) console.log("Toggle response status:", r.status);
         if (!r.ok) throw new Error(`HTTP ${r.status}`);
         return r.json();
       })
       .then(d => {
-        console.log("Toggle response data:", d);
+        if (window.DEBUG) console.log("Toggle response data:", d);
         if (!d.ok) throw new Error(d.error || "Unknown error");
 
         const enabled = !!d.chat_enabled;
@@ -947,7 +947,7 @@
         chatToggleBtn.textContent = enabled ? "Disable Chat" : "Enable Chat";
 
         // Broadcast to all participants (others will update via listener)
-        console.log("Broadcasting chat toggle:", enabled);
+        if (window.DEBUG) console.log("Broadcasting chat toggle:", enabled);
         channel?.send({
           type: "broadcast",
           event: "meta",
@@ -1055,7 +1055,7 @@
     if (!payload || !payload.t) return;
     // ignore our own broadcasts
     if (String(payload.sid) === String(window.CURRENT_USER_ID)) return;
-    console.log('Received history broadcast', payload);
+    if (window.DEBUG) console.log('Received history broadcast', payload);
     switch (payload.t) {
       case "undo":
         try { undo(false); } catch (e) { console.warn('Remote undo failed', e); }
