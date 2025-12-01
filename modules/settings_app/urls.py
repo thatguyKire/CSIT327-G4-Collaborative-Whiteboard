@@ -8,7 +8,7 @@ urlpatterns = [
     # Password change
     path(
         "password_change/",
-        auth_views.PasswordChangeView.as_view(
+        views.CustomPasswordChangeView.as_view(
             template_name="settings_app/password_change.html",
             success_url="/settings/password_change_done/",
         ),
