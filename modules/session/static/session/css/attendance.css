@@ -1,0 +1,31 @@
+/* Attendance table styles, aligned with dashboard theme */
+.attendance-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 12px;
+}
+.attendance-table th,
+.attendance-table td {
+  padding: 10px 12px;
+  border-bottom: 1px solid rgba(0,0,0,0.06);
+  text-align: left;
+}
+.attendance-table thead th {
+  background: rgba(0,0,0,0.03);
+  font-weight: 600;
+  color: #222;
+}
+.attendance-table tbody tr:hover {
+  background: rgba(0,0,0,0.02);
+}
+
+/* Responsive adjustments */
+@media (max-width: 720px) {
+  .attendance-table th, .attendance-table td { padding: 8px; font-size: 14px; }
+}
+
+/* Small utilities */
+.card-actions { margin-bottom: 8px; }
+.small.muted { color: #666; font-size: 13px; }
+.btn { padding: 8px 12px; border-radius: 6px; }
+.btn-secondary { background: transparent; border: 1px solid rgba(0,0,0,0.08); }

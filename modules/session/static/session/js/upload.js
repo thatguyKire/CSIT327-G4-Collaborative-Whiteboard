@@ -61,7 +61,11 @@
         // Preview list
         if (uploadedFiles && data.file_url) {
           const li = document.createElement("li");
-          li.innerHTML = `<img src="${data.file_url}" class="upload-preview" alt="${file.name}">`;
+          const img = document.createElement("img");
+          img.className = "upload-preview";
+          img.src = data.file_url || "";
+          img.alt = file.name || "";
+          li.appendChild(img);
           uploadedFiles.appendChild(li);
         }
         // Add to board + broadcast

@@ -32,6 +32,17 @@ def signup_view(request):
 
 class CustomLoginView(LoginView):
     template_name = "authentication/login.html"
+    # When users log in, always send them to their role-based dashboard
+    # instead of honoring a `next` query parameter that may point back
+    # to a previously accessed session URL.
+    redirect_authenticated_user = True
+
+    def get_success_url(self):
+        # Ignore any `next` parameter and always redirect to the
+        # dashboard redirector which will send students/teachers/admins
+        # to their appropriate dashboard.
+        from django.urls import reverse_lazy
+        return reverse_lazy("redirect_dashboard")
 
     def form_invalid(self, form):
         messages.error(self.request, "⚠️ Invalid credentials. Please try again.")

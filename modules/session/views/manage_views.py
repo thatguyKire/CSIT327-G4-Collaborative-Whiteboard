@@ -238,3 +238,46 @@ def session_manage(request, session_id):
     session = get_object_or_404(Session, id=session_id)
     # Add management logic (participants, settings) here
     return render(request, "session/manage.html", {"session": session})
+
+
+@login_required
+@safe_view
+def attendance_view(request, session_id):
+    """Display attendance / participation logs for a session.
+
+    Shows: student username, email, joined_at, last_active.
+    Supports CSV export via `?export=csv`.
+    Only session owner or staff may view.
+    """
+    session = get_object_or_404(Session, id=session_id)
+
+    # Permission: only owner (teacher) or staff can view attendance
+    if request.user != session.created_by and not request.user.is_staff:
+        return HttpResponse(status=403)
+
+    participants = Participant.objects.filter(session=session).select_related('user').order_by('joined_at')
+
+    # CSV export
+    if request.GET.get('export') == 'csv':
+        # Create CSV response
+        filename = f"attendance_session_{session_id}.csv"
+        response = HttpResponse(content_type='text/csv')
+        response['Content-Disposition'] = f'attachment; filename="{filename}"'
+        writer = csv.writer(response)
+        writer.writerow(['Student', 'Email', 'Joined', 'Last Active'])
+        for p in participants:
+            writer.writerow([
+                getattr(p.user, 'username', ''),
+                getattr(p.user, 'email', ''),
+                (p.joined_at.isoformat() if p.joined_at else ''),
+                (p.last_active.isoformat() if p.last_active else ''),
+            ])
+        return response
+
+    # Render HTML - include current time for small header display
+    from django.utils import timezone as _tz
+    return render(request, 'session/attendance.html', {
+        'session': session,
+        'participants': participants,
+        'now': _tz.now(),
+    })

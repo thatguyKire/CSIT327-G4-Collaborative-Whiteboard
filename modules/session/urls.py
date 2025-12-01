@@ -48,6 +48,9 @@ urlpatterns = [
     path('sessions/saved/', saved_sessions, name='saved_sessions'),
     path("<uuid:session_id>/stroke/", record_stroke, name="record_stroke"),
 
+    # Attendance / participation logs
+    path('<uuid:session_id>/attendance/', manage_views.attendance_view, name='attendance'),
+
     # 🎤 Chat
     path("toggle-chat/<uuid:session_id>/", toggle_chat, name="toggle_chat"),
     path("<uuid:session_id>/toggle-chat/", manage_views.toggle_chat, name="toggle_chat"),

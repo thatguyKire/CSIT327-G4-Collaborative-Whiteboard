@@ -151,12 +151,18 @@
         height: i.height,
         rotation: i.rotation || 0
       }));
+      // include annotations state when available
+      const annotationsState = (window.AnnotationAPI && typeof window.AnnotationAPI.getState === 'function')
+        ? window.AnnotationAPI.getState()
+        : { highlights: [], pins: [] };
+
       const snap = {
         strokeWidth: sw,
         strokeHeight: sh,
         strokeData,
         images: imagesCopy,
-        activeId: activeImage ? activeImage.id : null
+        activeId: activeImage ? activeImage.id : null,
+        annotations: annotationsState
       };
       history.push(snap);
       while (history.length > MAX_HISTORY) history.shift();
@@ -185,13 +191,19 @@
         img: meta.img // same object
       }));
       activeImage = images.find(i => i.id === snap.activeId) || null;
+      // restore annotations if present
+      try {
+        if (snap.annotations && window.AnnotationAPI && typeof window.AnnotationAPI.restoreState === 'function') {
+          window.AnnotationAPI.restoreState(snap.annotations);
+        }
+      } catch (e) { console.warn('Failed to restore annotations', e); }
       scheduleRedraw();
     } catch (e) {
       console.error("Restore failed", e);
       showToast("Undo failed.", "error");
     }
   }
-  function undo() {
+  function undo(broadcast = true) {
     if (history.length <= 1) {
       showToast("Nothing to undo.", "info");
       return;
@@ -200,8 +212,12 @@
     redoStack.push(current);
     const previous = history[history.length - 1];
     restoreSnapshot(previous);
+    // broadcast to other clients unless explicitly disabled
+    if (broadcast && typeof channel !== 'undefined' && channel) {
+      try { channel.send({ type: 'broadcast', event: 'history', payload: { t: 'undo', sid: String(window.CURRENT_USER_ID) } }); } catch (e) { console.warn('undo broadcast failed', e); }
+    }
   }
-  function redo() {
+  function redo(broadcast = true) {
     if (redoStack.length === 0) {
       showToast("Nothing to redo.", "info");
       return;
@@ -219,13 +235,17 @@
         strokeHeight: self.canvas.height,
         strokeData,
         images: imagesCopy,
-        activeId: activeImage ? activeImage.id : null
+        activeId: activeImage ? activeImage.id : null,
+        annotations: (window.AnnotationAPI && typeof window.AnnotationAPI.getState === 'function') ? window.AnnotationAPI.getState() : { highlights: [], pins: [] }
       });
     } catch {}
     restoreSnapshot(next);
+    // broadcast redo
+    if (broadcast && typeof channel !== 'undefined' && channel) {
+      try { channel.send({ type: 'broadcast', event: 'history', payload: { t: 'redo', sid: String(window.CURRENT_USER_ID) } }); } catch (e) { console.warn('redo broadcast failed', e); }
+    }
   }
   document.addEventListener("keydown", (e) => {
-    if (!canDraw) return;
     const cmdCtrl = e.ctrlKey || e.metaKey;
     if (cmdCtrl && e.key.toLowerCase() === "z" && !e.shiftKey) {
       e.preventDefault();
@@ -354,7 +374,7 @@
   // draw handlers (single binding point)
   function startDraw(e) {
     if (!canDraw) return;
-    // remove highlight handling; keep normal stroke
+    // ignore starting a stroke on top of an image control
     const p = getCoords(e);
     if (hitTest(p.x, p.y)) return;
     // Ensure there's an initial snapshot so the very first stroke can be undone
@@ -373,8 +393,9 @@
     scheduleRedraw();
     send("begin", e, { c: selfCtx.strokeStyle, w: selfCtx.lineWidth });
   }
+
   function draw(e) {
-    if (!drawing || !canDraw) return;
+    if (!drawing) return;
     const p = getCoords(e);
     const selfCtx = getRemoteCtx(String(window.CURRENT_USER_ID));
     selfCtx.lineWidth = lineWidth;
@@ -385,15 +406,19 @@
     selfCtx.lineTo(p.x, p.y);
     selfCtx.stroke();
     lastX = p.x; lastY = p.y;
-    scheduleRedraw();
+    // broadcast intermediate point
     send("draw", e);
+    // update visible canvas for the drawer
+    scheduleRedraw();
   }
+
   function stopDraw(e) {
     if (!drawing) return;
     drawing = false;
     const selfCtx = getRemoteCtx(String(window.CURRENT_USER_ID));
     selfCtx.globalAlpha = 1;
     snapshotState("stroke");
+    scheduleRedraw();
     send("end", e);
     // Ensure eraser effects are reflected remotely
     if (erasing) broadcastLayerSync();
@@ -449,7 +474,15 @@
     set canDraw(v){ canDraw = !!v; updatePermissionUI(); },
     addImageFromUrl,
     showToast,
-    getCookie
+    getCookie,
+    // allow external modules (annotations) to record a snapshot including annotations
+    recordSnapshot: (reason = "external") => { try { snapshotState(reason); } catch(e){ console.warn('recordSnapshot failed', e); } }
+  };
+
+  // Lightweight global helper so other modules can request a local snapshot
+  // even if `WhiteboardApp.recordSnapshot` isn't present at load time.
+  window.requestSnapshotLocal = (reason = "external") => {
+    try { snapshotState(reason); } catch (e) { console.warn('requestSnapshotLocal failed', e); }
   };
 
   // ========================================
@@ -655,8 +688,11 @@
 
     images = [];
     activeImage = null;
-    scheduleRedraw();
+    // Reset history so cleared state becomes the new baseline
+    history.length = 0;
+    redoStack.length = 0;
     snapshotState("clear");
+    scheduleRedraw();
     showToast("Board cleared.", "success");
 
     // Broadcast a clear_all so every client resets local + remote layers
@@ -832,6 +868,9 @@
     addImageFromUrl,
     showToast,
     getCookie
+    ,
+    // allow external modules (annotations) to record a snapshot including annotations
+    recordSnapshot: (reason = "external") => { try { snapshotState(reason); } catch(e){ console.warn('recordSnapshot failed', e); } }
   };
 
   // Undo/Redo structures exist here (history, redoStack, snapshotState, undo, redo)
@@ -852,23 +891,23 @@
     updateUndoRedoButtons();
   };
   const _undo = undo;
-  undo = function() {
-    _undo();
+  undo = function(broadcast = true) {
+    _undo(broadcast);
     updateUndoRedoButtons();
     // Sync this user's layer to others after undo
     broadcastLayerSync();
   };
   const _redo = redo;
-  redo = function() {
-    _redo();
+  redo = function(broadcast = true) {
+    _redo(broadcast);
     updateUndoRedoButtons();
     // Sync this user's layer to others after redo
     broadcastLayerSync();
   };
 
-  // Wire buttons
-  undoBtn?.addEventListener("click", (e) => { e.preventDefault(); if (canDraw) undo(); });
-  redoBtn?.addEventListener("click", (e) => { e.preventDefault(); if (canDraw) redo(); });
+  // Wire buttons (allow undo/redo even when view-only so annotations can be reverted)
+  undoBtn?.addEventListener("click", (e) => { e.preventDefault(); undo(); });
+  redoBtn?.addEventListener("click", (e) => { e.preventDefault(); redo(); });
 
   // After initial setup
   updateUndoRedoButtons();
@@ -907,7 +946,7 @@
     }
     const btn = document.getElementById("chatToggleBtn");
     if (btn) btn.textContent = enabled ? "Disable Chat" : "Enable Chat";
-    console.log("Realtime chat state applied:", enabled);
+    if (window.DEBUG) console.log("Realtime chat state applied:", enabled);
   });
 
   // Teacher chat toggle button (broadcast + update)
@@ -930,12 +969,12 @@
       headers: { "X-CSRFToken": getCookie("csrftoken") }
     })
       .then(r => {
-        console.log("Toggle response status:", r.status);
+        if (window.DEBUG) console.log("Toggle response status:", r.status);
         if (!r.ok) throw new Error(`HTTP ${r.status}`);
         return r.json();
       })
       .then(d => {
-        console.log("Toggle response data:", d);
+        if (window.DEBUG) console.log("Toggle response data:", d);
         if (!d.ok) throw new Error(d.error || "Unknown error");
 
         const enabled = !!d.chat_enabled;
@@ -949,7 +988,7 @@
         chatToggleBtn.textContent = enabled ? "Disable Chat" : "Enable Chat";
 
         // Broadcast to all participants (others will update via listener)
-        console.log("Broadcasting chat toggle:", enabled);
+        if (window.DEBUG) console.log("Broadcasting chat toggle:", enabled);
         channel?.send({
           type: "broadcast",
           event: "meta",
@@ -1030,6 +1069,17 @@
       case "end":
         rc.lineTo(x, y);
         rc.stroke();
+        // Merge the completed remote stroke layer into the main stroke canvas
+        try {
+          // draw remote layer into stroke canvas (preserve pixels)
+          strokeCtx.drawImage(rc.canvas, 0, 0, strokeCanvas.width, strokeCanvas.height);
+          // clear the remote layer so it doesn't persist separately
+          rc.clearRect(0, 0, rc.canvas.width, rc.canvas.height);
+          // record this as a snapshot in history so undo works across merged strokes
+          snapshotState("remote-stroke-merged");
+        } catch (e) {
+          console.warn('Failed to merge remote stroke layer', e);
+        }
         break;
       case "layer": {
         // Replace the sender's layer with provided image
@@ -1057,6 +1107,22 @@
         break;
     }
     redrawWithRemotes();
+  });
+
+  // History sync: respond to undo/redo broadcasts from other clients.
+  channel?.on("broadcast", { event: "history" }, ({ payload }) => {
+    if (!payload || !payload.t) return;
+    // ignore our own broadcasts
+    if (String(payload.sid) === String(window.CURRENT_USER_ID)) return;
+    if (window.DEBUG) console.log('Received history broadcast', payload);
+    switch (payload.t) {
+      case "undo":
+        try { undo(false); } catch (e) { console.warn('Remote undo failed', e); }
+        break;
+      case "redo":
+        try { redo(false); } catch (e) { console.warn('Remote redo failed', e); }
+        break;
+    }
   });
 
   channel?.on("broadcast", { event: "image" }, ({ payload }) => {

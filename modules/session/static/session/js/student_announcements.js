@@ -31,7 +31,8 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function render(items) {
-    listEl.innerHTML = "";
+    // clear list safely
+    while (listEl.firstChild) listEl.removeChild(listEl.firstChild);
     seenIds.clear();
     (items || []).forEach(i => {
       if (!i || seenIds.has(String(i.id))) return;
@@ -40,15 +41,38 @@ document.addEventListener("DOMContentLoaded", () => {
       const div = document.createElement("div");
       div.className = "sent-item";
       div.setAttribute("data-id", i.id);
-      div.innerHTML = `
-        <div class="sent-title"><strong>${escapeHtml(title)}</strong>${ i.is_urgent ? ' <span class="notif-tag">⚠️</span>' : '' }</div>
-        ${ body ? `<div class="sent-body">${escapeHtml(body)}</div>` : '' }
-        <time>${new Date(i.created_at).toLocaleTimeString()}</time>
-      `;
+
+      const titleEl = document.createElement("div");
+      titleEl.className = "sent-title";
+      const strong = document.createElement("strong");
+      strong.textContent = title ? escapeHtml(title) : "";
+      titleEl.appendChild(strong);
+      if (i.is_urgent) {
+        const tag = document.createElement("span");
+        tag.className = "notif-tag";
+        tag.textContent = " ⚠️";
+        titleEl.appendChild(tag);
+      }
+
+      div.appendChild(titleEl);
+      if (body) {
+        const bodyEl = document.createElement("div");
+        bodyEl.className = "sent-body";
+        bodyEl.textContent = escapeHtml(body);
+        div.appendChild(bodyEl);
+      }
+      const timeEl = document.createElement("time");
+      timeEl.textContent = new Date(i.created_at).toLocaleTimeString();
+      div.appendChild(timeEl);
+
       listEl.appendChild(div);
     });
     if (!listEl.children.length) {
-      listEl.innerHTML = "<p style='font-size:.75rem;color:#666;'>No announcements yet.</p>";
+      const p = document.createElement("p");
+      p.style.fontSize = ".75rem";
+      p.style.color = "#666";
+      p.textContent = "No announcements yet.";
+      listEl.appendChild(p);
     }
   }
 
@@ -70,11 +94,29 @@ document.addEventListener("DOMContentLoaded", () => {
     const div = document.createElement("div");
     div.className = "sent-item";
     div.setAttribute("data-id", n.id);
-    div.innerHTML = `
-      <div class="sent-title"><strong>${escapeHtml(title)}</strong>${ n.is_urgent ? ' <span class="notif-tag">⚠️</span>' : '' }</div>
-      ${ body ? `<div class="sent-body">${escapeHtml(body)}</div>` : '' }
-      <time>${new Date(n.created_at || Date.now()).toLocaleTimeString()}</time>
-    `;
+
+    const titleEl = document.createElement("div");
+    titleEl.className = "sent-title";
+    const strong = document.createElement("strong");
+    strong.textContent = title ? escapeHtml(title) : "";
+    titleEl.appendChild(strong);
+    if (n.is_urgent) {
+      const tag = document.createElement("span");
+      tag.className = "notif-tag";
+      tag.textContent = " ⚠️";
+      titleEl.appendChild(tag);
+    }
+    div.appendChild(titleEl);
+    if (body) {
+      const bodyEl = document.createElement("div");
+      bodyEl.className = "sent-body";
+      bodyEl.textContent = escapeHtml(body);
+      div.appendChild(bodyEl);
+    }
+    const timeEl = document.createElement("time");
+    timeEl.textContent = new Date(n.created_at || Date.now()).toLocaleTimeString();
+    div.appendChild(timeEl);
+
     listEl.prepend(div);
     while (listEl.children.length > 50) listEl.removeChild(listEl.lastChild);
   }
