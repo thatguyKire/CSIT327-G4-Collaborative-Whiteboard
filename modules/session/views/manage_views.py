@@ -9,6 +9,7 @@ from django.urls import reverse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.views.decorators.http import require_POST
+from django.views.decorators.csrf import csrf_exempt
 
 supabase = create_client(settings.SUPABASE_URL, settings.SUPABASE_KEY)
 logger = logging.getLogger(__name__)
@@ -177,6 +178,51 @@ def toggle_chat(request, session_id):
     session.chat_enabled = not session.chat_enabled
     session.save(update_fields=["chat_enabled"])
     return JsonResponse({"ok": True, "chat_enabled": session.chat_enabled, "session_id": str(session.id)})
+
+
+@login_required
+@require_POST
+@csrf_exempt  # allow navigator.sendBeacon from same-site without header
+@safe_view
+def presence_sync(request, session_id):
+    """Teacher-initiated presence sync: revoke can_draw for absent users.
+
+    Body JSON: {"present_user_ids": [int, ...]}
+    - Only the session owner (teacher) or staff can invoke this.
+    - We do NOT delete participants; we only set can_draw=False for users not present.
+    """
+    session = get_object_or_404(Session, id=session_id)
+    if request.user != session.created_by and not request.user.is_staff:
+        return JsonResponse({"ok": False, "error": "forbidden"}, status=403)
+
+    try:
+        data = json.loads(request.body or "{}")
+    except json.JSONDecodeError:
+        data = {}
+
+    present_ids = set()
+    for val in (data.get("present_user_ids") or []):
+        try:
+            present_ids.add(int(val))
+        except Exception:
+            continue
+
+    # Find participants who are absent and currently can_draw=True
+    qs = Participant.objects.filter(session=session)
+    absent = qs.exclude(user_id__in=present_ids).filter(can_draw=True)
+    updated = absent.update(can_draw=False)
+
+    # Prepare simple present/absent lists for UI hints
+    all_ids = set(qs.values_list("user_id", flat=True))
+    absent_ids = sorted(list(all_ids - present_ids))
+    present_ids_list = sorted(list(all_ids & present_ids))
+
+    return JsonResponse({
+        "ok": True,
+        "updated_count": updated,
+        "present": present_ids_list,
+        "absent": absent_ids,
+    })
 
 # Optional helper views (useful if you later add routes / templates)
 @login_required
