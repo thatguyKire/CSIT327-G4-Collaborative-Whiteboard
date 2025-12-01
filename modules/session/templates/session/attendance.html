@@ -15,15 +15,15 @@
   <p class="subtitle">Student participation logs for this session.</p>
 
   <div class="card">
-    <div class="card-actions" style="display:flex;gap:8px;align-items:center;justify-content:space-between;">
+    <div class="card-actions" style="display:flex;gap:8px;align-items:center;justify-content:space-between;" data-json-url="{% url 'attendance_json' session.id %}">
       <div>
+        <a href="{% url 'session_list' %}" class="btn btn-secondary">Back</a>
         <a href="?export=csv" class="btn">Export CSV</a>
-        <a href="{% url 'session_list' %}" class="btn btn-secondary">Back to Sessions</a>
       </div>
-      <div class="small muted">Last updated: {{ now|default:None }}</div>
+      <div class="small muted">Last updated: <span id="att-last-updated">{{ now|default:None }}</span></div>
     </div>
 
-    <table class="attendance-table">
+    <table class="attendance-table" id="attendanceTable">
       <thead>
         <tr>
           <th>Student</th>
@@ -34,7 +34,7 @@
       </thead>
       <tbody>
         {% for p in participants %}
-        <tr>
+        <tr data-user-id="{{ p.user.id }}">
           <td>{{ p.user.username }}</td>
           <td>{{ p.user.email }}</td>
           <td>{{ p.joined_at|date:"Y-m-d H:i" }}</td>
@@ -47,4 +47,36 @@
     </table>
   </div>
 </section>
+<script>
+  (function(){
+    const actions = document.querySelector('.card-actions');
+    const url = actions?.getAttribute('data-json-url');
+    if (!url) return;
+    const table = document.getElementById('attendanceTable');
+    const lastSpan = document.getElementById('att-last-updated');
+    function fmt(ts){
+      if (!ts) return '';
+      try { const d = new Date(ts); return d.toLocaleString(); } catch { return ts; }
+    }
+    async function tick(){
+      try {
+        const res = await fetch(url, { headers: { 'Accept': 'application/json' }});
+        const data = await res.json();
+        if (!data.ok) return;
+        const rows = Array.from(table.querySelectorAll('tbody tr'));
+        const map = new Map(rows.map(r => [String(r.getAttribute('data-user-id')), r]));
+        (data.participants || []).forEach(p => {
+          const r = map.get(String(p.user_id));
+          if (!r) return;
+          const cells = r.querySelectorAll('td');
+          // cells: 0=name,1=email,2=joined,3=last_active
+          cells[3].textContent = fmt(p.last_active) || fmt(p.joined_at);
+        });
+        if (lastSpan && data.now) lastSpan.textContent = fmt(data.now);
+      } catch {}
+    }
+    tick();
+    setInterval(tick, 10000); // update every 10s
+  })();
+</script>
 {% endblock %}

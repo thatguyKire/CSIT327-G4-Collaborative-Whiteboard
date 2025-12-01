@@ -9,6 +9,7 @@ from django.urls import reverse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.views.decorators.http import require_POST
+import csv
 from django.views.decorators.csrf import csrf_exempt
 
 supabase = create_client(settings.SUPABASE_URL, settings.SUPABASE_KEY)
@@ -208,9 +209,15 @@ def presence_sync(request, session_id):
             continue
 
     # Find participants who are absent and currently can_draw=True
-    qs = Participant.objects.filter(session=session)
-    absent = qs.exclude(user_id__in=present_ids).filter(can_draw=True)
-    updated = absent.update(can_draw=False)
+        from django.utils import timezone
+        now = timezone.now()
+        qs = Participant.objects.filter(session=session)
+        # Mark present users last_active = now
+        if present_ids:
+            qs.filter(user_id__in=present_ids).update(last_active=now)
+        # For absent users, revoke drawing and stamp last_active to now (time they were seen offline)
+        absent = qs.exclude(user_id__in=present_ids).filter(can_draw=True)
+        updated = absent.update(can_draw=False, last_active=now)
 
     # Prepare simple present/absent lists for UI hints
     all_ids = set(qs.values_list("user_id", flat=True))
@@ -223,6 +230,27 @@ def presence_sync(request, session_id):
         "present": present_ids_list,
         "absent": absent_ids,
     })
+
+
+@login_required
+@safe_view
+def attendance_json(request, session_id):
+    """Return attendance data as JSON for live updates on the attendance page."""
+    session = get_object_or_404(Session, id=session_id)
+    if request.user != session.created_by and not request.user.is_staff:
+        return JsonResponse({"ok": False, "error": "forbidden"}, status=403)
+    from django.utils import timezone
+    parts = Participant.objects.filter(session=session).select_related('user').order_by('joined_at')
+    data = []
+    for p in parts:
+        data.append({
+            "user_id": p.user_id,
+            "username": getattr(p.user, 'username', ''),
+            "email": getattr(p.user, 'email', ''),
+            "joined_at": p.joined_at.isoformat() if p.joined_at else None,
+            "last_active": p.last_active.isoformat() if p.last_active else None,
+        })
+    return JsonResponse({"ok": True, "participants": data, "now": timezone.now().isoformat()})
 
 # Optional helper views (useful if you later add routes / templates)
 @login_required
