@@ -18,7 +18,10 @@
         <button id="eraserBtn" class="btn btn-secondary">Eraser</button>
         <button id="undoBtn" class="btn btn-secondary">Undo</button>
         <button id="redoBtn" class="btn btn-secondary">Redo</button>
+        <button id="clearAnnoBtn" class="btn btn-secondary">Clear Marks</button>
+        {% if user == session.created_by %}
         <button id="clearBtn" class="btn btn-danger">Clear All</button>
+        {% endif %}
         <button id="highlightBtn" class="btn btn-secondary" title="Highlight">Highlight</button>
         <button id="pinBtn" class="btn btn-secondary" title="Pin">Pin</button>
         {% if user == session.created_by %}
@@ -61,8 +64,11 @@
       <h3>👥 Participants</h3>
       <ul id="participantsList">
         {% for p in session.participants.all %}
-        <li class="participant-item">
-          <span class="participant-name">{{ p.user.username }}</span>
+        <li class="participant-item offline">
+          <div class="participant-info">
+            <span class="presence-dot" aria-hidden="true"></span>
+            <span class="participant-name">{{ p.user.username }}</span>
+          </div>
           <form method="post"
                 class="toggle-draw-form"
                 data-user-id="{{ p.user.id }}"
@@ -105,6 +111,7 @@
   window.CURRENT_USER_ID = "{{ request.user.id }}";
   window.SUPABASE_URL = "{{ SUPABASE_URL }}";
   window.SUPABASE_ANON_KEY = "{{ SUPABASE_ANON_KEY }}";
+  window.IS_TEACHER = {% if user == session.created_by %}true{% else %}false{% endif %};
 </script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.6/dist/umd/supabase.js"></script>
 <script src="{% static 'session/js/whiteboard.js' %}"></script>

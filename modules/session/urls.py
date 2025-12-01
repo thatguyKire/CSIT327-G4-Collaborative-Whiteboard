@@ -54,6 +54,8 @@ urlpatterns = [
     # 🎤 Chat
     path("toggle-chat/<uuid:session_id>/", toggle_chat, name="toggle_chat"),
     path("<uuid:session_id>/toggle-chat/", manage_views.toggle_chat, name="toggle_chat"),
+    # Presence sync (teacher)
+    path("<uuid:session_id>/presence/sync/", manage_views.presence_sync, name="presence_sync"),
     # whiteboard page (if not already routed elsewhere)
     # path("<uuid:session_id>/", whiteboard_views.whiteboard, name="whiteboard"),
 ]

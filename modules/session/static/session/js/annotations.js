@@ -18,10 +18,12 @@
   const highlightBtn = document.getElementById("highlightBtn");
   const pinBtn = document.getElementById("pinBtn");
   const clearBtn = document.getElementById("clearBtn");
+  const clearAnnoBtn = document.getElementById("clearAnnoBtn");
 
-  // Permissions (only allow if can draw)
+  // Permissions: allow annotations even in view-only mode
   function canAnnotate() {
-    return !!window.CAN_DRAW;
+    // If a stricter rule is needed later, toggle via a global flag.
+    return true;
   }
 
   // Realtime channel (created in whiteboard.js)
@@ -182,6 +184,11 @@
     try { window.WhiteboardApp?.recordSnapshot('anno-clear'); } catch(e) {}
   });
 
+  clearAnnoBtn?.addEventListener("click", () => {
+    clearAnnotationsLocal();
+    channel?.send({ type: "broadcast", event: "anno", payload: { t: "clear" } });
+  });
+
   // ---------- Realtime Broadcast Helpers ----------
   function broadcastHighlight(hl) {
     if (!channel) return;
@@ -259,7 +266,7 @@
 
   // Also clear annotations if stroke layer cleared (teacher pressed Clear)
   channel?.on("broadcast", { event: "stroke" }, ({ payload }) => {
-    if (payload?.t === "clear") clearAnnotationsLocal();
+    if (payload?.t === "clear" || payload?.t === "clear_all") clearAnnotationsLocal();
   });
 
   // Expose a small API so the whiteboard's undo/redo snapshot system

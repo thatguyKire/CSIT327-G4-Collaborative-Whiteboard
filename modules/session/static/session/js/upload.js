@@ -13,7 +13,13 @@
   }
 
   function getSessionId() {
+    // Prefer server-provided ID from template to avoid path parsing issues
+    if (window.CURRENT_SESSION_ID) return String(window.CURRENT_SESSION_ID);
+    // Fallback: parse from URL, expecting /session/<uuid>/ or /session/<uuid>/student/
     const parts = window.location.pathname.split("/").filter(Boolean);
+    const idx = parts.indexOf("session");
+    if (idx !== -1 && parts[idx + 1]) return parts[idx + 1];
+    // As a last resort, try the previous logic
     return parts.pop();
   }
 
@@ -39,11 +45,15 @@
         headers: { "X-CSRFToken": window.WhiteboardApp?.getCookie?.("csrftoken") || "" }
       });
 
+      let data;
       if (!res.ok) {
-        throw new Error(`HTTP ${res.status}`);
+        // Try to read JSON error message for clearer feedback
+        try { data = await res.json(); } catch(_) { data = null; }
+        const msg = data?.error || `HTTP ${res.status}`;
+        throw new Error(msg);
       }
 
-      const data = await res.json();
+      data = await res.json();
 
       if (data.ok || data.file_url) {
         setStatus(`✅ ${file.name}`, "success");
@@ -81,7 +91,13 @@
       }
     } catch (err) {
       console.error("Upload error:", err);
-      setStatus("⚠️ Upload error", "error");
+      const msg = String(err?.message || "Upload error");
+      // Special-case permission message
+      if (msg.includes("permission_denied")) {
+        setStatus("You don't have permission to upload (ask the teacher to enable drawing).", "error");
+      } else {
+        setStatus(`⚠️ ${msg}`, "error");
+      }
     } finally {
       fileInput.value = "";
     }
