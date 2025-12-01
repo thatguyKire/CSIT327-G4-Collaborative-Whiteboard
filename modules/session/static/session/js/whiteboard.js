@@ -1069,17 +1069,6 @@
       case "end":
         rc.lineTo(x, y);
         rc.stroke();
-        // Merge the completed remote stroke layer into the main stroke canvas
-        try {
-          // draw remote layer into stroke canvas (preserve pixels)
-          strokeCtx.drawImage(rc.canvas, 0, 0, strokeCanvas.width, strokeCanvas.height);
-          // clear the remote layer so it doesn't persist separately
-          rc.clearRect(0, 0, rc.canvas.width, rc.canvas.height);
-          // record this as a snapshot in history so undo works across merged strokes
-          snapshotState("remote-stroke-merged");
-        } catch (e) {
-          console.warn('Failed to merge remote stroke layer', e);
-        }
         break;
       case "layer": {
         // Replace the sender's layer with provided image
