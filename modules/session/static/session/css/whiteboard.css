@@ -219,7 +219,10 @@ html, body {
   user-select: none;
   image-rendering: pixelated;
   pointer-events: auto;
+  /* Prevent layout shifts from hidden snapshot elements */
+  margin: 0;
 }
+#snapshotImg { display:none !important; }
 
 /* Overlay (annotations) */
 #annoCanvas {

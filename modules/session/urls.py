@@ -50,6 +50,7 @@ urlpatterns = [
 
     # Attendance / participation logs
     path('<uuid:session_id>/attendance/', manage_views.attendance_view, name='attendance'),
+    path('<uuid:session_id>/attendance.json', manage_views.attendance_json, name='attendance_json'),
 
     # 🎤 Chat
     path("toggle-chat/<uuid:session_id>/", toggle_chat, name="toggle_chat"),

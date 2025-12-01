@@ -47,9 +47,7 @@
         👀 View-only mode — waiting for teacher permission
       </div>
 
-      {% if snapshot_url %}
-        <img id="snapshotImg" src="{{ snapshot_url }}" hidden alt="Previous snapshot">
-      {% endif %}
+      {# Removed snapshotImg to prevent static JPEG overlay causing scroll & interaction issues #}
 
       <div id="whiteboardHost" class="canvas-stack">
         <canvas id="whiteboardCanvas"
@@ -112,6 +110,8 @@
   window.SUPABASE_URL = "{{ SUPABASE_URL }}";
   window.SUPABASE_ANON_KEY = "{{ SUPABASE_ANON_KEY }}";
   window.IS_TEACHER = {% if user == session.created_by %}true{% else %}false{% endif %};
+  // Provide the last saved snapshot URL (if any) for background restore
+  window.SNAPSHOT_URL = "{{ snapshot_url|default:'' }}";
 </script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.6/dist/umd/supabase.js"></script>
 <script src="{% static 'session/js/whiteboard.js' %}"></script>

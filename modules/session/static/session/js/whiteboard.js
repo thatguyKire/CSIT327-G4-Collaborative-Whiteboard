@@ -5,17 +5,15 @@
 
   // Dynamic fit-to-viewport (keeps toolbar + participants visible)
   function resizeMainCanvas() {
-    const toolbar = document.getElementById("drawToolbar");
-    const availableH = window.innerHeight
-      - (toolbar ? toolbar.getBoundingClientRect().height : 0)
-      - 140; // padding + title + margins
-    const targetH = Math.max(500, availableH);
-    canvas.style.height = targetH + "px";
-    canvas.height = targetH; // sync internal resolution (simple 1:1; add DPR if needed)
-    canvas.width = canvas.clientWidth;
-    // Trigger overlay ResizeObserver (annotations.js) automatically
+    // Unified simple sizing: use parent width & fixed min height without DPR scaling.
+    const parent = canvas.parentElement;
+    const w = parent ? parent.getBoundingClientRect().width : 1200;
+    const h = Math.max(500, window.innerHeight - 220); // leave room for toolbar/title
+    canvas.style.width = w + "px";
+    canvas.style.height = h + "px";
+    canvas.width = w;    // 1:1 pixel mapping for accurate pointer alignment
+    canvas.height = h;
   }
-
   window.addEventListener("resize", resizeMainCanvas);
   resizeMainCanvas();
 
@@ -260,48 +258,14 @@
   // CANVAS RESIZE
   // ========================================
   function resizeCanvas() {
-    const rect = canvas.parentElement.getBoundingClientRect();
-    const widthCss = rect.width;
-    const heightCss = rect.height;
-    const dpr = window.devicePixelRatio || 1;
-
-    // Backup stroke canvas
-    const tempStroke = document.createElement("canvas");
-    tempStroke.width = strokeCanvas.width || widthCss * dpr;
-    tempStroke.height = strokeCanvas.height || heightCss * dpr;
-    const tempCtx = tempStroke.getContext("2d");
-    tempCtx.drawImage(strokeCanvas, 0, 0);
-
-    // Resize main canvas
-    canvas.width = widthCss * dpr;
-    canvas.height = heightCss * dpr;
-    canvas.style.width = widthCss + "px";
-    canvas.style.height = heightCss + "px";
-    ctx.setTransform(1, 0, 0, 1, 0, 0);
-    ctx.scale(dpr, dpr);
-    ctx.imageSmoothingEnabled = false;
-
-    // Resize stroke canvas
-    strokeCanvas.width = widthCss * dpr;
-    strokeCanvas.height = heightCss * dpr;
+    // Keep strokeCanvas in sync with main canvas (1:1 mapping)
+    strokeCanvas.width = canvas.width;
+    strokeCanvas.height = canvas.height;
     strokeCtx = strokeCanvas.getContext("2d", { willReadFrequently: true });
-    strokeCtx.setTransform(1, 0, 0, 1, 0, 0);
-    strokeCtx.scale(dpr, dpr);
-
-    // Restore strokes
-    if (tempStroke.width && tempStroke.height) {
-      strokeCtx.drawImage(tempStroke, 0, 0, widthCss, heightCss);
-    }
-
-    // Clear history on resize (dimensions change)
-    history.length = 0;
-    redoStack.length = 0;
-    snapshotState("resize");
     scheduleRedraw();
   }
-
   resizeCanvas();
-  window.addEventListener("resize", resizeCanvas);
+  window.addEventListener("resize", () => { resizeMainCanvas(); resizeCanvas(); });
 
   // ========================================
   // REDRAW EVERYTHING
@@ -778,24 +742,32 @@
   });
 
   // ========================================
-  // RESTORE SNAPSHOT
+  // RESTORE SNAPSHOT (as background layer if available)
   // ========================================
-  if (snapshotImg && snapshotImg.src) {
+  (function restoreBackgroundSnapshot(){
+    const url = (typeof window.SNAPSHOT_URL === 'string' && window.SNAPSHOT_URL.length) ? window.SNAPSHOT_URL : null;
+    if (!url) {
+      snapshotState("init");
+      return;
+    }
     const img = new Image();
     img.crossOrigin = "anonymous";
-    img.src = snapshotImg.src;
+    img.src = url;
     img.onload = () => {
-      strokeCtx.drawImage(img, 0, 0, canvas.width / (window.devicePixelRatio || 1), canvas.height / (window.devicePixelRatio || 1));
+      // Draw as background (base stroke layer). Users can draw over and clear it.
+      try {
+        strokeCtx.clearRect(0, 0, strokeCanvas.width, strokeCanvas.height);
+        strokeCtx.drawImage(img, 0, 0, strokeCanvas.width, strokeCanvas.height);
+      } catch {}
       scheduleRedraw();
-      snapshotState("restore-snapshot");
+      // Start history from a clean state after background is applied
+      history.length = 0; redoStack.length = 0; snapshotState("init");
     };
     img.onerror = () => {
       showToast("Failed to restore previous snapshot.", "error");
+      snapshotState("init");
     };
-  } else {
-    // initial empty state snapshot to start history
-    snapshotState("init");
-  }
+  })();
 
   // ========================================
   // PUBLIC API FOR UPLOAD MODULE
@@ -1024,9 +996,26 @@
 
   function redrawWithRemotes() {
     redrawAll();
-    // draw remote layers on top of base strokes
+    // First, draw the saved/base stroke canvas (snapshot/background) beneath user layers
+    try {
+      ctx.drawImage(
+        strokeCanvas,
+        0,
+        0,
+        canvas.width / (window.devicePixelRatio || 1),
+        canvas.height / (window.devicePixelRatio || 1)
+      );
+    } catch (e) { /* noop */ }
+
+    // Then draw per-user stroke layers on top
     Object.values(remoteStrokeLayers).forEach(obj => {
-      ctx.drawImage(obj.canvas, 0, 0, canvas.width / (window.devicePixelRatio||1), canvas.height / (window.devicePixelRatio||1));
+      ctx.drawImage(
+        obj.canvas,
+        0,
+        0,
+        canvas.width / (window.devicePixelRatio || 1),
+        canvas.height / (window.devicePixelRatio || 1)
+      );
     });
   }
 
