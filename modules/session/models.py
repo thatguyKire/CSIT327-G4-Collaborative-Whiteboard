@@ -18,6 +18,7 @@ class Session(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     chat_enabled = models.BooleanField(default=True)  # <-- added
     snapshot_url = models.URLField(blank=True, null=True)
+    is_archived = models.BooleanField(default=False)
     is_saved = models.BooleanField(default=False)
     is_offline_available = models.BooleanField(default=False)
 
