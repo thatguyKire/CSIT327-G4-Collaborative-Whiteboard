@@ -24,7 +24,7 @@ class CustomSignupForm(UserCreationForm):
         })
     )
     role = forms.ChoiceField(
-        choices=[("student", "Student"), ("teacher", "Teacher"), ("admin", "Admin")],
+        choices=[("student", "Student"), ("teacher", "Teacher")],
         widget=forms.Select(attrs={"autocomplete": "off"})
     )
 
