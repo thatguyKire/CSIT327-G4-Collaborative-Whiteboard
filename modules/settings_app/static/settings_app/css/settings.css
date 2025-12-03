@@ -205,8 +205,6 @@ html, body {
 .password-change-wrapper {
   min-height: calc(100vh - 80px);
   display: flex;
-  align-items: center;
-  justify-content: center;
   padding: 40px 24px;
   background: linear-gradient(180deg, rgba(255, 251, 230, 1) 0%, rgba(255, 251, 230, 1) 100%);
 }
@@ -214,7 +212,7 @@ html, body {
 .password-change-card.profile-container {
   max-width: 520px;
   width: 100%;
-  margin: 0 auto; /* override any left/right offsets */
+  margin: auto; /* override any left/right offsets */
 }
 
 /* Password change card action buttons fix */

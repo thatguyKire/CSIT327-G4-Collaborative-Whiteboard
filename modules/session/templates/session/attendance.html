@@ -37,8 +37,8 @@
         <tr data-user-id="{{ p.user.id }}">
           <td>{{ p.user.username }}</td>
           <td>{{ p.user.email }}</td>
-          <td>{{ p.joined_at|date:"Y-m-d H:i" }}</td>
-          <td>{{ p.last_active|default:p.joined_at|date:"Y-m-d H:i" }}</td>
+          <td>{{ p.joined_at|date:"n/j/Y, g:i:s A" }}</td>
+          <td>{{ p.last_active|default:p.joined_at|date:"n/j/Y, g:i:s A" }}</td>
         </tr>
         {% empty %}
         <tr><td colspan="4">No participants yet.</td></tr>
@@ -70,6 +70,7 @@
           if (!r) return;
           const cells = r.querySelectorAll('td');
           // cells: 0=name,1=email,2=joined,3=last_active
+          if (p.joined_at) cells[2].textContent = fmt(p.joined_at);
           cells[3].textContent = fmt(p.last_active) || fmt(p.joined_at);
         });
         if (lastSpan && data.now) lastSpan.textContent = fmt(data.now);

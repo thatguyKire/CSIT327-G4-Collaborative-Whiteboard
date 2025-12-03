@@ -305,9 +305,8 @@
   // REDRAW EVERYTHING
   // ========================================
   function redrawAll() {
-    const rect = canvas.getBoundingClientRect();
-    const width = rect.width;
-    const height = rect.height;
+    const width = canvas.width;
+    const height = canvas.height;
 
     // Clear main canvas
     ctx.clearRect(0, 0, width, height);
@@ -359,7 +358,12 @@
   // ========================================
   function getCoords(e) {
     const rect = canvas.getBoundingClientRect();
-    return { x: e.clientX - rect.left, y: e.clientY - rect.top };
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
+    return {
+      x: (e.clientX - rect.left) * scaleX,
+      y: (e.clientY - rect.top) * scaleY
+    };
   }
 
   // send helper (normalized coordinates)
@@ -521,14 +525,13 @@
   // Image realtime broadcast helper
   function broadcastImage(action, img) {
     if (!channel || !img) return;
-    const rect = canvas.getBoundingClientRect();
     const payload = {
       t: action,
       id: img.id,
-      x: img.x / rect.width,
-      y: img.y / rect.height,
-      w: img.width / rect.width,
-      h: img.height / rect.height,
+      x: img.x / canvas.width,
+      y: img.y / canvas.height,
+      w: img.width / canvas.width,
+      h: img.height / canvas.height,
       r: img.rotation || 0
     };
     channel.send({ type: "broadcast", event: "image", payload });
@@ -695,13 +698,12 @@
     if (!window.IS_TEACHER) return showToast("Only the teacher can clear.", "error");
     if (!confirm("Clear everything? This will delete all drawings and images.")) return;
 
-    const rect = canvas.getBoundingClientRect();
     // Clear all local stroke layers (including per-user layers)
     try {
       Object.values(remoteStrokeLayers).forEach(obj => obj.ctx.clearRect(0, 0, obj.canvas.width, obj.canvas.height));
     } catch {}
     // Also clear legacy base layer for safety
-    strokeCtx.clearRect(0, 0, rect.width, rect.height);
+    strokeCtx.clearRect(0, 0, canvas.width, canvas.height);
 
     images = [];
     activeImage = null;
@@ -832,9 +834,8 @@
       img.src = url;
 
       img.onload = () => {
-        const rect = canvas.getBoundingClientRect();
-        const maxWidth = rect.width * 0.4;
-        const maxHeight = rect.height * 0.4;
+        const maxWidth = canvas.width * 0.4;
+        const maxHeight = canvas.height * 0.4;
 
         let width = img.width * 0.3;
         let height = img.height * 0.3;
@@ -854,8 +855,8 @@
         }
 
         // If coords provided (from realtime), use them; else center
-        const x = Number.isFinite(opts.x) ? opts.x : (rect.width / 2 - width / 2);
-        const y = Number.isFinite(opts.y) ? opts.y : (rect.height / 2 - height / 2);
+        const x = Number.isFinite(opts.x) ? opts.x : (canvas.width / 2 - width / 2);
+        const y = Number.isFinite(opts.y) ? opts.y : (canvas.height / 2 - height / 2);
         if (Number.isFinite(opts.width))  width  = opts.width;
         if (Number.isFinite(opts.height)) height = opts.height;
 
@@ -1057,8 +1058,8 @@
         obj.canvas,
         0,
         0,
-        canvas.width / (window.devicePixelRatio || 1),
-        canvas.height / (window.devicePixelRatio || 1)
+        canvas.width,
+        canvas.height
       );
     });
   }
@@ -1083,9 +1084,8 @@
     if (!payload || !payload.t) return;
     // Ignore own strokes (already applied locally)
     if (String(payload.sid) === String(window.CURRENT_USER_ID)) return;
-    const rect = canvas.getBoundingClientRect();
-    const x = (payload.x || 0) * rect.width;
-    const y = (payload.y || 0) * rect.height;
+    const x = (payload.x || 0) * canvas.width;
+    const y = (payload.y || 0) * canvas.height;
     const rc = getRemoteCtx(payload.sid);
     switch (payload.t) {
       case "begin":
@@ -1124,7 +1124,7 @@
       }
       case "clear_all": {
         // Wipe base stroke layer and all remote layers
-        strokeCtx.clearRect(0, 0, rect.width, rect.height);
+        strokeCtx.clearRect(0, 0, canvas.width, canvas.height);
         Object.values(remoteStrokeLayers).forEach(obj => obj.ctx.clearRect(0, 0, obj.canvas.width, obj.canvas.height));
         // Reset history as content changed globally
         history.length = 0; redoStack.length = 0; snapshotState("remote-clear-all");
@@ -1158,17 +1158,16 @@
   channel?.on("broadcast", { event: "image" }, ({ payload }) => {
     if (!payload || !payload.t || (!payload.id && payload.t !== "clear" && payload.t !== "clear_all")) return;
     // Ignore events originating from this user if we ever include sender id (not included yet)
-    const rect = canvas.getBoundingClientRect();
     switch (payload.t) {
       case "add": {
         // prevent duplicate add
         if (images.some(i => i.id === payload.id)) return;
         addImageFromUrl(payload.url, {
           id: payload.id,
-          x: (payload.x || 0) * rect.width,
-          y: (payload.y || 0) * rect.height,
-          width: (payload.w || 0.3) * rect.width,
-          height: (payload.h || 0.3) * rect.height
+          x: (payload.x || 0) * canvas.width,
+          y: (payload.y || 0) * canvas.height,
+          width: (payload.w || 0.3) * canvas.width,
+          height: (payload.h || 0.3) * canvas.height
         }).then(img => {
           img.rotation = payload.r || 0;
           scheduleRedraw();
@@ -1181,10 +1180,10 @@
       case "rotate": {
         const img = images.find(i => i.id === payload.id);
         if (!img) return;
-        if (payload.x != null) img.x = payload.x * rect.width;
-        if (payload.y != null) img.y = payload.y * rect.height;
-        if (payload.w != null) img.width = payload.w * rect.width;
-        if (payload.h != null) img.height = payload.h * rect.height;
+        if (payload.x != null) img.x = payload.x * canvas.width;
+        if (payload.y != null) img.y = payload.y * canvas.height;
+        if (payload.w != null) img.width = payload.w * canvas.width;
+        if (payload.h != null) img.height = payload.h * canvas.height;
         if (payload.r != null) img.rotation = payload.r;
         scheduleRedraw();
         break;

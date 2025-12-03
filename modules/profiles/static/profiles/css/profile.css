@@ -20,8 +20,6 @@
 
 .profile-wrapper {
   display: flex;
-  justify-content: center;
-  align-items: center;
   width: 100%;
   min-height: calc(100vh - 80px);
   padding: 40px 24px;
@@ -29,6 +27,7 @@
 }
 
 .profile-container {
+  margin: auto;
   width: 100%;
   max-width: 700px;
   background: var(--card-bg);
