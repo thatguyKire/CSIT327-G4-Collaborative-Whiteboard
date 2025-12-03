@@ -50,7 +50,8 @@
   margin: 0 auto;
   padding: 44px 40px 120px;
   background: linear-gradient(180deg, rgba(255, 251, 230, 1) 0%, rgba(255, 251, 230, 1) 100%);
-  min-height: calc(100vh - var(--topbar-height, 80px));
+  height: 100%;
+  overflow-y: auto;
   box-sizing: border-box;
 }
 .page-title {

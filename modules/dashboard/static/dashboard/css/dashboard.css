@@ -94,12 +94,14 @@ img { max-width: 100%; height: auto; display: inline-block; }
   justify-content: center;
   align-items: center;
   padding: 4px;
+  align-self: center; /* Override base.css flex-end */
+  margin: 0; /* Override base.css margins */
 }
 
 .toggle-icon {
   width: 24px;
   height: 24px;
-  filter: invert(1); /* Make white */
+  filter: brightness(0) invert(1); /* Force white */
 }
 
 .sidebar.collapsed .toggle-icon {
