@@ -11,6 +11,11 @@
 .announcement-box textarea {
   width:100%; resize:vertical; border:1px solid #999; border-radius:8px; padding:8px; font-family:inherit;
 }
+.announcement-box button[type="submit"] {
+  display: block;
+  margin: 10px auto 0;
+  width: 50%;
+}
 .sent-list { margin-top:10px; max-height:160px; overflow-y:auto; }
 .sent-item { font-size:0.85rem; padding:4px 0; border-bottom:1px dashed #bbb; }
 .sent-item:last-child { border-bottom:none; }

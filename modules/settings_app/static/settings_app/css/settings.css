@@ -1,6 +1,26 @@
 /* General Styles */
+:root {
+  --accent: #2ca866;
+  --accent-dark: #24926d;
+  --card-bg: #fff;
+  --muted: #666;
+  --surface: #FFFAE7;
+  --border: #333;
+  --text-dark: #2c3e50;
+  --error: #e74c3c;
+  --error-dark: #c0392b;
+  --success: #27ae60;
+  --success-dark: #219150;
+  --info: #3498db;
+  --info-dark: #2980b9;
+}
+
+* {
+  box-sizing: border-box;
+}
+
 body {
-  background-color: #FFFAE7;
+  background-color: var(--surface);
   font-family: "Segoe UI", Roboto, Arial, sans-serif;
   margin: 0;
   padding: 0;
@@ -8,13 +28,13 @@ body {
 
 html, body {
   height: 100%;
-  background-color: #FFFAE7;
+  background-color: var(--surface);
 }
 
 /* Main Container */
 .settings-page {
-  min-height: calc(100vh - 72px);
-  background-color: #FFFAE7;
+  min-height: calc(100vh - 80px);
+  background: linear-gradient(180deg, rgba(255, 251, 230, 1) 0%, rgba(255, 251, 230, 1) 100%);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -25,14 +45,14 @@ html, body {
 .settings-header {
   width: 100%;
   max-width: 1200px;
-  background-color: #ffffff;
-  color: #2c3e50;
+  background-color: var(--card-bg);
+  color: var(--text-dark);
   display: flex;
   align-items: center;
-  border-radius: 16px;
+  border-radius: 14px;
   padding: 24px 28px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
-  border: 2px solid #e8e8e8;
+  box-shadow: 8px 8px 0 #333;
+  border: 3px solid #333;
   margin-bottom: 40px;
   position: relative;
   overflow: hidden;
@@ -46,6 +66,7 @@ html, body {
   right: 0;
   height: 4px;
   background: linear-gradient(90deg, #2ca866, #24926d);
+  display: none;
 }
 
 .settings-header .back-arrow {
@@ -56,16 +77,17 @@ html, body {
   text-decoration: none;
   width: 40px;
   height: 40px;
-  background: #f8f9fa;
+  background: var(--info);
   border-radius: 10px;
-  border: 2px solid #e8e8e8;
-  transition: all 0.2s ease;
+  border: 2px solid #333;
+  box-shadow: 4px 4px 0 #333;
+  transition: transform 0.08s ease, background 0.12s ease;
 }
 
 .settings-header .back-arrow:hover {
-  background: #2ca866;
-  border-color: #2ca866;
-  transform: translateX(-4px);
+  background: var(--info-dark);
+  transform: translateY(-2px);
+  text-decoration: none !important;
 }
 
 .settings-header .back-arrow img {
@@ -80,16 +102,15 @@ html, body {
 
 .settings-header-text h1 {
   margin: 0;
-  font-size: 32px;
+  font-size: 2.5rem;
   font-weight: 700;
-  color: #2c3e50;
-  letter-spacing: -0.5px;
+  color: var(--text-dark);
 }
 
 .settings-header-text p {
   margin: 6px 0 0;
-  font-size: 16px;
-  color: #666;
+  font-size: 1rem;
+  color: var(--muted);
   line-height: 1.5;
 }
 
@@ -104,39 +125,23 @@ html, body {
 
 /* Individual Cards */
 .setting-card {
-  background-color: #ffffff;
-  border-radius: 16px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  background-color: var(--card-bg);
+  border-radius: 14px;
+  box-shadow: 8px 8px 0 #333;
   padding: 40px 28px;
   text-align: center;
-  text-decoration: none;
-  color: #2c3e50;
-  border: 2px solid #e8e8e8;
-  transition: all 0.25s ease;
+  text-decoration: none !important;
+  color: var(--text-dark);
+  border: 3px solid #333;
+  transition: transform 0.08s ease, background 0.12s ease;
   position: relative;
   overflow: hidden;
 }
 
-.setting-card::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 4px;
-  background: linear-gradient(90deg, #2ca866, #24926d);
-  transform: scaleX(0);
-  transition: transform 0.3s ease;
-}
-
-.setting-card:hover::before {
-  transform: scaleX(1);
-}
-
 .setting-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.1);
-  border-color: #2ca866;
+  transform: translateY(-2px);
+  background-color: var(--card-bg);
+  text-decoration: none !important;
 }
 
 .setting-card img {
@@ -144,7 +149,7 @@ html, body {
   height: 56px;
   margin-bottom: 16px;
   opacity: 0.85;
-  transition: opacity 0.25s ease, transform 0.25s ease;
+  transition: opacity 0.12s ease, transform 0.12s ease;
 }
 
 .setting-card:hover img {
@@ -153,23 +158,22 @@ html, body {
 }
 
 .setting-card h2 {
-  font-size: 20px;
+  font-size: 1.4rem;
   margin: 0;
-  font-weight: 600;
-  color: #2c3e50;
-  letter-spacing: -0.3px;
+  font-weight: 700;
+  color: var(--text-dark);
 }
 
 .setting-card p {
-  font-size: 15px;
-  color: #666;
+  font-size: 1rem;
+  color: var(--muted);
   margin-top: 8px;
   line-height: 1.5;
 }
 
 /* Logout Card */
 .logout-card {
-  border-color: #fef5f5;
+  border-color: #333;
 }
 
 .logout-card button {
@@ -182,28 +186,29 @@ html, body {
 }
 
 .logout-card h2 {
-  color: #c0392b;
+  color: var(--error);
 }
 
 .logout-card:hover {
-  border-color: #c0392b;
+  border-color: #333;
 }
 
 .logout-card:hover::before {
-  background: linear-gradient(90deg, #c0392b, #a93226);
+  display: none;
 }
 
 .logout-card:hover h2 {
-  color: #a93226;
+  color: var(--error-dark);
 }
 
 /* Password change page layout */
 .password-change-wrapper {
-  min-height: calc(100vh - 72px); /* adjust if header height differs */
+  min-height: calc(100vh - 80px);
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 40px 24px;
+  background: linear-gradient(180deg, rgba(255, 251, 230, 1) 0%, rgba(255, 251, 230, 1) 100%);
 }
 
 .password-change-card.profile-container {
@@ -241,6 +246,7 @@ html, body {
   background: #1e9145;
   color: #fff;
   transform: translateY(-2px);
+  text-decoration: none !important;
 }
 
 .password-change-card .action-btn:active {
@@ -251,18 +257,18 @@ html, body {
 /* Error styles for forms */
 .form-errors {
   margin: 8px 0 12px;
-  padding: 10px 12px;
-  background: #ffeaea; /* match auth alert error bg */
-  border: 2px solid #e74c3c; /* match auth alert error border */
+  padding: 12px 14px;
+  background: #fee;
+  border: 2px solid var(--error);
   border-radius: 10px;
   list-style: none;
-  color: #e74c3c;
+  color: var(--error-dark);
   font-weight: 700;
 }
 
 .form-errors.client-side {
-  background: #ffeaea; /* keep same red tone for client-side messages */
-  border-color: #e74c3c;
+  background: #fee;
+  border-color: var(--error);
 }
 
 .field-errors {
@@ -272,7 +278,7 @@ html, body {
 }
 
 .field-error {
-  color: #e74c3c; /* match .error-text */
+  color: var(--error);
   font-weight: 700;
   margin: 6px 0;
   font-size: 0.95rem;
@@ -280,7 +286,7 @@ html, body {
 
 /* Make the input border red when there's an error (match login/signup style) */
 .form-group.has-error input {
-  border-color: #e74c3c !important;
+  border-color: var(--error) !important;
   background: #fff6f6;
 }
 
@@ -315,11 +321,11 @@ html, body {
   }
   
   .settings-header-text h1 {
-    font-size: 28px;
+    font-size: 2rem;
   }
   
   .settings-header-text p {
-    font-size: 15px;
+    font-size: 0.95rem;
   }
   
   .settings-container {
@@ -342,6 +348,7 @@ html, body {
     align-items: flex-start;
     gap: 12px;
     padding: 20px;
+    box-shadow: 4px 4px 0 #333;
   }
   
   .settings-header .back-arrow {
@@ -350,11 +357,11 @@ html, body {
   }
   
   .settings-header-text h1 {
-    font-size: 24px;
+    font-size: 1.8rem;
   }
   
   .settings-header-text p {
-    font-size: 14px;
+    font-size: 0.9rem;
   }
   
   .settings-container {
