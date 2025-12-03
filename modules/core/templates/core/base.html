@@ -10,10 +10,10 @@
   <meta name="supabase-key" content="{{ SUPABASE_ANON_KEY }}">
   <title>{% block title %}COLLABoard{% endblock %}</title>
 
-  <!-- 🎨 Favicon -->
+
   <link rel="icon" type="image/png" href="{% static 'core/icons/collaboard-logo.png' %}">
 
-  <!-- 🌈 Global Styles -->
+ 
   <link rel="stylesheet" href="{% static 'core/css/base.css' %}">
   <link rel="stylesheet" href="{% static 'dashboard/css/dashboard.css' %}">
   <link rel="stylesheet" href="{% static 'notifications/css/notifications.css' %}">
@@ -23,7 +23,7 @@
 </head>
 
 <body>
-  <!-- 🧠 Topbar -->
+
   <header class="topbar">
     <div class="topbar-left">
       <div class="logo">
@@ -40,7 +40,7 @@
     </div>
 
     <div class="topbar-right">
-      <!-- Notifications -->
+  
       <div class="tb-icon-wrap" id="notifWrap">
         <button id="notifBell"
                 type="button"
@@ -60,7 +60,7 @@
         </div>
       </div>
 
-      <!-- Account Dropdown -->
+     
       <div class="account-menu">
         <img src="{% static 'core/icons/usertopbar.png' %}" id="accountIcon" class="tb-icon" alt="Account" />
         <div class="account-dropdown" id="accountDropdown">
@@ -76,7 +76,7 @@
     </div>
   </header>
 
-  <!-- 🧱 Sidebar -->
+
   <aside class="sidebar" id="sidebar">
     <button class="toggle-btn" id="toggleBtn">
       <img src="{% static 'core/icons/left-arrow.png' %}" class="toggle-icon" alt="Toggle Sidebar" />
@@ -93,7 +93,7 @@
       {% endif %}
       <a href="{% url 'profile' %}" class="menu-btn">My Profile</a>
       <a href="#" class="menu-btn" id="sidebarChatBtn">Chats</a>
-      <a href="{% url 'help' %}" class="menu-btn">Help</a>
+      <a href="{% url 'help' %}" class="menu-btn">FAQs and Help</a>
     </nav>
 
     <div class="sidebar-bottom">
@@ -101,19 +101,19 @@
     </div>
   </aside>
 
-  <!-- 🧩 Main Content -->
+
   <main class="main">
     {% block content %}{% endblock %}
   </main>
 
-  <!-- 💬 Floating Chat Bubble (Global) -->
+
   {% include 'chat/chat_box.html' %}
 
-  <!-- 🧠 Core Scripts -->
+
   <script src="{% static 'core/js/dashboard-sidebar.js' %}" defer></script>
   <script src="{% static 'dashboard/js/dashboard-ui.js' %}" defer></script>
   {% block extra_js %}{% endblock %}
-  <!-- 🎵 Notifications (Supabase UMD + realtime Bell) -->
+
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js" defer></script>
   <script src="{% static 'notifications/js/Bell.js' %}" defer></script>
 </body>
