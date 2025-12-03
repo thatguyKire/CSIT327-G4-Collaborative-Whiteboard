@@ -52,6 +52,10 @@
           <div class="session-actions">
             <a href="{% url 'whiteboard' s.id %}" class="btn">Open</a>
 
+            {% if user == s.created_by or user.is_staff %}
+              <a href="{% url 'attendance' s.id %}" class="btn btn-secondary">Attendance</a>
+            {% endif %}
+
             <!-- Invite -->
             <button type="button"
                     class="btn btn-secondary qr-btn"

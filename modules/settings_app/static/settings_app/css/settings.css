@@ -248,6 +248,55 @@ html, body {
   box-shadow: none;
 }
 
+/* Error styles for forms */
+.form-errors {
+  margin: 8px 0 12px;
+  padding: 10px 12px;
+  background: #ffeaea; /* match auth alert error bg */
+  border: 2px solid #e74c3c; /* match auth alert error border */
+  border-radius: 10px;
+  list-style: none;
+  color: #e74c3c;
+  font-weight: 700;
+}
+
+.form-errors.client-side {
+  background: #ffeaea; /* keep same red tone for client-side messages */
+  border-color: #e74c3c;
+}
+
+.field-errors {
+  margin: 6px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.field-error {
+  color: #e74c3c; /* match .error-text */
+  font-weight: 700;
+  margin: 6px 0;
+  font-size: 0.95rem;
+}
+
+/* Make the input border red when there's an error (match login/signup style) */
+.form-group.has-error input {
+  border-color: #e74c3c !important;
+  background: #fff6f6;
+}
+
+.form-group.has-error label {
+  color: #8a1f1f;
+}
+
+.password-hints ul {
+  margin: 6px 0 0 18px;
+}
+
+.password-hints li.ok {
+  color: #1e9145;
+  font-weight: 700;
+}
+
 /* Responsive */
 @media (max-width: 600px) {
   .password-change-wrapper {

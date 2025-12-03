@@ -28,7 +28,7 @@
   const seen = new Set();
   let lastEnableAttemptTime = 0;
 
-  function log(...a){ console.log("[chat]", ...a); }
+  function log(...a){ if (window.DEBUG) console.log("[chat]", ...a); }
 
   function safeJson(r){ return r.text().then(t=>{ try{return [r,JSON.parse(t)];}catch{return [r,{}];} }); }
 
@@ -118,14 +118,30 @@
   }
 
   function render(list, initial){
-    if (initial){ messagesEl.innerHTML=""; seen.clear(); }
+    if (initial){ while (messagesEl.firstChild) messagesEl.removeChild(messagesEl.firstChild); seen.clear(); }
     list.forEach(m=>{
       if (seen.has(m.id)) return;
       seen.add(m.id);
       const el = document.createElement("div");
       el.className = "chat-message";
-      el.innerHTML = `<div class="chat-meta"><span class="sender">${m.sender}</span><span class="time"> (${m.timestamp})</span></div><div class="chat-body"></div>`;
-      el.querySelector(".chat-body").textContent = m.content;
+
+      const meta = document.createElement('div');
+      meta.className = 'chat-meta';
+      const sender = document.createElement('span');
+      sender.className = 'sender';
+      sender.textContent = String(m.sender || '');
+      meta.appendChild(sender);
+      const time = document.createElement('span');
+      time.className = 'time';
+      time.textContent = ` (${m.timestamp || ''})`;
+      meta.appendChild(time);
+
+      const body = document.createElement('div');
+      body.className = 'chat-body';
+      body.textContent = m.content;
+
+      el.appendChild(meta);
+      el.appendChild(body);
       messagesEl.appendChild(el);
     });
     messagesEl.scrollTop = messagesEl.scrollHeight;

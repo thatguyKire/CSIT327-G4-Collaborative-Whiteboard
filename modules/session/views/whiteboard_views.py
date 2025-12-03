@@ -51,18 +51,21 @@ def whiteboard_view(request, session_id):
     participant = session.participants.filter(user=request.user).first()
     can_draw = participant.can_draw if participant else (session.created_by == request.user)
 
-    # --- Get snapshot from Supabase Storage ---
-    snapshot_url = None
-    try:
-        sb = _server_supabase()
-        bucket = settings.SUPABASE_BUCKET
-        file_path = f"{session_id}.png"
-        objs = sb.storage.from_(bucket).list(path="")
-        if any(obj.get("name") == file_path for obj in objs or []):
-            snapshot_url = sb.storage.from_(bucket).get_public_url(file_path)
-
-    except Exception:
-        snapshot_url = None
+    # --- Get snapshot from Supabase Storage or session record ---
+    snapshot_url = getattr(session, "snapshot_url", None)
+    if not snapshot_url:
+        try:
+            sb = _server_supabase()
+            bucket = settings.SUPABASE_BUCKET
+            objs = sb.storage.from_(bucket).list(path="") or []
+            # look for any file starting with the session id (handles timestamped filenames)
+            candidates = [o.get("name") for o in objs if o.get("name") and str(session_id) in o.get("name") and o.get("name").endswith('.png')]
+            if candidates:
+                # pick the lexicographically last (timestamp suffix) as a simple heuristic
+                fname = sorted(candidates)[-1]
+                snapshot_url = sb.storage.from_(bucket).get_public_url(fname)
+        except Exception:
+            snapshot_url = None
 
     # Determine Back URL
     back_url = (

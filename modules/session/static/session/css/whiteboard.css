@@ -219,7 +219,10 @@ html, body {
   user-select: none;
   image-rendering: pixelated;
   pointer-events: auto;
+  /* Prevent layout shifts from hidden snapshot elements */
+  margin: 0;
 }
+#snapshotImg { display:none !important; }
 
 /* Overlay (annotations) */
 #annoCanvas {
@@ -297,6 +300,28 @@ html, body {
   font-weight: 600;
   color: #333;
 }
+
+/* Group presence dot with name */
+.participant-info {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Presence indicator */
+.presence-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  margin-right: 8px;
+  display: inline-block;
+  background: #bdc3c7; /* default (offline) */
+  border: 2px solid #fff;
+  box-shadow: 0 0 0 2px rgba(0,0,0,0.05);
+}
+
+.participant-item.online .presence-dot { background: #27ae60; }
+.participant-item.offline { opacity: 0.55; }
 
 /* ---------- Switch ---------- */
 .switch {

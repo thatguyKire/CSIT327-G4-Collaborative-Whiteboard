@@ -5,17 +5,15 @@
 
   // Dynamic fit-to-viewport (keeps toolbar + participants visible)
   function resizeMainCanvas() {
-    const toolbar = document.getElementById("drawToolbar");
-    const availableH = window.innerHeight
-      - (toolbar ? toolbar.getBoundingClientRect().height : 0)
-      - 140; // padding + title + margins
-    const targetH = Math.max(500, availableH);
-    canvas.style.height = targetH + "px";
-    canvas.height = targetH; // sync internal resolution (simple 1:1; add DPR if needed)
-    canvas.width = canvas.clientWidth;
-    // Trigger overlay ResizeObserver (annotations.js) automatically
+    // Unified simple sizing: use parent width & fixed min height without DPR scaling.
+    const parent = canvas.parentElement;
+    const w = parent ? parent.getBoundingClientRect().width : 1200;
+    const h = Math.max(500, window.innerHeight - 220); // leave room for toolbar/title
+    canvas.style.width = w + "px";
+    canvas.style.height = h + "px";
+    canvas.width = w;    // 1:1 pixel mapping for accurate pointer alignment
+    canvas.height = h;
   }
-
   window.addEventListener("resize", resizeMainCanvas);
   resizeMainCanvas();
 
@@ -117,7 +115,12 @@
     if (redrawPending) return;
     redrawPending = true;
     requestAnimationFrame(() => {
-      redrawAll();
+      // Always include remote layers so other users' strokes don't disappear
+      if (typeof redrawWithRemotes === "function") {
+        redrawWithRemotes();
+      } else {
+        redrawAll();
+      }
       redrawPending = false;
     });
   }
@@ -127,10 +130,15 @@
   const redoStack = [];
   const MAX_HISTORY = 50;
   let wheelRotateDebounce;
+  function getSelfLayer() {
+    return getRemoteCtx(String(window.CURRENT_USER_ID));
+  }
   function snapshotState(reason = "") {
     try {
-      // capture stroke layer pixels
-      const strokeData = strokeCtx.getImageData(0, 0, strokeCanvas.width, strokeCanvas.height);
+      // capture current user's stroke layer pixels
+      const self = getSelfLayer();
+      const sw = self.canvas.width, sh = self.canvas.height;
+      const strokeData = self.getImageData ? self.getImageData(0, 0, sw, sh) : self.canvas.getContext("2d").getImageData(0, 0, sw, sh);
       // shallow copy images metadata, keep same img references
       const imagesCopy = images.map(i => ({
         id: i.id,
@@ -141,12 +149,18 @@
         height: i.height,
         rotation: i.rotation || 0
       }));
+      // include annotations state when available
+      const annotationsState = (window.AnnotationAPI && typeof window.AnnotationAPI.getState === 'function')
+        ? window.AnnotationAPI.getState()
+        : { highlights: [], pins: [] };
+
       const snap = {
-        strokeWidth: strokeCanvas.width,
-        strokeHeight: strokeCanvas.height,
+        strokeWidth: sw,
+        strokeHeight: sh,
         strokeData,
         images: imagesCopy,
-        activeId: activeImage ? activeImage.id : null
+        activeId: activeImage ? activeImage.id : null,
+        annotations: annotationsState
       };
       history.push(snap);
       while (history.length > MAX_HISTORY) history.shift();
@@ -159,14 +173,15 @@
   function restoreSnapshot(snap) {
     if (!snap) return;
     // size mismatch due to resize: cannot restore pixels safely
-    if (snap.strokeWidth !== strokeCanvas.width || snap.strokeHeight !== strokeCanvas.height) {
+    const self = getSelfLayer();
+    if (snap.strokeWidth !== self.canvas.width || snap.strokeHeight !== self.canvas.height) {
       showToast("Canvas size changed; undo history cleared.", "info");
       history.length = 0;
       redoStack.length = 0;
       return;
     }
     try {
-      strokeCtx.putImageData(snap.strokeData, 0, 0);
+      getSelfLayer().putImageData(snap.strokeData, 0, 0);
       // restore images (reuse existing Image objects where possible)
       const map = new Map(snap.images.map(i => [i.id, i]));
       images = snap.images.map(meta => ({
@@ -174,13 +189,19 @@
         img: meta.img // same object
       }));
       activeImage = images.find(i => i.id === snap.activeId) || null;
+      // restore annotations if present
+      try {
+        if (snap.annotations && window.AnnotationAPI && typeof window.AnnotationAPI.restoreState === 'function') {
+          window.AnnotationAPI.restoreState(snap.annotations);
+        }
+      } catch (e) { console.warn('Failed to restore annotations', e); }
       scheduleRedraw();
     } catch (e) {
       console.error("Restore failed", e);
       showToast("Undo failed.", "error");
     }
   }
-  function undo() {
+  function undo(broadcast = true) {
     if (history.length <= 1) {
       showToast("Nothing to undo.", "info");
       return;
@@ -189,8 +210,12 @@
     redoStack.push(current);
     const previous = history[history.length - 1];
     restoreSnapshot(previous);
+    // broadcast to other clients unless explicitly disabled
+    if (broadcast && typeof channel !== 'undefined' && channel) {
+      try { channel.send({ type: 'broadcast', event: 'history', payload: { t: 'undo', sid: String(window.CURRENT_USER_ID) } }); } catch (e) { console.warn('undo broadcast failed', e); }
+    }
   }
-  function redo() {
+  function redo(broadcast = true) {
     if (redoStack.length === 0) {
       showToast("Nothing to redo.", "info");
       return;
@@ -198,22 +223,27 @@
     const next = redoStack.pop();
     // push current into history
     try {
-      const strokeData = strokeCtx.getImageData(0, 0, strokeCanvas.width, strokeCanvas.height);
+      const self = getSelfLayer();
+      const strokeData = self.getImageData(0, 0, self.canvas.width, self.canvas.height);
       const imagesCopy = images.map(i => ({
         id: i.id, img: i.img, x: i.x, y: i.y, width: i.width, height: i.height, rotation: i.rotation || 0
       }));
       history.push({
-        strokeWidth: strokeCanvas.width,
-        strokeHeight: strokeCanvas.height,
+        strokeWidth: self.canvas.width,
+        strokeHeight: self.canvas.height,
         strokeData,
         images: imagesCopy,
-        activeId: activeImage ? activeImage.id : null
+        activeId: activeImage ? activeImage.id : null,
+        annotations: (window.AnnotationAPI && typeof window.AnnotationAPI.getState === 'function') ? window.AnnotationAPI.getState() : { highlights: [], pins: [] }
       });
     } catch {}
     restoreSnapshot(next);
+    // broadcast redo
+    if (broadcast && typeof channel !== 'undefined' && channel) {
+      try { channel.send({ type: 'broadcast', event: 'history', payload: { t: 'redo', sid: String(window.CURRENT_USER_ID) } }); } catch (e) { console.warn('redo broadcast failed', e); }
+    }
   }
   document.addEventListener("keydown", (e) => {
-    if (!canDraw) return;
     const cmdCtrl = e.ctrlKey || e.metaKey;
     if (cmdCtrl && e.key.toLowerCase() === "z" && !e.shiftKey) {
       e.preventDefault();
@@ -228,48 +258,14 @@
   // CANVAS RESIZE
   // ========================================
   function resizeCanvas() {
-    const rect = canvas.parentElement.getBoundingClientRect();
-    const widthCss = rect.width;
-    const heightCss = rect.height;
-    const dpr = window.devicePixelRatio || 1;
-
-    // Backup stroke canvas
-    const tempStroke = document.createElement("canvas");
-    tempStroke.width = strokeCanvas.width || widthCss * dpr;
-    tempStroke.height = strokeCanvas.height || heightCss * dpr;
-    const tempCtx = tempStroke.getContext("2d");
-    tempCtx.drawImage(strokeCanvas, 0, 0);
-
-    // Resize main canvas
-    canvas.width = widthCss * dpr;
-    canvas.height = heightCss * dpr;
-    canvas.style.width = widthCss + "px";
-    canvas.style.height = heightCss + "px";
-    ctx.setTransform(1, 0, 0, 1, 0, 0);
-    ctx.scale(dpr, dpr);
-    ctx.imageSmoothingEnabled = false;
-
-    // Resize stroke canvas
-    strokeCanvas.width = widthCss * dpr;
-    strokeCanvas.height = heightCss * dpr;
+    // Keep strokeCanvas in sync with main canvas (1:1 mapping)
+    strokeCanvas.width = canvas.width;
+    strokeCanvas.height = canvas.height;
     strokeCtx = strokeCanvas.getContext("2d", { willReadFrequently: true });
-    strokeCtx.setTransform(1, 0, 0, 1, 0, 0);
-    strokeCtx.scale(dpr, dpr);
-
-    // Restore strokes
-    if (tempStroke.width && tempStroke.height) {
-      strokeCtx.drawImage(tempStroke, 0, 0, widthCss, heightCss);
-    }
-
-    // Clear history on resize (dimensions change)
-    history.length = 0;
-    redoStack.length = 0;
-    snapshotState("resize");
     scheduleRedraw();
   }
-
   resizeCanvas();
-  window.addEventListener("resize", resizeCanvas);
+  window.addEventListener("resize", () => { resizeMainCanvas(); resizeCanvas(); });
 
   // ========================================
   // REDRAW EVERYTHING
@@ -293,8 +289,7 @@
       ctx.restore();
     });
 
-    // Draw strokes on top
-    ctx.drawImage(strokeCanvas, 0, 0, width, height);
+    // Strokes are composited from per-user layers in redrawWithRemotes()
 
     // Draw selection handles
     if (activeImage && canDraw) {
@@ -343,40 +338,54 @@
   // draw handlers (single binding point)
   function startDraw(e) {
     if (!canDraw) return;
-    // remove highlight handling; keep normal stroke
+    // ignore starting a stroke on top of an image control
     const p = getCoords(e);
     if (hitTest(p.x, p.y)) return;
+    // Ensure there's an initial snapshot so the very first stroke can be undone
+    if (history.length === 0) {
+      try { snapshotState("init"); } catch {}
+    }
     drawing = true;
     lastX = p.x; lastY = p.y;
-    strokeCtx.lineWidth = lineWidth;
-    strokeCtx.lineCap = "round";
-    strokeCtx.strokeStyle = erasing ? "#fff" : currentColor;
-    strokeCtx.globalAlpha = 1;
-    strokeCtx.beginPath();
-    strokeCtx.moveTo(lastX, lastY);
+    const selfCtx = getRemoteCtx(String(window.CURRENT_USER_ID));
+    selfCtx.lineWidth = lineWidth;
+    selfCtx.lineCap = "round";
+    selfCtx.strokeStyle = erasing ? "#fff" : currentColor;
+    selfCtx.globalAlpha = 1;
+    selfCtx.beginPath();
+    selfCtx.moveTo(lastX, lastY);
     scheduleRedraw();
-    send("begin", e, { c: strokeCtx.strokeStyle, w: strokeCtx.lineWidth });
+    send("begin", e, { c: selfCtx.strokeStyle, w: selfCtx.lineWidth });
   }
+
   function draw(e) {
-    if (!drawing || !canDraw) return;
+    if (!drawing) return;
     const p = getCoords(e);
-    strokeCtx.lineWidth = lineWidth;
-    strokeCtx.strokeStyle = erasing ? "#fff" : currentColor;
-    strokeCtx.globalAlpha = 1;
-    strokeCtx.beginPath();
-    strokeCtx.moveTo(lastX, lastY);
-    strokeCtx.lineTo(p.x, p.y);
-    strokeCtx.stroke();
+    const selfCtx = getRemoteCtx(String(window.CURRENT_USER_ID));
+    selfCtx.lineWidth = lineWidth;
+    selfCtx.strokeStyle = erasing ? "#fff" : currentColor;
+    selfCtx.globalAlpha = 1;
+    selfCtx.beginPath();
+    selfCtx.moveTo(lastX, lastY);
+    selfCtx.lineTo(p.x, p.y);
+    selfCtx.stroke();
     lastX = p.x; lastY = p.y;
-    scheduleRedraw();
+    // broadcast intermediate point
     send("draw", e);
+    // update visible canvas for the drawer
+    scheduleRedraw();
   }
+
   function stopDraw(e) {
     if (!drawing) return;
     drawing = false;
-    strokeCtx.globalAlpha = 1;
+    const selfCtx = getRemoteCtx(String(window.CURRENT_USER_ID));
+    selfCtx.globalAlpha = 1;
     snapshotState("stroke");
+    scheduleRedraw();
     send("end", e);
+    // Ensure eraser effects are reflected remotely
+    if (erasing) broadcastLayerSync();
     // Removed unused POST ping that caused 403 (Forbidden)
     // if (window.CURRENT_SESSION_ID) {
     //   fetch(`/session/${window.CURRENT_SESSION_ID}/stroke/`, {
@@ -429,7 +438,15 @@
     set canDraw(v){ canDraw = !!v; updatePermissionUI(); },
     addImageFromUrl,
     showToast,
-    getCookie
+    getCookie,
+    // allow external modules (annotations) to record a snapshot including annotations
+    recordSnapshot: (reason = "external") => { try { snapshotState(reason); } catch(e){ console.warn('recordSnapshot failed', e); } }
+  };
+
+  // Lightweight global helper so other modules can request a local snapshot
+  // even if `WhiteboardApp.recordSnapshot` isn't present at load time.
+  window.requestSnapshotLocal = (reason = "external") => {
+    try { snapshotState(reason); } catch (e) { console.warn('requestSnapshotLocal failed', e); }
   };
 
   // ========================================
@@ -620,21 +637,31 @@
 
   clearBtn?.addEventListener("click", () => {
     if (!canDraw) return showToast("You don't have permission to clear.", "error");
+    if (!window.IS_TEACHER) return showToast("Only the teacher can clear.", "error");
     if (!confirm("Clear everything? This will delete all drawings and images.")) return;
 
     const rect = canvas.getBoundingClientRect();
+    // Clear all local stroke layers (including per-user layers)
+    try {
+      Object.values(remoteStrokeLayers).forEach(obj => obj.ctx.clearRect(0, 0, obj.canvas.width, obj.canvas.height));
+    } catch {}
+    // Also clear legacy base layer for safety
     strokeCtx.clearRect(0, 0, rect.width, rect.height);
     strokeCtx.fillStyle = "#fff";
     strokeCtx.fillRect(0, 0, rect.width, rect.height);
 
     images = [];
     activeImage = null;
-    scheduleRedraw();
+    // Reset history so cleared state becomes the new baseline
+    history.length = 0;
+    redoStack.length = 0;
     snapshotState("clear");
+    scheduleRedraw();
     showToast("Board cleared.", "success");
 
-    channel?.send({ type: "broadcast", event: "stroke", payload: { t: "clear" } });
-    channel?.send({ type: "broadcast", event: "image", payload: { t: "clear" } });
+    // Broadcast a clear_all so every client resets local + remote layers
+    channel?.send({ type: "broadcast", event: "stroke", payload: { t: "clear_all", sid: String(window.CURRENT_USER_ID) } });
+    channel?.send({ type: "broadcast", event: "image", payload: { t: "clear_all" } });
   });
 
   // ========================================
@@ -715,24 +742,32 @@
   });
 
   // ========================================
-  // RESTORE SNAPSHOT
+  // RESTORE SNAPSHOT (as background layer if available)
   // ========================================
-  if (snapshotImg && snapshotImg.src) {
+  (function restoreBackgroundSnapshot(){
+    const url = (typeof window.SNAPSHOT_URL === 'string' && window.SNAPSHOT_URL.length) ? window.SNAPSHOT_URL : null;
+    if (!url) {
+      snapshotState("init");
+      return;
+    }
     const img = new Image();
     img.crossOrigin = "anonymous";
-    img.src = snapshotImg.src;
+    img.src = url;
     img.onload = () => {
-      strokeCtx.drawImage(img, 0, 0, canvas.width / (window.devicePixelRatio || 1), canvas.height / (window.devicePixelRatio || 1));
+      // Draw as background (base stroke layer). Users can draw over and clear it.
+      try {
+        strokeCtx.clearRect(0, 0, strokeCanvas.width, strokeCanvas.height);
+        strokeCtx.drawImage(img, 0, 0, strokeCanvas.width, strokeCanvas.height);
+      } catch {}
       scheduleRedraw();
-      snapshotState("restore-snapshot");
+      // Start history from a clean state after background is applied
+      history.length = 0; redoStack.length = 0; snapshotState("init");
     };
     img.onerror = () => {
       showToast("Failed to restore previous snapshot.", "error");
+      snapshotState("init");
     };
-  } else {
-    // initial empty state snapshot to start history
-    snapshotState("init");
-  }
+  })();
 
   // ========================================
   // PUBLIC API FOR UPLOAD MODULE
@@ -805,6 +840,9 @@
     addImageFromUrl,
     showToast,
     getCookie
+    ,
+    // allow external modules (annotations) to record a snapshot including annotations
+    recordSnapshot: (reason = "external") => { try { snapshotState(reason); } catch(e){ console.warn('recordSnapshot failed', e); } }
   };
 
   // Undo/Redo structures exist here (history, redoStack, snapshotState, undo, redo)
@@ -825,19 +863,23 @@
     updateUndoRedoButtons();
   };
   const _undo = undo;
-  undo = function() {
-    _undo();
+  undo = function(broadcast = true) {
+    _undo(broadcast);
     updateUndoRedoButtons();
+    // Sync this user's layer to others after undo
+    broadcastLayerSync();
   };
   const _redo = redo;
-  redo = function() {
-    _redo();
+  redo = function(broadcast = true) {
+    _redo(broadcast);
     updateUndoRedoButtons();
+    // Sync this user's layer to others after redo
+    broadcastLayerSync();
   };
 
-  // Wire buttons
-  undoBtn?.addEventListener("click", (e) => { e.preventDefault(); if (canDraw) undo(); });
-  redoBtn?.addEventListener("click", (e) => { e.preventDefault(); if (canDraw) redo(); });
+  // Wire buttons (allow undo/redo even when view-only so annotations can be reverted)
+  undoBtn?.addEventListener("click", (e) => { e.preventDefault(); undo(); });
+  redoBtn?.addEventListener("click", (e) => { e.preventDefault(); redo(); });
 
   // After initial setup
   updateUndoRedoButtons();
@@ -849,13 +891,20 @@
 
   const channelName = `wb:${window.CURRENT_SESSION_ID}`;
   const channel = supa?.channel(channelName, {
-    config: { broadcast: { ack: true }, presence: { key: String(window.CURRENT_USER_ID || "anon") } }
+    config: { broadcast: { ack: false }, presence: { key: String(window.CURRENT_USER_ID || "anon") } }
   });
   window.WhiteboardChannel = channel;
 
   // subscribe so events flow
   channel?.subscribe((status) => {
     console.log("Realtime status:", status, channelName);
+    if (status === "SUBSCRIBED") {
+      try {
+        channel.track({ uid: String(window.CURRENT_USER_ID), role: window.IS_TEACHER ? "teacher" : "student" });
+      } catch (e) {
+        console.warn("Presence track failed", e);
+      }
+    }
   });
 
   // Realtime meta events (chat toggle)
@@ -869,7 +918,7 @@
     }
     const btn = document.getElementById("chatToggleBtn");
     if (btn) btn.textContent = enabled ? "Disable Chat" : "Enable Chat";
-    console.log("Realtime chat state applied:", enabled);
+    if (window.DEBUG) console.log("Realtime chat state applied:", enabled);
   });
 
   // Teacher chat toggle button (broadcast + update)
@@ -892,12 +941,12 @@
       headers: { "X-CSRFToken": getCookie("csrftoken") }
     })
       .then(r => {
-        console.log("Toggle response status:", r.status);
+        if (window.DEBUG) console.log("Toggle response status:", r.status);
         if (!r.ok) throw new Error(`HTTP ${r.status}`);
         return r.json();
       })
       .then(d => {
-        console.log("Toggle response data:", d);
+        if (window.DEBUG) console.log("Toggle response data:", d);
         if (!d.ok) throw new Error(d.error || "Unknown error");
 
         const enabled = !!d.chat_enabled;
@@ -911,7 +960,7 @@
         chatToggleBtn.textContent = enabled ? "Disable Chat" : "Enable Chat";
 
         // Broadcast to all participants (others will update via listener)
-        console.log("Broadcasting chat toggle:", enabled);
+        if (window.DEBUG) console.log("Broadcasting chat toggle:", enabled);
         channel?.send({
           type: "broadcast",
           event: "meta",
@@ -947,10 +996,43 @@
 
   function redrawWithRemotes() {
     redrawAll();
-    // draw remote layers on top of base strokes
+    // First, draw the saved/base stroke canvas (snapshot/background) beneath user layers
+    try {
+      ctx.drawImage(
+        strokeCanvas,
+        0,
+        0,
+        canvas.width / (window.devicePixelRatio || 1),
+        canvas.height / (window.devicePixelRatio || 1)
+      );
+    } catch (e) { /* noop */ }
+
+    // Then draw per-user stroke layers on top
     Object.values(remoteStrokeLayers).forEach(obj => {
-      ctx.drawImage(obj.canvas, 0, 0, canvas.width / (window.devicePixelRatio||1), canvas.height / (window.devicePixelRatio||1));
+      ctx.drawImage(
+        obj.canvas,
+        0,
+        0,
+        canvas.width / (window.devicePixelRatio || 1),
+        canvas.height / (window.devicePixelRatio || 1)
+      );
     });
+  }
+
+  // Broadcast a full sync of the local stroke layer (for undo/redo/eraser)
+  function broadcastLayerSync() {
+    try {
+      if (!channel) return;
+      const self = getSelfLayer();
+      const dataUrl = self.canvas.toDataURL("image/png");
+      channel.send({
+        type: "broadcast",
+        event: "stroke",
+        payload: { t: "layer", sid: String(window.CURRENT_USER_ID), img: dataUrl }
+      });
+    } catch (e) {
+      console.warn("Layer sync failed", e);
+    }
   }
 
   channel?.on("broadcast", { event: "stroke" }, ({ payload }) => {
@@ -977,11 +1059,48 @@
         rc.lineTo(x, y);
         rc.stroke();
         break;
+      case "layer": {
+        // Replace the sender's layer with provided image
+        const img = new Image();
+        img.onload = () => {
+          rc.clearRect(0, 0, rc.canvas.width, rc.canvas.height);
+          rc.drawImage(img, 0, 0, rc.canvas.width, rc.canvas.height);
+          redrawWithRemotes();
+        };
+        img.src = payload.img;
+        return;
+      }
+      case "clear_all": {
+        // Wipe base stroke layer and all remote layers
+        strokeCtx.clearRect(0, 0, rect.width, rect.height);
+        Object.values(remoteStrokeLayers).forEach(obj => obj.ctx.clearRect(0, 0, obj.canvas.width, obj.canvas.height));
+        // Reset history as content changed globally
+        history.length = 0; redoStack.length = 0; snapshotState("remote-clear-all");
+        scheduleRedraw();
+        break;
+      }
       case "clear":
+        // Legacy: clear only the sender's layer
         rc.clearRect(0, 0, rc.canvas.width, rc.canvas.height);
         break;
     }
     redrawWithRemotes();
+  });
+
+  // History sync: respond to undo/redo broadcasts from other clients.
+  channel?.on("broadcast", { event: "history" }, ({ payload }) => {
+    if (!payload || !payload.t) return;
+    // ignore our own broadcasts
+    if (String(payload.sid) === String(window.CURRENT_USER_ID)) return;
+    if (window.DEBUG) console.log('Received history broadcast', payload);
+    switch (payload.t) {
+      case "undo":
+        try { undo(false); } catch (e) { console.warn('Remote undo failed', e); }
+        break;
+      case "redo":
+        try { redo(false); } catch (e) { console.warn('Remote redo failed', e); }
+        break;
+    }
   });
 
   channel?.on("broadcast", { event: "image" }, ({ payload }) => {
@@ -1032,17 +1151,24 @@
         scheduleRedraw();
         break;
       }
+      case "clear_all": {
+        images = [];
+        activeImage = null;
+        scheduleRedraw();
+        break;
+      }
     }
   });
 
   channel?.on("broadcast", { event: "perm" }, ({ payload }) => {
-    if (!payload || payload.uid == null) return;
-    if (String(payload.uid) === String(window.CURRENT_USER_ID)) {
-      const newVal = !!payload.can;
-      if (window.WhiteboardApp?.canDraw !== newVal) {
-        window.WhiteboardApp.canDraw = newVal;
-        showToast?.(newVal ? "You can now draw." : "You are in view-only mode.", "info");
-      }
+    if (!payload) return;
+    const appliesToAll = payload.uid == null || String(payload.uid) === "all";
+    const appliesToMe = String(payload?.uid) === String(window.CURRENT_USER_ID);
+    if (!(appliesToAll || appliesToMe)) return;
+    const newVal = !!payload.can;
+    if (window.WhiteboardApp?.canDraw !== newVal) {
+      window.WhiteboardApp.canDraw = newVal;
+      showToast?.(newVal ? "You can now draw." : "You are in view-only mode.", "info");
     }
   });
 })();
