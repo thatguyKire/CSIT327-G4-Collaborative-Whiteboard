@@ -27,10 +27,10 @@ body {
 /* The card fits your project's rounded, shadowed aesthetic */
 .join-card {
   width: 100%;
-  max-width: 520px;
+  max-width: 700px; /* Increased width */
   background: #fff;               /* card white */
   border-radius: 14px;
-  padding: 28px 28px;
+  padding: 60px 40px; /* Increased padding */
   box-shadow: 8px 8px 0 #333;    /* match other "stacked" shadows in your app */
   border: 3px solid #333;        /* subtle strong outline like your other panels */
   transform: translateY(0);
@@ -39,8 +39,8 @@ body {
 
 /* Heading style — match your project's font/feel */
 .join-card h1 {
-  margin: 0 0 10px;
-  font-size: 1.7rem;
+  margin: 0 0 20px;
+  font-size: 2.5rem; /* Increased font size */
   color: #2c3e50;
   text-align: center;
   font-weight: 700;
@@ -48,28 +48,30 @@ body {
 
 /* Small descriptive text */
 .join-card p {
-  margin: 0 0 18px;
+  margin: 0 0 30px;
   text-align: center;
   color: #555;
-  line-height: 1.4;
+  line-height: 1.5;
+  font-size: 1.2rem; /* Increased font size */
 }
 
 /* Input styling aligned with your site */
 .join-card form {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 20px; /* Increased gap */
   align-items: center;
+  width: 100%;
 }
 
 .join-card input[type="text"] {
   width: 100%;
-  max-width: 420px;
-  padding: 12px 14px;
+  max-width: 100%; /* Full width */
+  padding: 16px 20px; /* Increased padding */
   border-radius: 10px;
   border: 2px solid #ddd;
   outline: none;
-  font-size: 1rem;
+  font-size: 1.2rem; /* Increased font size */
   background: #fff;
   transition: border-color .12s ease, box-shadow .12s ease;
 }
@@ -81,7 +83,7 @@ body {
 
 /* Primary action button (uses your green theme) */
 .join-card .btn {
-  padding: 10px 18px;
+  padding: 14px 32px; /* Increased padding */
   border-radius: 10px;
   background: #27ae60;
   color: #fff;
@@ -90,6 +92,8 @@ body {
   font-weight: 700;
   cursor: pointer;
   transition: transform 0.08s ease, background 0.12s ease;
+  font-size: 1.2rem; /* Increased font size */
+  width: 100%; /* Full width button */
 }
 
 .join-card .btn:hover { transform: translateY(-2px); background:#219150; }

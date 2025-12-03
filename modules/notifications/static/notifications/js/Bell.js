@@ -113,7 +113,12 @@ document.addEventListener("DOMContentLoaded", () => {
           while (list.firstChild) list.removeChild(list.firstChild);
           const current = [...seenIds];
           seenIds.clear();
-          d.items.forEach(it => prependItem(it));
+          // Reverse items so that when we prepend them one by one, the newest ends up at the top
+          // (Assuming d.items comes as [Newest, ..., Oldest])
+          // 1. Prepend Oldest -> [Oldest]
+          // 2. Prepend Newer -> [Newer, Oldest]
+          // 3. Prepend Newest -> [Newest, Newer, Oldest]
+          d.items.slice().reverse().forEach(it => prependItem(it));
           // (old seen IDs removed so list reflects latest set)
         }
       } catch (e) {
@@ -131,7 +136,28 @@ document.addEventListener("DOMContentLoaded", () => {
       e.stopPropagation();
       const opened = panel.classList.toggle("show");
       bellBtn.setAttribute("aria-expanded", opened ? "true" : "false");
-      if (opened) markAllRead();
+      
+      if (opened) {
+        // Dynamic positioning
+        const rect = bellBtn.getBoundingClientRect();
+        panel.style.top = `${rect.top}px`;
+        panel.style.left = `${rect.right + 10}px`; // 10px gap to the right
+        
+        // Prevent going off-screen vertically
+        const panelRect = panel.getBoundingClientRect();
+        // We need to check height after it becomes visible. 
+        // Since we just toggled 'show', it should be visible now.
+        // However, we might need a slight delay or force layout if height is 0 immediately.
+        // But usually synchronous toggle is fine.
+        
+        // If bottom goes past viewport
+        if (rect.top + panel.offsetHeight > window.innerHeight) {
+             // Align bottom with viewport bottom - 10px
+             panel.style.top = `${Math.max(10, window.innerHeight - panel.offsetHeight - 10)}px`;
+        }
+
+        markAllRead();
+      }
     });
 
     // Close when clicking outside

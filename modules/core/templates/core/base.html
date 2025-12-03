@@ -24,83 +24,86 @@
 
 <body>
 
-  <header class="topbar">
-    <div class="topbar-left">
+  <aside class="sidebar" id="sidebar">
+    <!-- Header: Logo + Toggle -->
+    <div class="sidebar-header">
       <div class="logo">
         <img src="{% static 'core/icons/collaboard-logo.png' %}" alt="COLLABoard" class="logo-image">
         <span class="logo-text">COLLABoard</span>
       </div>
+      <button class="toggle-btn" id="toggleBtn">
+        <img src="{% static 'core/icons/left-arrow.png' %}" class="toggle-icon" alt="Toggle Sidebar" />
+      </button>
     </div>
 
-    <div class="topbar-center">
-      <div class="search">
-        <input type="search" placeholder="Search" />
-        <img src="{% static 'core/icons/search.png' %}" class="tb-search-icon" alt="Search" />
-      </div>
-    </div>
-
-    <div class="topbar-right">
-  
-      <div class="tb-icon-wrap" id="notifWrap">
-        <button id="notifBell"
-                type="button"
-                class="tb-icon notif-bell-btn"
-                aria-haspopup="true"
-                aria-expanded="false"
-                aria-controls="notificationsPanel">
-          <img src="{% static 'core/icons/bell.png' %}" alt="Notifications" class="bell-img">
-          <span id="notifBadge" class="notif-badge {% if notif_unread_count == 0 %}hidden{% endif %}">
+    <nav class="menu">
+      <!-- Notifications (as menu item) -->
+      <div class="menu-item-wrap" id="notifWrap">
+        <button id="notifBell" class="menu-btn notif-btn-sidebar" aria-haspopup="true" aria-expanded="false">
+          <img src="{% static 'core/icons/bell.png' %}" alt="Notifications" class="menu-icon">
+          <span class="menu-text">Notifications</span>
+          <span id="notifBadge" class="notif-badge-sidebar {% if notif_unread_count == 0 %}hidden{% endif %}">
             {{ notif_unread_count|default:0 }}
           </span>
         </button>
-        <div class="notifications-panel" id="notificationsPanel" role="region" aria-label="Notifications dropdown">
-          <h3>Notifications</h3>
-          <div class="notif-list" role="list"></div>
-          <a href="{% url 'notifications:notifications' %}" class="btn-secondary see-all-btn">See all</a>
-        </div>
       </div>
 
-     
-      <div class="account-menu">
-        <img src="{% static 'core/icons/usertopbar.png' %}" id="accountIcon" class="tb-icon" alt="Account" />
-        <div class="account-dropdown" id="accountDropdown">
-          <a href="{% url 'profile' %}" class="dropdown-item">Profile</a>
-          <a href="{% url 'settings' %}" class="dropdown-item">Settings</a>
+      {% if user.role == "teacher" %}
+        <a href="{% url 'teacher_dashboard' %}" class="menu-btn">
+          <img src="{% static 'core/icons/dashboardicon.png' %}" class="menu-icon" alt="">
+          <span class="menu-text">My Dashboard</span>
+        </a>
+        <a href="{% url 'saved_sessions' %}" class="menu-btn">
+          <img src="{% static 'core/icons/savedsessionicon.png' %}" class="menu-icon" alt="">
+          <span class="menu-text">Saved Sessions</span>
+        </a>
+      {% elif user.role == "admin" %}
+        <a href="{% url 'admin_dashboard' %}" class="menu-btn">
+          <img src="{% static 'core/icons/dashboardicon.png' %}" class="menu-icon" alt="">
+          <span class="menu-text">My Dashboard</span>
+        </a>
+      {% else %}
+        <a href="{% url 'join_session' %}" class="menu-btn">
+          <img src="{% static 'core/icons/plus.png' %}" class="menu-icon" alt="">
+          <span class="menu-text">Join Session</span>
+        </a>
+        <a href="{% url 'student_dashboard' %}" class="menu-btn">
+          <img src="{% static 'core/icons/dashboardicon.png' %}" class="menu-icon" alt="">
+          <span class="menu-text">My Dashboard</span>
+        </a>
+      {% endif %}
+      <a href="{% url 'profile' %}" class="menu-btn">
+        <img src="{% static 'core/icons/myprofileicon.png' %}" class="menu-icon" alt="">
+        <span class="menu-text">My Profile</span>
+      </a>
+      <a href="#" class="menu-btn" id="sidebarChatBtn">
+        <img src="{% static 'core/icons/chaticon.png' %}" class="menu-icon" alt="">
+        <span class="menu-text">Chats</span>
+      </a>
+      <a href="{% url 'settings' %}" class="menu-btn">
+        <img src="{% static 'core/icons/settings.png' %}" class="menu-icon" alt="">
+        <span class="menu-text">Settings</span>
+      </a>
+      <a href="{% url 'help' %}" class="menu-btn">
+        <img src="{% static 'core/icons/help.png' %}" class="menu-icon" alt="">
+        <span class="menu-text">FAQs and Help</span>
+      </a>
+    </nav>
 
+    <!-- Footer: User Profile -->
+    <div class="sidebar-footer">
+      <div class="user-profile">
+        <img src="{% static 'core/icons/usertopbar.png' %}" class="user-avatar" alt="User">
+        <div class="user-info">
+          <span class="username">{{ user.username }}</span>
           <form action="{% url 'auth:logout' %}" method="post" class="logout-form">
             {% csrf_token %}
-            <button type="submit" class="dropdown-item logout-btn">Logout</button>
+            <button type="submit" class="logout-link">Logout</button>
           </form>
         </div>
       </div>
     </div>
-  </header>
-
-
-  <aside class="sidebar" id="sidebar">
-    <button class="toggle-btn" id="toggleBtn">
-      <img src="{% static 'core/icons/left-arrow.png' %}" class="toggle-icon" alt="Toggle Sidebar" />
-    </button>
-
-    <nav class="menu">
-      {% if user.role == "teacher" %}
-        <a href="{% url 'teacher_dashboard' %}" class="menu-btn">My Dashboard</a>
-        <a href="{% url 'saved_sessions' %}" class="menu-btn">Saved Sessions</a> <!-- optional -->
-      {% elif user.role == "admin" %}
-        <a href="{% url 'admin_dashboard' %}" class="menu-btn">My Dashboard</a>
-      {% else %}
-        <a href="{% url 'student_dashboard' %}" class="menu-btn">My Dashboard</a>
-      {% endif %}
-      <a href="{% url 'profile' %}" class="menu-btn">My Profile</a>
-      <a href="#" class="menu-btn" id="sidebarChatBtn">Chats</a>
-      <a href="{% url 'help' %}" class="menu-btn">FAQs and Help</a>
-    </nav>
-
-    <div class="sidebar-bottom">
-      <a href="{% url 'join_session' %}" class="join-btn">Join Session!</a>
-    </div>
   </aside>
-
 
   <main class="main">
     {% block content %}{% endblock %}
@@ -109,6 +112,12 @@
 
   {% include 'chat/chat_box.html' %}
 
+  <!-- Notifications Panel (Moved outside sidebar to be a true floating widget) -->
+  <div class="notifications-panel" id="notificationsPanel" role="region" aria-label="Notifications dropdown">
+    <h3>Notifications</h3>
+    <div class="notif-list" role="list"></div>
+    <a href="{% url 'notifications:notifications' %}" class="btn-secondary see-all-btn">See all</a>
+  </div>
 
   <script src="{% static 'core/js/dashboard-sidebar.js' %}" defer></script>
   <script src="{% static 'dashboard/js/dashboard-ui.js' %}" defer></script>

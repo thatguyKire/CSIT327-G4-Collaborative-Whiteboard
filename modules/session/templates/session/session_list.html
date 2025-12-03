@@ -8,18 +8,9 @@
 {% block title %}Manage Sessions - COLLABoard{% endblock %}
 
 {% block content %}
-<div class="main">
   <section class="dashboard-wrapper">
     <h1>Manage Sessions</h1>
 
-    <!-- ✅ Search bar -->
-    <form method="get" class="search-form">
-      <input type="text" name="q" placeholder="Search sessions..." value="{{ query }}">
-      <button type="submit" class="btn">Search</button>
-      {% if query %}
-        <a href="{% url 'session_list' %}" class="btn btn-secondary clear-btn">Clear</a>
-      {% endif %}
-    </form>
 
     <!-- Back to teacher dashboard -->
     <a href="{% url 'teacher_dashboard' %}" class="btn btn-secondary back-btn" aria-label="Back to dashboard">← Back</a>
@@ -42,40 +33,41 @@
 
     <!-- Sessions -->
     <h3>Your Sessions</h3>
-    <ul class="session-list">
-      {% for s in sessions %}
-        <li class="session-item">
-          <div class="session-meta">
-            <strong>{{ s.title|default:"Untitled Session" }}</strong> — Code: <strong>{{ s.code }}</strong>
-          </div>
+    <div class="session-list-wrapper">
+      <ul class="session-list">
+        {% for s in sessions %}
+          <li class="session-item">
+            <div class="session-meta">
+              <strong>{{ s.title|default:"Untitled Session" }}</strong> — Code: <strong>{{ s.code }}</strong>
+            </div>
 
-          <div class="session-actions">
-            <a href="{% url 'whiteboard' s.id %}" class="btn">Open</a>
+            <div class="session-actions">
+              <a href="{% url 'whiteboard' s.id %}" class="btn">Open</a>
 
-            {% if user == s.created_by or user.is_staff %}
-              <a href="{% url 'attendance' s.id %}" class="btn btn-secondary">Attendance</a>
-            {% endif %}
+              {% if user == s.created_by or user.is_staff %}
+                <a href="{% url 'attendance' s.id %}" class="btn btn-secondary">Attendance</a>
+              {% endif %}
 
-            <!-- Invite -->
-            <button type="button"
-                    class="btn btn-secondary qr-btn"
-                    data-qr-url="{% url 'session_qr' s.id %}"
-                    data-session-code="{{ s.code|default:'' }}">
-              Invite
-            </button>
+              <!-- Invite -->
+              <button type="button"
+                      class="btn btn-secondary qr-btn"
+                      data-qr-url="{% url 'session_qr' s.id %}"
+                      data-session-code="{{ s.code|default:'' }}">
+                Invite
+              </button>
 
-            <form method="post" action="{% url 'delete_session' s.id %}" class="inline delete-session-form">
-              {% csrf_token %}
-              <button type="submit" class="btn btn-danger">Delete</button>
-            </form>
-          </div>
-        </li>
-      {% empty %}
-        <li class="no-session">No sessions yet.</li>
-      {% endfor %}
-    </ul>
+              <form method="post" action="{% url 'delete_session' s.id %}" class="inline delete-session-form">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-danger">Delete</button>
+              </form>
+            </div>
+          </li>
+        {% empty %}
+          <li class="no-session">No sessions yet.</li>
+        {% endfor %}
+      </ul>
+    </div>
   </section>
-</div>
 
 <!-- QR Modal -->
 <div id="qrModal" class="qr-modal" aria-hidden="true">

@@ -35,7 +35,9 @@ class CustomLoginView(LoginView):
     # When users log in, always send them to their role-based dashboard
     # instead of honoring a `next` query parameter that may point back
     # to a previously accessed session URL.
-    redirect_authenticated_user = True
+    # Show the login page even if already authenticated (prevents
+    # automatic redirect to dashboards when visiting /auth/login).
+    redirect_authenticated_user = False
 
     def get_success_url(self):
         # Ignore any `next` parameter and always redirect to the

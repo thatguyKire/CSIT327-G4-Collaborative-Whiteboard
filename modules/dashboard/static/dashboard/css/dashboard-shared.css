@@ -156,6 +156,32 @@
   flex-wrap: wrap;
 }
 
+/* ---------- Active Sessions Scroll ---------- */
+.active-sessions-scroll {
+  max-height: 300px;
+  overflow-y: auto;
+  padding-right: 4px;
+  margin-bottom: 10px;
+}
+
+.active-sessions-scroll::-webkit-scrollbar {
+  width: 6px;
+}
+
+.active-sessions-scroll::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 3px;
+}
+
+.active-sessions-scroll::-webkit-scrollbar-thumb {
+  background: #ccc;
+  border-radius: 3px;
+}
+
+.active-sessions-scroll::-webkit-scrollbar-thumb:hover {
+  background: #999;
+}
+
 /* ---------- Empty State ---------- */
 .empty-state {
   text-align: center;

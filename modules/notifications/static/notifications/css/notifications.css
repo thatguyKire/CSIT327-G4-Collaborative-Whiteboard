@@ -1,29 +1,6 @@
-/* Floating panel (if you use bell dropdown) */
-.notifications-panel {
-  display: none;
-  position: absolute;
-  top: 70px;
-  right: 20px;
-  width: 300px;
-  background: #fffbe6;
-  border: 2px solid #333;
-  border-radius: 12px;
-  box-shadow: 5px 5px 0 #333;
-  z-index: 1000;
-  transition: transform 0.2s ease, opacity 0.2s ease;
-  transform-origin: top right;
-}
-.notifications-panel.active {
-  display: block;
-  opacity: 1;
-  transform: scale(1);
-}
-.notifications-panel h3 {
-  margin: 10px;
-  font-size: 1rem;
-  color: #2c3e50;
-  font-weight: 700;
-}
+/* Floating panel (handled by dashboard.css now) */
+/* .notifications-panel { ... } removed to prevent conflicts */
+
 .notif-list {
   max-height: 180px;
   overflow-y: auto;
@@ -48,24 +25,7 @@
 }
 
 /* Buttons */
-.btn-secondary {
-  display: block;
-  text-align: center;
-  text-decoration: none;
-  background: #2ca866;
-  color: #fff !important;
-  border: 2px solid #333;
-  border-radius: 10px;
-  padding: 8px;
-  font-weight: bold;
-  margin: 8px;
-  box-shadow: 3px 3px 0 #333;
-  transition: transform 0.2s ease, background 0.2s ease;
-}
-.btn-secondary:hover {
-  transform: translateY(-2px);
-  background: #23915a;
-}
+/* .btn-secondary removed to prevent conflicts with dashboard styles */
 
 /* Full notifications page */
 .notifications-container {
@@ -160,12 +120,11 @@
 
 /* Bell & panel fixes */
 #notifWrap { position: relative; z-index: 2000; }
-#notifBell { cursor: pointer; display: inline-flex; align-items: center; justify-content: center; background: transparent; border: none; padding: 0; position: relative; }
+#notifBell { cursor: pointer; position: relative; width: 100%; }
 #notifBell .bell-img { width: 28px; height: 28px; display: block; pointer-events: none; }
 .notif-dot { position: absolute; top: 4px; right: 6px; width: 10px; height: 10px; background:#e00000; border-radius:50%; box-shadow:0 0 0 2px #fff; }
 .notif-dot.hidden { display:none; }
-.notifications-panel { display:none; position:absolute; top:42px; right:0; width:300px; background:#fffbe6; border:2px solid #333; border-radius:12px; box-shadow:5px 5px 0 #333; z-index:2100; padding:10px 10px 14px; }
-.notifications-panel.show { display:block; }
+/* .notifications-panel { ... } removed duplicate */
 
 /* Mobile */
 @media (max-width: 640px) {

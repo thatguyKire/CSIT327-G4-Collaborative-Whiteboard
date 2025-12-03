@@ -5,8 +5,9 @@
   display: flex;
   justify-content: center;
   align-items: flex-start;
-  min-height: calc(100vh - 100px);
+  height: calc(100vh - 80px); /* lock to viewport minus topbar */
   padding: 40px 20px;
+  overflow: hidden; /* prevent page-level scroll; contain inside */
   box-sizing: border-box;
 }
 
@@ -17,9 +18,13 @@
   box-shadow: 4px 4px 0 #333;
   border: 2px solid #333;
   padding: 30px;
-  max-width: 900px;
-  width: 100%;
+  max-width: 1500px; /* Increased width */
+  width: 95%;
   margin: 0 auto;
+  max-height: calc(100vh - 160px); /* leave space for wrapper padding */
+  overflow: auto; /* enable internal scrolling for long content */
+  -webkit-overflow-scrolling: touch;
+  text-align: center; /* Center align content as per screenshot */
 }
 
 .help-section h1 {

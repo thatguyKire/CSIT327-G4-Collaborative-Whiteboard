@@ -11,7 +11,7 @@
 <section class="dashboard-wrapper">
   <div class="dashboard-intro">
     <h1>Hello there, {{ user.username|default:"" }}!</h1>
-    <p>Welcome to your student dashboard. You can join a session using a code or invitation link.</p>
+    <p>Welcome to your student dashboard. You can join a session using a code.</p>
   </div>
 
   <div class="sessions-row">
@@ -36,12 +36,7 @@
   {% endif %}
 
   <!-- Graph / analytics section (placeholder) -->
-  <div class="dashboard-graph">
-    <h3>Participation Overview</h3>
-    <div class="graph-canvas-wrapper">
-      <div id="participationGraph" style="min-height:320px;">Loading graph...</div>
-    </div>
-  </div>
+
 </section>
 
 
