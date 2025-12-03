@@ -7,7 +7,12 @@
 <link rel="stylesheet" href="{% static 'session/css/whiteboard_announcements.css' %}">
 
 <div class="whiteboard-wrapper">
-  <h2 class="session-title">{{ session_title }}</h2>
+  <h2 class="session-title">
+    {{ session_title }}
+    <span class="session-code" style="font-size: 0.6em; opacity: 0.7; margin-left: 10px; vertical-align: middle; font-weight: normal;">
+      Code: {{ session.code }}
+    </span>
+  </h2>
   <div class="whiteboard-layout">
     <div class="whiteboard-container">
       <div id="drawToolbar" class="toolbar" role="toolbar" aria-label="Whiteboard toolbar">

@@ -24,11 +24,13 @@ html, body {
 
 /* ---------- Title ---------- */
 .session-title {
+  display: block;
+  width: 100%;
   font-size: 1.6rem;
   font-weight: 700;
   color: #2c3e50;
   text-align: center;
-  margin: 8px 0 12px 0; /* compact margins */
+  margin: 8px auto 12px auto; /* compact margins, auto left/right */
   letter-spacing: 0.5px;
   text-shadow: 2px 2px 0 #f9d342;
   animation: fadeInTitle 0.8s ease;
