@@ -59,8 +59,17 @@ def create_session(request):
     if request.method == "POST":
         title = (request.POST.get("title") or "Untitled Session").strip()
         code = get_random_string(6).upper()
-        session = Session.objects.create(title=title, created_by=request.user, code=code)
-        return redirect(reverse("whiteboard", kwargs={"session_id": session.id}))
+        try:
+            session = Session.objects.create(title=title, created_by=request.user, code=code)
+            return redirect(reverse("whiteboard", kwargs={"session_id": session.id}))
+        except Exception as e:
+            # Check if it's a duplicate title error
+            if 'unique constraint' in str(e).lower() or 'already exists' in str(e).lower():
+                from django.contrib import messages
+                messages.error(request, f"A session with the name '{title}' already exists. Please choose a different name.")
+                return redirect(reverse("session_list"))
+            # Re-raise if it's a different error
+            raise
     return render(request, "session/create_session.html")
 
 @login_required

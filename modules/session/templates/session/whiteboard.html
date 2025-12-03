@@ -103,13 +103,14 @@
 </div>
 
 {{ can_draw|json_script:"can_draw_data" }}
+{% if user == session.created_by %}{{ True|json_script:"is_teacher_data" }}{% else %}{{ False|json_script:"is_teacher_data" }}{% endif %}
 <script>
   window.CAN_DRAW = JSON.parse(document.getElementById("can_draw_data").textContent);
+  window.IS_TEACHER = JSON.parse(document.getElementById("is_teacher_data").textContent);
   window.CURRENT_SESSION_ID = "{{ session.id }}";
   window.CURRENT_USER_ID = "{{ request.user.id }}";
   window.SUPABASE_URL = "{{ SUPABASE_URL }}";
   window.SUPABASE_ANON_KEY = "{{ SUPABASE_ANON_KEY }}";
-  window.IS_TEACHER = {% if user == session.created_by %}true{% else %}false{% endif %};
   // Provide the last saved snapshot URL (if any) for background restore
   window.SNAPSHOT_URL = "{{ snapshot_url|default:'' }}";
 </script>

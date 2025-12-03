@@ -2,14 +2,31 @@
    Manage Sessions (Teacher Side)
    =============================== */
 
+/* Override base.html .main styles to prevent conflicts */
+.main {
+  margin-top: 0 !important;
+  margin-left: var(--sidebar-expanded, 220px) !important;
+  padding: 20px !important;
+  height: 100vh !important;
+  overflow: hidden !important;
+  background: #FFFAE7 !important;
+  box-sizing: border-box;
+}
+
 .dashboard-wrapper {
-  max-width: 980px;
-  margin: 18px auto;
-  padding: 20px;
+  max-width: 1300px;
+  width: 95%;
+  margin: 0 auto; /* centered horizontally */
+  padding: 20px 30px;
   background: #ffffff;
   border-radius: 12px;
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
+  border: 3px solid #333; /* Added border */
+  box-shadow: 4px 4px 0 #333; /* Added hard shadow */
   font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+  display: flex;
+  flex-direction: column;
+  height: 100%; /* Fill available space in .main */
+  max-height: none;
 }
 
 /* ---------- Headings ---------- */
@@ -21,18 +38,21 @@
 }
 
 /* ---------- Back Button ---------- */
-.dashboard-wrapper > a.btn.btn-secondary {
+.dashboard-wrapper > a.btn.btn-secondary,
+.back-btn {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  padding: 6px 12px;
-  font-size: 0.95rem;
+  gap: 4px;
+  padding: 4px 8px;
+  font-size: 0.85rem;
   border-radius: 6px;
   text-decoration: none;
   background: #dfe6e9;
   color: #2c3e50;
   transition: all 0.2s ease;
-  margin-bottom: 14px;
+  margin-bottom: 12px;
+  width: fit-content; /* only as wide as content */
+  max-width: 80px; /* prevent stretching */
 }
 
 .dashboard-wrapper > a.btn.btn-secondary:hover {
@@ -46,6 +66,51 @@
   flex-wrap: wrap;
   gap: 10px;
   margin-bottom: 20px;
+}
+
+/* ---------- Flash Messages ---------- */
+.messages {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 16px 0;
+}
+
+.messages .message {
+  padding: 12px 16px;
+  border-radius: 8px;
+  margin-bottom: 10px;
+  font-weight: 500;
+  border: 2px solid;
+  animation: slideIn 0.3s ease;
+}
+
+.messages .message.error {
+  background: #fee;
+  color: #c33;
+  border-color: #e74c3c;
+}
+
+.messages .message.success {
+  background: #efe;
+  color: #2a7;
+  border-color: #27ae60;
+}
+
+.messages .message.warning {
+  background: #fffbe6;
+  color: #d68910;
+  border-color: #f39c12;
+}
+
+.messages .message.info {
+  background: #e8f4fd;
+  color: #2980b9;
+  border-color: #3498db;
+}
+
+@keyframes slideIn {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 .create-session-form input[type="text"] {
@@ -70,11 +135,33 @@
   background: #219150;
 }
 
+.dashboard-wrapper h3 {
+  margin: 20px 0 12px 0;
+  font-size: 1.3rem;
+  color: #222;
+  font-weight: 600;
+  flex-shrink: 0; /* prevent shrinking */
+}
+
 /* ---------- Session List ---------- */
 .dashboard-wrapper ul {
   list-style: none;
   padding: 0;
   margin: 0;
+}
+
+.session-list-wrapper {
+  flex: 1;
+  overflow-y: auto;
+  max-height: none;
+  min-height: 0; /* crucial for flex scrolling */
+  border: 1px solid #e8e8e8;
+  border-radius: 8px;
+  padding: 8px;
+}
+
+.session-list {
+  /* removed height constraints - wrapper handles it */
 }
 
 .dashboard-wrapper li {
@@ -114,6 +201,25 @@
 
 .session-actions .btn-danger:hover {
   background: #c0392b;
+}
+
+/* Scrollbar styling */
+.session-list-wrapper::-webkit-scrollbar {
+  width: 8px;
+}
+
+.session-list-wrapper::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+.session-list-wrapper::-webkit-scrollbar-thumb {
+  background: #ccc;
+  border-radius: 4px;
+}
+
+.session-list-wrapper::-webkit-scrollbar-thumb:hover {
+  background: #999;
 }
 
 /* ---------- Responsive ---------- */

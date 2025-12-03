@@ -1,21 +1,24 @@
-.profile-body {
+.profile-wrapper {
   display: flex;
   justify-content: center;
   align-items: center;
-  min-height: 100vh;
-  background: #fffbe6;
+  width: 100%;
+  height: 100%; /* Fill the .main container */
+  overflow-y: auto; /* Allow scrolling within the wrapper */
+  padding: 20px;
 }
 
-
 .profile-container {
-  width: 420px;
+  width: 600px; /* Increased width from 420px */
   background: #fffbe6;
-  padding: 30px;
+  padding: 40px; /* Increased padding slightly */
+  padding-top: 80px; /* Ensure space for absolute back button */
   border-radius: 20px;
   border: 3px solid #333;
   box-shadow: 6px 6px 0 #333;
   animation: floaty 3s ease-in-out infinite;
-  padding-top: 90px;
+  position: relative; /* Ensure absolute children are positioned relative to this */
+  margin: auto; /* Ensure centering in flex container */
 }
 
 .profile-header {
@@ -36,7 +39,8 @@
   margin-bottom: 20px;
 }
 
-.profile-info label {
+.profile-info label,
+.password-field label {
   font-weight: bold;
   margin-bottom: 4px;
   display: block;
@@ -44,7 +48,8 @@
 }
 
 .profile-info input,
-.profile-info textarea {
+.profile-info textarea,
+.password-input input {
   width: 100%;
   padding: 10px;
   border: 2px solid #333;
@@ -92,6 +97,11 @@
   font-weight: bold;
   transition: transform 0.2s, background 0.2s;
   box-shadow: 3px 3px 0 #333;
+  box-sizing: border-box; /* Ensure padding/border are included in width */
+  text-align: center;
+  width: 100%;
+  margin: 0; /* Ensure no margin is applied */
+  display: block; /* Ensure it behaves as a block element */
 }
 
 .profile-actions .btn:hover {
@@ -99,14 +109,14 @@
   transform: translateY(-2px);
 }
 
-/* Secondary (Cancel) Button */
-.btn-secondary {
-  background: #bdc3c7;
-  color: #222;
+/* Secondary (Cancel) Button - Red as requested */
+.profile-actions .btn-secondary {
+  background: #e74c3c;
+  color: #fff;
 }
 
-.btn-secondary:hover {
-  background: #aeb3b6;
+.profile-actions .btn-secondary:hover {
+  background: #c0392b;
 }
 
 /* Danger (Change Password) Button */

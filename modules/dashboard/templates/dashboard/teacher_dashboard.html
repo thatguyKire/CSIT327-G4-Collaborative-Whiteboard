@@ -28,19 +28,21 @@
     <div class="card">
       <h3>Active Sessions</h3>
       {% if open_sessions %}
-        <ul class="session-list">
-          {% for session in open_sessions %}
-            <li class="session-row">
-              <div>
-                <strong>{{ session.title|default:"Untitled Session" }}</strong>
-                <div class="session-meta">Code: {{ session.code|default:"—" }}</div>
-              </div>
-              <div class="session-actions">
-                <a href="{% url 'whiteboard' session.id %}" class="btn btn-primary">Join Whiteboard</a>
-              </div>
-            </li>
-          {% endfor %}
-        </ul>
+        <div class="active-sessions-scroll">
+          <ul class="session-list">
+            {% for session in open_sessions %}
+              <li class="session-row">
+                <div>
+                  <strong>{{ session.title|default:"Untitled Session" }}</strong>
+                  <div class="session-meta">Code: {{ session.code|default:"—" }}</div>
+                </div>
+                <div class="session-actions">
+                  <a href="{% url 'whiteboard' session.id %}" class="btn btn-primary">Join Whiteboard</a>
+                </div>
+              </li>
+            {% endfor %}
+          </ul>
+        </div>
       {% else %}
         <div class="empty-state"><p>No active sessions right now.</p></div>
       {% endif %}

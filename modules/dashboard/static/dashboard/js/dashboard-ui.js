@@ -6,6 +6,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const accountDropdown = document.getElementById('accountDropdown');
 
   // --- Toggle Notifications Panel ---
+  // (Handled by Bell.js now to avoid conflicts and fix positioning)
+  /*
   if (notifBell && notifPanel) {
     notifBell.addEventListener('click', (e) => {
       e.stopPropagation();
@@ -13,6 +15,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (accountDropdown) accountDropdown.style.display = 'none';
     });
   }
+  */
 
   // --- Toggle Account Dropdown ---
   if (accountIcon && accountDropdown) {

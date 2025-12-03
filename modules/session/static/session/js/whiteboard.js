@@ -109,6 +109,9 @@
   let strokeCanvas = document.createElement("canvas");
   let strokeCtx = strokeCanvas.getContext("2d", { willReadFrequently: true });
 
+  // Remote strokes handling (moved from bottom)
+  const remoteStrokeLayers = {}; // sid -> offscreen canvas context
+
   // Performance: throttle redraws with rAF
   let redrawPending = false;
   function scheduleRedraw() {
@@ -258,10 +261,41 @@
   // CANVAS RESIZE
   // ========================================
   function resizeCanvas() {
-    // Keep strokeCanvas in sync with main canvas (1:1 mapping)
+    // 1. Save base layer (strokeCanvas)
+    const tempBase = document.createElement("canvas");
+    tempBase.width = strokeCanvas.width;
+    tempBase.height = strokeCanvas.height;
+    if (tempBase.width > 0 && tempBase.height > 0) {
+      tempBase.getContext("2d").drawImage(strokeCanvas, 0, 0);
+    }
+
+    // 2. Resize base layer
     strokeCanvas.width = canvas.width;
     strokeCanvas.height = canvas.height;
     strokeCtx = strokeCanvas.getContext("2d", { willReadFrequently: true });
+
+    // 3. Restore base layer
+    if (tempBase.width > 0 && tempBase.height > 0) {
+      strokeCtx.drawImage(tempBase, 0, 0);
+    }
+
+    // 4. Handle remote layers (user strokes)
+    Object.values(remoteStrokeLayers).forEach(layer => {
+      const tempLayer = document.createElement("canvas");
+      tempLayer.width = layer.canvas.width;
+      tempLayer.height = layer.canvas.height;
+      if (tempLayer.width > 0 && tempLayer.height > 0) {
+        tempLayer.getContext("2d").drawImage(layer.canvas, 0, 0);
+      }
+
+      layer.canvas.width = canvas.width;
+      layer.canvas.height = canvas.height;
+      
+      if (tempLayer.width > 0 && tempLayer.height > 0) {
+        layer.ctx.drawImage(tempLayer, 0, 0);
+      }
+    });
+
     scheduleRedraw();
   }
   resizeCanvas();
@@ -280,7 +314,12 @@
     ctx.fillStyle = "#fff";
     ctx.fillRect(0, 0, width, height);
 
-    // Draw images first (bottom layer)
+    // Draw base layer (snapshot/background) first
+    try {
+      ctx.drawImage(strokeCanvas, 0, 0, width, height);
+    } catch (e) { /* noop */ }
+
+    // Draw images (middle layer)
     images.forEach(item => {
       ctx.save();
       ctx.translate(item.x + item.width / 2, item.y + item.height / 2);
@@ -647,8 +686,6 @@
     } catch {}
     // Also clear legacy base layer for safety
     strokeCtx.clearRect(0, 0, rect.width, rect.height);
-    strokeCtx.fillStyle = "#fff";
-    strokeCtx.fillRect(0, 0, rect.width, rect.height);
 
     images = [];
     activeImage = null;
@@ -981,7 +1018,7 @@
   });
 
   // Remote strokes handling
-  const remoteStrokeLayers = {}; // sid -> offscreen canvas context
+  // const remoteStrokeLayers = {}; // moved to top
 
   function getRemoteCtx(sid) {
     if (!remoteStrokeLayers[sid]) {
@@ -996,16 +1033,7 @@
 
   function redrawWithRemotes() {
     redrawAll();
-    // First, draw the saved/base stroke canvas (snapshot/background) beneath user layers
-    try {
-      ctx.drawImage(
-        strokeCanvas,
-        0,
-        0,
-        canvas.width / (window.devicePixelRatio || 1),
-        canvas.height / (window.devicePixelRatio || 1)
-      );
-    } catch (e) { /* noop */ }
+    // Base layer is now drawn inside redrawAll() to ensure correct z-order (Background -> Images -> Strokes)
 
     // Then draw per-user stroke layers on top
     Object.values(remoteStrokeLayers).forEach(obj => {
