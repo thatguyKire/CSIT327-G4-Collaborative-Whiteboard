@@ -389,12 +389,20 @@
     const selfCtx = getRemoteCtx(String(window.CURRENT_USER_ID));
     selfCtx.lineWidth = lineWidth;
     selfCtx.lineCap = "round";
-    selfCtx.strokeStyle = erasing ? "#fff" : currentColor;
+    
+    if (erasing) {
+      selfCtx.globalCompositeOperation = "destination-out";
+      selfCtx.strokeStyle = "rgba(0,0,0,1)";
+    } else {
+      selfCtx.globalCompositeOperation = "source-over";
+      selfCtx.strokeStyle = currentColor;
+    }
+    
     selfCtx.globalAlpha = 1;
     selfCtx.beginPath();
     selfCtx.moveTo(lastX, lastY);
     scheduleRedraw();
-    send("begin", e, { c: selfCtx.strokeStyle, w: selfCtx.lineWidth });
+    send("begin", e, { c: erasing ? "eraser" : selfCtx.strokeStyle, w: selfCtx.lineWidth });
   }
 
   function draw(e) {
@@ -402,7 +410,15 @@
     const p = getCoords(e);
     const selfCtx = getRemoteCtx(String(window.CURRENT_USER_ID));
     selfCtx.lineWidth = lineWidth;
-    selfCtx.strokeStyle = erasing ? "#fff" : currentColor;
+    
+    if (erasing) {
+      selfCtx.globalCompositeOperation = "destination-out";
+      selfCtx.strokeStyle = "rgba(0,0,0,1)";
+    } else {
+      selfCtx.globalCompositeOperation = "source-over";
+      selfCtx.strokeStyle = currentColor;
+    }
+
     selfCtx.globalAlpha = 1;
     selfCtx.beginPath();
     selfCtx.moveTo(lastX, lastY);
@@ -1074,7 +1090,15 @@
     switch (payload.t) {
       case "begin":
         rc.lineWidth = payload.w || 3;
-        rc.strokeStyle = payload.c || "#000";
+        
+        if (payload.c === "eraser") {
+          rc.globalCompositeOperation = "destination-out";
+          rc.strokeStyle = "rgba(0,0,0,1)";
+        } else {
+          rc.globalCompositeOperation = "source-over";
+          rc.strokeStyle = payload.c || "#000";
+        }
+
         rc.lineCap = "round";
         rc.beginPath();
         rc.moveTo(x, y);
