@@ -1132,7 +1132,7 @@
   });
 
   channel?.on("broadcast", { event: "image" }, ({ payload }) => {
-    if (!payload || !payload.t || !payload.id && payload.t !== "clear") return;
+    if (!payload || !payload.t || (!payload.id && payload.t !== "clear" && payload.t !== "clear_all")) return;
     // Ignore events originating from this user if we ever include sender id (not included yet)
     const rect = canvas.getBoundingClientRect();
     switch (payload.t) {
