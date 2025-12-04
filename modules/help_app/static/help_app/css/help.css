@@ -165,3 +165,19 @@
   vertical-align: middle;
   object-fit: contain;
 }
+
+/* FAQ article layout fix */
+.articles.help-scroll {
+  text-align: left !important;
+}
+
+.articles.help-scroll h3,
+.articles.help-scroll p {
+  text-align: justify !important;
+}
+
+.articles.help-scroll {
+  margin-bottom: 15px;
+  padding: 5px 5px;
+  margin-top: 5px;
+}
