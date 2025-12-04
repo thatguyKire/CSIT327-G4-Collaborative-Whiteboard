@@ -3,8 +3,9 @@ document.addEventListener("DOMContentLoaded", () => {
   function getCookie(name){
     const m=document.cookie.match('(^|;)\\s*'+name+'\\s*=\\s*([^;]+)');return m?m.pop():"";
   }
-  forms.forEach(form => {
-    form.addEventListener("change", async (e) => {
+
+  // Extracted handler for reuse
+  async function handlePermissionChange(e, form) {
       e.preventDefault();
       const userId = form.dataset.userId;
       const url = form.dataset.url;
@@ -31,7 +32,11 @@ document.addEventListener("DOMContentLoaded", () => {
       } catch(err) {
         console.error(err);
       }
-    });
+  }
+
+  // Attach to initial forms
+  forms.forEach(form => {
+    form.addEventListener("change", (e) => handlePermissionChange(e, form));
   });
 
   // --- Presence-driven auto revoke + UI filtering (teacher only) ---
@@ -39,6 +44,8 @@ document.addEventListener("DOMContentLoaded", () => {
     if (window.IS_TEACHER && window.WhiteboardChannel) {
       const ch = window.WhiteboardChannel;
       let syncTimer = null;
+      const listEl = document.getElementById("participantsList");
+      const listUrl = listEl?.dataset.listUrl;
 
       function computePresentIds() {
         const state = ch.presenceState ? ch.presenceState() : {};
@@ -49,11 +56,66 @@ document.addEventListener("DOMContentLoaded", () => {
       function applyUiFilter(presentIds) {
         const presentSet = new Set(presentIds.map(String));
         document.querySelectorAll(".participants-panel .participant-item").forEach(li => {
-          const uid = li.querySelector(".toggle-draw-form")?.dataset.userId || "";
+          const uid = li.dataset.userId || li.querySelector(".toggle-draw-form")?.dataset.userId || "";
           const isPresent = presentSet.has(uid);
           li.classList.toggle("online", isPresent);
           li.classList.toggle("offline", !isPresent);
         });
+      }
+
+      async function updateParticipantList(presentIds) {
+          if (!listUrl || !listEl) return;
+          
+          // Check which IDs are already in the DOM
+          const currentIds = new Set();
+          document.querySelectorAll(".participants-panel .participant-item").forEach(li => {
+              const uid = li.dataset.userId || li.querySelector(".toggle-draw-form")?.dataset.userId;
+              if (uid) currentIds.add(String(uid));
+          });
+
+          // Identify if any present user is missing from the DOM
+          const missingIds = presentIds.filter(id => !currentIds.has(String(id)));
+          
+          if (missingIds.length === 0) return; // Nothing to add
+
+          try {
+              const res = await fetch(listUrl);
+              const data = await res.json();
+              if (!data.ok) return;
+
+              // Filter for participants that are in the fetched list AND missing from DOM
+              const newParticipants = data.participants.filter(p => missingIds.includes(p.user_id));
+
+              newParticipants.forEach(p => {
+                  // Double check existence
+                  if (document.querySelector(`.participant-item[data-user-id="${p.user_id}"]`)) return;
+
+                  const li = document.createElement("li");
+                  li.className = "participant-item offline"; // Will be set to online by applyUiFilter
+                  li.dataset.userId = p.user_id;
+                  
+                  li.innerHTML = `
+                      <div class="participant-info">
+                        <span class="presence-dot" aria-hidden="true"></span>
+                        <span class="participant-name">${p.username}</span>
+                      </div>
+                      <form method="post"
+                            class="toggle-draw-form"
+                            data-user-id="${p.user_id}"
+                            data-url="/session/${window.CURRENT_SESSION_ID}/participants/${p.user_id}/can-draw/">
+                        <label class="switch">
+                          <input type="checkbox" name="can_draw" ${p.can_draw ? "checked" : ""}>
+                          <span class="slider"></span>
+                        </label>
+                      </form>
+                  `;
+                  listEl.appendChild(li);
+
+                  // Bind event listener
+                  const form = li.querySelector(".toggle-draw-form");
+                  form.addEventListener("change", (e) => handlePermissionChange(e, form));
+              });
+          } catch (e) { console.error("Failed to update participant list", e); }
       }
 
       async function syncServer(presentIds) {
@@ -67,9 +129,11 @@ document.addEventListener("DOMContentLoaded", () => {
         } catch (e) { /* non-fatal */ }
       }
 
-      function handlePresenceSync() {
+      async function handlePresenceSync() {
         const present = computePresentIds();
-        applyUiFilter(present);
+        await updateParticipantList(present); // Add new users if any
+        applyUiFilter(present); // Update status
+        
         // debounce server sync
         clearTimeout(syncTimer);
         syncTimer = setTimeout(() => syncServer(present), 1200);

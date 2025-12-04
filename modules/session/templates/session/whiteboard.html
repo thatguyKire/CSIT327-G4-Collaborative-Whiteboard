@@ -65,7 +65,7 @@
     {% if user == session.created_by %}
     <aside class="participants-panel" aria-label="Participants">
       <h3>👥 Participants</h3>
-      <ul id="participantsList">
+      <ul id="participantsList" data-list-url="{% url 'attendance_json' session.id %}">
         {% for p in session.participants.all %}
         <li class="participant-item offline">
           <div class="participant-info">
