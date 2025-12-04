@@ -247,6 +247,7 @@ def attendance_json(request, session_id):
             "user_id": p.user_id,
             "username": getattr(p.user, 'username', ''),
             "email": getattr(p.user, 'email', ''),
+            "can_draw": p.can_draw,
             "joined_at": p.joined_at.isoformat() if p.joined_at else None,
             "last_active": p.last_active.isoformat() if p.last_active else None,
         })

@@ -949,16 +949,18 @@
   });
   window.WhiteboardChannel = channel;
 
-  // subscribe so events flow
-  channel?.subscribe((status) => {
-    console.log("Realtime status:", status, channelName);
-    if (status === "SUBSCRIBED") {
-      try {
-        channel.track({ uid: String(window.CURRENT_USER_ID), role: window.IS_TEACHER ? "teacher" : "student" });
-      } catch (e) {
-        console.warn("Presence track failed", e);
+  // subscribe so events flow (delayed to allow other scripts to attach listeners)
+  window.addEventListener("load", () => {
+    channel?.subscribe((status) => {
+      console.log("Realtime status:", status, channelName);
+      if (status === "SUBSCRIBED") {
+        try {
+          channel.track({ uid: String(window.CURRENT_USER_ID), role: window.IS_TEACHER ? "teacher" : "student" });
+        } catch (e) {
+          console.warn("Presence track failed", e);
+        }
       }
-    }
+    });
   });
 
   // Realtime meta events (chat toggle)
