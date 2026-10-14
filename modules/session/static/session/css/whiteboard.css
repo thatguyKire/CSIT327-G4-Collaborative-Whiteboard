@@ -24,7 +24,11 @@ html, body {
 
 /* ---------- Title ---------- */
 .session-title {
-  display: block;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 10px;
   width: 100%;
   font-size: 1.6rem;
   font-weight: 700;
@@ -401,4 +405,13 @@ input:checked + .slider:before { transform: translateX(18px); }
     order: 0;
     margin-right: 0;
   }
+}
+/* Back / Export live in the title row so view-only users keep them. */
+.session-title .btn { font-size: 0.9rem; text-shadow: none; }
+
+/* Uploaded file links under the board */
+.uploaded-files li a {
+  font-size: 0.8rem;
+  color: #2c3e50;
+  white-space: nowrap;
 }

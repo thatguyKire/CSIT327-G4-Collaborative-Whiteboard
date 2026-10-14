@@ -27,6 +27,7 @@ document.addEventListener("DOMContentLoaded", () => {
             payload:{ uid:Number(userId), can:!!checked }
           });
         } else {
+          form.querySelector("input[name='can_draw']").checked = !checked; // revert
           alert("Failed to update permission");
         }
       } catch(err) {
@@ -97,18 +98,19 @@ document.addEventListener("DOMContentLoaded", () => {
                   li.innerHTML = `
                       <div class="participant-info">
                         <span class="presence-dot" aria-hidden="true"></span>
-                        <span class="participant-name">${p.username}</span>
+                        <span class="participant-name"></span>
                       </div>
                       <form method="post"
                             class="toggle-draw-form"
-                            data-user-id="${p.user_id}"
-                            data-url="/session/${window.CURRENT_SESSION_ID}/participants/${p.user_id}/can-draw/">
-                        <label class="switch">
+                            data-user-id="${Number(p.user_id)}"
+                            data-url="/session/${window.CURRENT_SESSION_ID}/participants/${Number(p.user_id)}/can-draw/">
+                        <label class="switch" title="Allow drawing">
                           <input type="checkbox" name="can_draw" ${p.can_draw ? "checked" : ""}>
                           <span class="slider"></span>
                         </label>
                       </form>
                   `;
+                  li.querySelector(".participant-name").textContent = p.username;
                   listEl.appendChild(li);
 
                   // Bind event listener

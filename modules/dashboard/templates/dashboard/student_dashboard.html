@@ -21,21 +21,24 @@
     </a>
   </div>
 
-  {% if joined_sessions %}
   <h2 style="margin-top:20px;">Your Joined Sessions</h2>
   <ul class="session-list">
     {% for s in joined_sessions %}
       <li>
         <strong>{{ s.session.title }}</strong> — Code: {{ s.session.code }}
-        <a href="{% url 'whiteboard' s.session.id %}" class="btn btn-primary">Open</a>
+        <a href="{% url 'student_whiteboard' s.session.id %}" class="btn btn-primary">Open</a>
       </li>
     {% empty %}
-      <li>No active sessions yet. Join one to get started!</li>
+      <li>No sessions yet. Join one with the code your teacher gives you.</li>
     {% endfor %}
   </ul>
-  {% endif %}
 
-  <!-- Graph / analytics section (placeholder) -->
+  {% if joined_sessions %}
+  <h2 style="margin-top:24px;">Your Participation</h2>
+  <div id="participationGraph" class="graph-host" style="height:300px; margin-top:12px;">
+    Loading participation graph...
+  </div>
+  {% endif %}
 
 </section>
 

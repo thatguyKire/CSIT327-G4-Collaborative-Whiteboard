@@ -6,8 +6,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="username" content="{{ request.user.username }}">
   <meta name="user-id" content="{{ request.user.id }}">
-  <meta name="supabase-url" content="{{ SUPABASE_URL }}">
-  <meta name="supabase-key" content="{{ SUPABASE_ANON_KEY }}">
   <title>{% block title %}COLLABoard{% endblock %}</title>
 
 
@@ -123,7 +121,6 @@
   <script src="{% static 'dashboard/js/dashboard-ui.js' %}" defer></script>
   {% block extra_js %}{% endblock %}
 
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js" defer></script>
   <script src="{% static 'notifications/js/Bell.js' %}" defer></script>
 </body>
 </html>

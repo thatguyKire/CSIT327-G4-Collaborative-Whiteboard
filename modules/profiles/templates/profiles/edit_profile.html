@@ -34,7 +34,7 @@
 
     <div class="profile-info">
       <label for="email">Email</label>
-      <input type="email" id="email" name="email" value="{{ user.email }}">
+      <input type="email" id="email" name="email" value="{{ email|default:user.email }}" required>
     </div>
 
     {% if user.role == "student" %}

@@ -1,113 +1,65 @@
-import io, time as systime, json, logging
-from django.shortcuts import render, get_object_or_404
-from django.http import JsonResponse, HttpResponseBadRequest, HttpResponse, StreamingHttpResponse, FileResponse
-from django.contrib.auth.decorators import login_required
-from django.conf import settings
-from supabase import create_client
-from ..models import Session, Participant
-from django.urls import reverse
+import logging
+
 from django.contrib import messages
-from django.shortcuts import get_object_or_404, redirect
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import render, get_object_or_404, redirect
+from django.urls import reverse
 
-# Use service role server-side only; never send to client
-def _server_supabase():
-    key = settings.SUPABASE_SERVICE_ROLE_KEY or settings.SUPABASE_ANON_KEY
-    return create_client(settings.SUPABASE_URL, key)
+from modules.core.decorators import safe_view
+from ..models import Session, Participant
 
-# Remove any use of settings.SUPABASE_KEY; use the helper instead.
-supabase = _server_supabase()
 logger = logging.getLogger(__name__)
 
-def safe_view(func):
-    """Decorator to log exceptions and handle client disconnects (BrokenPipeError)."""
-    def wrapper(request, *args, **kwargs):
-        try:
-            return func(request, *args, **kwargs)
-        except BrokenPipeError:
-            logger.info("Client disconnected during view %s", func.__name__)
-            # Best-effort: return empty response
-            return HttpResponse(status=204)
-        except Exception:
-            logger.exception("Unhandled exception in view %s", func.__name__)
-            raise
-    return wrapper
+
+def _whiteboard_context(request, session, *, can_draw, title, back_url):
+    return {
+        "session": session,
+        "session_title": title,
+        "snapshot_url": session.snapshot_url or "",
+        "can_draw": can_draw,
+        "is_teacher": session.created_by == request.user,
+        "back_url": back_url,
+        "uploads": session.uploads.order_by("uploaded_at"),
+    }
 
 
 @login_required
 @safe_view
 def whiteboard_view(request, session_id):
-    """Display the collaborative whiteboard for a given session (Supabase-powered)."""
+    """Teacher (owner) whiteboard. Participants are sent to the student view."""
     session = get_object_or_404(Session, id=session_id)
 
-    # Determine display title
-    display_title = (
-        getattr(session, "title", None)
-        or getattr(session, "name", None)
-        or getattr(session, "code", None)
-        or str(session.id)
-    )
+    if session.created_by != request.user and not request.user.is_staff:
+        if Participant.objects.filter(session=session, user=request.user).exists():
+            return redirect(reverse("student_whiteboard", kwargs={"session_id": session.id}))
+        messages.error(request, "You are not part of this session. Please join with the session code.")
+        return redirect(reverse("join_session"))
 
-    # Determine if user can draw
-    participant = session.participants.filter(user=request.user).first()
-    can_draw = participant.can_draw if participant else (session.created_by == request.user)
-
-    # --- Get snapshot from Supabase Storage or session record ---
-    snapshot_url = getattr(session, "snapshot_url", None)
-    if not snapshot_url:
-        try:
-            sb = _server_supabase()
-            bucket = settings.SUPABASE_BUCKET
-            objs = sb.storage.from_(bucket).list(path="") or []
-            # look for any file starting with the session id (handles timestamped filenames)
-            candidates = [o.get("name") for o in objs if o.get("name") and str(session_id) in o.get("name") and o.get("name").endswith('.png')]
-            if candidates:
-                # pick the lexicographically last (timestamp suffix) as a simple heuristic
-                fname = sorted(candidates)[-1]
-                snapshot_url = sb.storage.from_(bucket).get_public_url(fname)
-        except Exception:
-            snapshot_url = None
-
-    # Determine Back URL
-    back_url = (
-        reverse("session_list")
-        if request.user == session.created_by
-        else reverse("student_dashboard")
-    )
-
-    return render(
-        request,
-        "session/whiteboard.html",
-        {
-            "session": session,
-            "session_title": display_title,
-            "snapshot_url": snapshot_url,
-            "can_draw": can_draw,
-            "back_url": back_url,
-            "SUPABASE_URL": getattr(settings, "SUPABASE_URL", ""),
-            "SUPABASE_ANON_KEY": getattr(settings, "SUPABASE_ANON_KEY", ""),
-        },
-    )
+    return render(request, "session/whiteboard.html", _whiteboard_context(
+        request, session,
+        can_draw=True,
+        title=session.title,
+        back_url=reverse("session_list"),
+    ))
 
 
 @login_required
+@safe_view
 def student_whiteboard_view(request, session_id):
-    """
-    Student version of the whiteboard.
-    Verifies that the user joined the session before granting access.
-    """
+    """Student whiteboard. Only users who joined the session may view it."""
     session = get_object_or_404(Session, id=session_id)
 
-    # Make sure this user has joined
+    if session.created_by == request.user:
+        return redirect(reverse("whiteboard", kwargs={"session_id": session.id}))
+
     participant = Participant.objects.filter(session=session, user=request.user).first()
     if not participant:
         messages.error(request, "You are not part of this session. Please join first.")
-        return redirect("join_session")
+        return redirect(reverse("join_session"))
 
-    # Reuse the same template, but pass a flag
-    return render(request, "session/whiteboard.html", {
-        "session": session,
-        "session_title": f"{session.title} (Student View)",
-        "can_draw": participant.can_draw,
-    })
-
-
+    return render(request, "session/whiteboard.html", _whiteboard_context(
+        request, session,
+        can_draw=participant.can_draw,
+        title=session.title,
+        back_url=reverse("student_dashboard"),
+    ))

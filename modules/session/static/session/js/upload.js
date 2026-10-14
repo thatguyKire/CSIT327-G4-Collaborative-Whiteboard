@@ -55,21 +55,22 @@
 
       data = await res.json();
 
-      if (data.ok || data.file_url) {
+      if (data.ok) {
         setStatus(`✅ ${file.name}`, "success");
         setTimeout(() => uploadStatus && (uploadStatus.textContent = ""), 2000);
-        // Preview list
+        // File list (links work for every type; PDFs/DOCX/PPTX are not drawn on the board)
         if (uploadedFiles && data.file_url) {
           const li = document.createElement("li");
-          const img = document.createElement("img");
-          img.className = "upload-preview";
-          img.src = data.file_url || "";
-          img.alt = file.name || "";
-          li.appendChild(img);
+          const a = document.createElement("a");
+          a.href = data.file_url;
+          a.target = "_blank";
+          a.rel = "noopener";
+          a.textContent = data.name || file.name || "file";
+          li.appendChild(a);
           uploadedFiles.appendChild(li);
         }
-        // Add to board + broadcast
-        if (data.file_url && window.WhiteboardApp?.addImageFromUrl) {
+        // Add images to the board + broadcast
+        if (data.is_image && data.file_url && window.WhiteboardApp?.addImageFromUrl) {
           const id = (crypto.randomUUID && crypto.randomUUID()) || `${Date.now()}-${Math.random().toString(36).slice(2,8)}`;
           const placed = await window.WhiteboardApp.addImageFromUrl(data.file_url, { id });
           // Broadcast normalized placement so others add the same image and track it by id

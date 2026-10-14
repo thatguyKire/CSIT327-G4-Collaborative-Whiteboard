@@ -11,18 +11,10 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
-    const meta = (n) => document.querySelector(`meta[name="${n}"]`)?.content || "";
-    const SUPABASE_URL = meta("supabase-url") || window.SUPABASE_URL || "";
-    const SUPABASE_KEY = meta("supabase-key") || meta("supabase-anon-key") || window.SUPABASE_ANON_KEY || "";
-    const userId = parseInt(meta("user-id") || window.CURRENT_USER_ID || "0", 10);
 
-    function escapeHtml(s = "") {
-      return String(s)
-        .replaceAll("&", "&amp;")
-        .replaceAll("<", "&lt;")
-        .replaceAll(">", "&gt;")
-        .replaceAll('"', "&quot;")
-        .replaceAll("'", "&#39;");
+    function getCookie(name) {
+      const m = document.cookie.match(`(^|;)\\s*${name}\\s*=\\s*([^;]+)`);
+      return m ? m.pop() : "";
     }
 
     function showUnread(count) {
@@ -64,7 +56,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const titleDiv = document.createElement('div');
       titleDiv.className = 'notif-title';
       const strong = document.createElement('strong');
-      strong.textContent = escapeHtml(title);
+      strong.textContent = title;
       titleDiv.appendChild(strong);
       if (tag) {
         const tagSpan = document.createElement('span');
@@ -77,7 +69,7 @@ document.addEventListener("DOMContentLoaded", () => {
       if (body) {
         const bodyDiv = document.createElement('div');
         bodyDiv.className = 'notif-body';
-        bodyDiv.textContent = escapeHtml(body);
+        bodyDiv.textContent = body;
         entry.appendChild(bodyDiv);
       }
 
@@ -127,7 +119,13 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     async function markAllRead() {
-      try { await fetch("/notifications/mark-all-read/", { credentials: "same-origin" }); } catch (e) {}
+      try {
+        await fetch("/notifications/mark-all-read/", {
+          method: "POST",
+          credentials: "same-origin",
+          headers: { "X-CSRFToken": getCookie("csrftoken") }
+        });
+      } catch (e) {}
       showUnread(0);
     }
 
@@ -178,52 +176,8 @@ document.addEventListener("DOMContentLoaded", () => {
       }, 5000); // always keep a 5s poll
     }
 
-    function startRealtime() {
-      try {
-        if (!window.supabase || !SUPABASE_URL || !SUPABASE_KEY || !userId) {
-          if (window.DEBUG) console.debug("Bell: realtime prerequisites missing -> polling only");
-          startPollingLoop();
-          return;
-        }
-        const client = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-          if (window.DEBUG) console.debug("Bell: created supabase client", {SUPABASE_URL});
-        const channel = client
-          .channel(`notif-${userId}`)
-          .on("postgres_changes",
-              { event: "INSERT", schema: "public", table: "notifications_notification", filter: `recipient_id=eq.${userId}` },
-              (payload) => {
-                if (window.DEBUG) console.debug("Bell: received payload", payload);
-                const n = payload.new || {};
-                prependItem(n);
-                if (!panel.classList.contains("show")) {
-                  const cur = Number(badge?.textContent || "0");
-                  showUnread(cur + 1);
-                }
-              })
-          .subscribe((status) => {
-            if (window.DEBUG) console.debug("Bell: channel subscribe status", status);
-            if (status === "SUBSCRIBED") {
-              refreshCount();
-              bootstrapList();
-            }
-          });
-
-        // Start polling regardless (hybrid safety net)
-        startPollingLoop();
-
-        setTimeout(() => {
-          if (channel.state !== "joined") {
-            if (window.DEBUG) console.debug("Bell: channel not joined (state=%s) continuing polling fallback", channel.state);
-          }
-        }, 4000);
-      } catch (e) {
-        console.warn("Notifications: realtime init failed -> polling fallback", e);
-        startPollingLoop();
-      }
-    }
     // init
-    refreshCount();
-    startRealtime();
+    startPollingLoop();
     if (window.DEBUG) console.debug("Notifications: Bell initialized");
   } catch (err) {
     console.error("Notifications: initialization error", err);

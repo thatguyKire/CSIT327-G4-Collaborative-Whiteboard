@@ -8,7 +8,7 @@ from django.contrib import messages
 from modules.session.models import Session, Participant
 from .notify import notify
 from django.db.models import Min, Count
-from django.db import transaction
+from django.db.models.functions import TruncMinute
 
 @require_GET
 @login_required
@@ -38,11 +38,13 @@ def unread_count(request):
     return JsonResponse({"count": cnt})
 
 @login_required
+@require_POST
 def mark_all_read(request):
     Notification.objects.filter(recipient=request.user, read_at__isnull=True).update(read_at=timezone.now())
     return JsonResponse({"ok": True})
 
 @login_required
+@require_POST
 def mark_read(request, pk: int):
     n = get_object_or_404(Notification, pk=pk, recipient=request.user, read_at__isnull=True)
     n.read_at = timezone.now()
@@ -60,6 +62,8 @@ def send_announcement(request, session_id):
     urgent = request.POST.get("urgent") == "1"
     if not text:
         return JsonResponse({"ok": False, "error": "empty"}, status=400)
+    if len(text) > 1000:
+        return JsonResponse({"ok": False, "error": "too_long"}, status=400)
 
     participant_qs = (
         Participant.objects
@@ -87,11 +91,12 @@ def session_announcements_json(request, session_id):
     session = get_object_or_404(Session, id=session_id)
     if request.user != session.created_by and not request.user.is_staff:
         return JsonResponse({"items": []})
-    # Aggregate per unique announcement; distinct recipient count
+    # One row per announcement: same text/urgency sent within the same minute.
     agg = (
         Notification.objects
         .filter(session=session)
-        .values("content", "is_urgent")
+        .annotate(sent_minute=TruncMinute("created_at"))
+        .values("content", "is_urgent", "sent_minute")
         .annotate(
             created_at=Min("created_at"),
             first_id=Min("id"),

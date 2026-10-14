@@ -16,5 +16,7 @@ class Notification(models.Model):
 
     class Meta:
         ordering = ["-created_at"]
-        # Prevent exact duplicates
-        unique_together = ("recipient", "session", "content", "is_urgent")
+        indexes = [models.Index(fields=["recipient", "read_at"], name="notif_recipient_read_idx")]
+
+    def __str__(self):
+        return f"To {self.recipient_id}: {self.content[:40]}"

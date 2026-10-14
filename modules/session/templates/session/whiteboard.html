@@ -1,6 +1,6 @@
 {% extends "core/base.html" %}
 {% load static %}
-{% block title %}Whiteboard - COLLABoard{% endblock %}
+{% block title %}{{ session_title }} - COLLABoard{% endblock %}
 {% block content %}
 <link rel="stylesheet" href="{% static 'session/css/whiteboard.css' %}">
 <link rel="stylesheet" href="{% static 'session/css/upload.css' %}">
@@ -8,43 +8,39 @@
 
 <div class="whiteboard-wrapper">
   <h2 class="session-title">
+    <button id="backBtn" type="button" class="btn btn-secondary" data-back-url="{{ back_url }}">← Back</button>
     {{ session_title }}
     <span class="session-code" style="font-size: 0.6em; opacity: 0.7; margin-left: 10px; vertical-align: middle; font-weight: normal;">
       Code: {{ session.code }}
     </span>
+    {% if not is_teacher %}<span class="session-role-tag" style="font-size:0.55em; opacity:0.7; font-weight:normal;">(Student view)</span>{% endif %}
+    <button id="exportBtn" type="button" class="btn btn-primary" style="margin-left:auto;">Export PNG</button>
   </h2>
   <div class="whiteboard-layout">
     <div class="whiteboard-container">
       <div id="drawToolbar" class="toolbar" role="toolbar" aria-label="Whiteboard toolbar">
-        <button id="backBtn" class="btn btn-secondary" data-back-url="{{ back_url }}">← Back</button>
         <label>Color: <input type="color" id="colorPicker" value="#000000"></label>
         <label>Size: <input type="range" id="sizePicker" min="1" max="20" value="3"></label>
-        <button id="penBtn" class="btn btn-secondary active">Pen</button>
-        <button id="eraserBtn" class="btn btn-secondary">Eraser</button>
-        <button id="undoBtn" class="btn btn-secondary">Undo</button>
-        <button id="redoBtn" class="btn btn-secondary">Redo</button>
-        <button id="clearAnnoBtn" class="btn btn-secondary">Clear Marks</button>
-        {% if user == session.created_by %}
-        <button id="clearBtn" class="btn btn-danger">Clear All</button>
-        {% endif %}
-        <button id="highlightBtn" class="btn btn-secondary" title="Highlight">Highlight</button>
-        <button id="pinBtn" class="btn btn-secondary" title="Pin">Pin</button>
-        {% if user == session.created_by %}
-        <button id="saveBtn" class="btn btn-success" data-save-url="{% url 'save_snapshot' session.id %}">Save</button>
-        <button id="chatToggleBtn"
+        <button id="penBtn" type="button" class="btn btn-secondary active">Pen</button>
+        <button id="eraserBtn" type="button" class="btn btn-secondary">Eraser</button>
+        <button id="undoBtn" type="button" class="btn btn-secondary">Undo</button>
+        <button id="redoBtn" type="button" class="btn btn-secondary">Redo</button>
+        <button id="clearAnnoBtn" type="button" class="btn btn-secondary">Clear Marks</button>
+        <button id="highlightBtn" type="button" class="btn btn-secondary" title="Highlight">Highlight</button>
+        <button id="pinBtn" type="button" class="btn btn-secondary" title="Pin">Pin</button>
+        {% if is_teacher %}
+        <button id="clearBtn" type="button" class="btn btn-danger">Clear All</button>
+        <button id="saveBtn" type="button" class="btn btn-success" data-save-url="{% url 'save_snapshot' session.id %}">Save</button>
+        <button id="chatToggleBtn" type="button"
                 class="btn btn-secondary"
                 data-toggle-url="{% url 'toggle_chat' session.id %}">
           {% if session.chat_enabled %}Disable Chat{% else %}Enable Chat{% endif %}
         </button>
         {% endif %}
-        <button id="exportBtn" class="btn btn-primary">Export</button>
         <div class="upload-section">
           <label for="fileInput" class="btn btn-secondary">📁 Upload</label>
           <input type="file" id="fileInput" accept="image/*,.pdf,.docx,.pptx" hidden>
           <div id="uploadStatus" class="upload-status" role="status" aria-live="polite"></div>
-        </div>
-        <div class="uploaded-files-container">
-          <ul id="uploadedFiles" class="uploaded-files"></ul>
         </div>
       </div>
 
@@ -52,22 +48,28 @@
         👀 View-only mode — waiting for teacher permission
       </div>
 
-      {# Removed snapshotImg to prevent static JPEG overlay causing scroll & interaction issues #}
-
       <div id="whiteboardHost" class="canvas-stack">
         <canvas id="whiteboardCanvas"
                 style="width:100%; height:600px; background:#fff; display:block;"
                 width="1200" height="600"
                 aria-label="Whiteboard drawing area"></canvas>
       </div>
+
+      <div class="uploaded-files-container">
+        <ul id="uploadedFiles" class="uploaded-files" aria-label="Uploaded files">
+          {% for f in uploads %}
+            <li><a href="{{ f.file_url|default:f.file.url }}" target="_blank" rel="noopener">{{ f.original_name|default:f.file.name }}</a></li>
+          {% endfor %}
+        </ul>
+      </div>
     </div>
 
-    {% if user == session.created_by %}
+    {% if is_teacher %}
     <aside class="participants-panel" aria-label="Participants">
       <h3>👥 Participants</h3>
       <ul id="participantsList" data-list-url="{% url 'attendance_json' session.id %}">
         {% for p in session.participants.all %}
-        <li class="participant-item offline">
+        <li class="participant-item offline" data-user-id="{{ p.user.id }}">
           <div class="participant-info">
             <span class="presence-dot" aria-hidden="true"></span>
             <span class="participant-name">{{ p.user.username }}</span>
@@ -77,8 +79,8 @@
                 data-user-id="{{ p.user.id }}"
                 data-url="{% url 'toggle_draw_permission' session.id p.user.id %}">
             {% csrf_token %}
-            <label class="switch">
-              <input type="checkbox" name="can_draw" {% if p.can_draw %}checked{% endif %}>
+            <label class="switch" title="Allow drawing">
+              <input type="checkbox" name="can_draw" aria-label="Allow {{ p.user.username }} to draw" {% if p.can_draw %}checked{% endif %}>
               <span class="slider"></span>
             </label>
           </form>
@@ -94,7 +96,7 @@
         <h3>📢 Send Announcement</h3>
         <form id="announcementForm">
           {% csrf_token %}
-          <textarea name="message" id="announceMessage" rows="3" placeholder="Type announcement..."></textarea>
+          <textarea name="message" id="announceMessage" rows="3" maxlength="1000" placeholder="Type announcement..."></textarea>
           <label style="display:flex;align-items:center;gap:4px;font-size:.8rem;">
             <input type="checkbox" name="urgent" value="1"> Urgent
           </label>
@@ -103,29 +105,39 @@
         <div class="sent-list" id="sentAnnouncements"></div>
       </div>
     </aside>
+    {% else %}
+    <aside class="participants-panel announcement-box" id="studentAnnouncementBox"
+           data-list-url="{% url 'notifications:session_student_announcements_json' session.id %}"
+           aria-label="Session announcements">
+      <h3>📢 Announcements</h3>
+      <div class="sent-list" id="studentAnnouncementsList"></div>
+    </aside>
     {% endif %}
   </div>
 </div>
 
+{% csrf_token %}
 {{ can_draw|json_script:"can_draw_data" }}
-{% if user == session.created_by %}{{ True|json_script:"is_teacher_data" }}{% else %}{{ False|json_script:"is_teacher_data" }}{% endif %}
+{{ is_teacher|json_script:"is_teacher_data" }}
+{{ session.chat_enabled|json_script:"chat_enabled_data" }}
 <script>
   window.CAN_DRAW = JSON.parse(document.getElementById("can_draw_data").textContent);
   window.IS_TEACHER = JSON.parse(document.getElementById("is_teacher_data").textContent);
+  window.CHAT_ENABLED = JSON.parse(document.getElementById("chat_enabled_data").textContent);
   window.CURRENT_SESSION_ID = "{{ session.id }}";
   window.CURRENT_USER_ID = "{{ request.user.id }}";
-  window.SUPABASE_URL = "{{ SUPABASE_URL }}";
-  window.SUPABASE_ANON_KEY = "{{ SUPABASE_ANON_KEY }}";
-  // Provide the last saved snapshot URL (if any) for background restore
-  window.SNAPSHOT_URL = "{{ snapshot_url|default:'' }}";
+  // Last saved snapshot (if any) is drawn as the board background.
+  window.SNAPSHOT_URL = "{{ snapshot_url|default:''|escapejs }}";
+  window.RECORD_STROKE_URL = "{% url 'record_stroke' session.id %}";
 </script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.6/dist/umd/supabase.js"></script>
+<script src="{% static 'core/js/realtime.js' %}"></script>
 <script src="{% static 'session/js/whiteboard.js' %}"></script>
-{% if user == session.created_by %}
+{% if is_teacher %}
 <script src="{% static 'session/js/participants.js' %}"></script>
 <script src="{% static 'session/js/announcements.js' %}" defer></script>
+{% else %}
+<script src="{% static 'session/js/student_announcements.js' %}" defer></script>
 {% endif %}
 <script src="{% static 'session/js/upload.js' %}" defer></script>
 <script src="{% static 'session/js/annotations.js' %}" defer></script>
 {% endblock %}
-{% include "chat/chat_box.html" %}

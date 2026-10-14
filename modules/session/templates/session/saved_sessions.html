@@ -17,11 +17,14 @@
         <li>
           <div class="session-meta">
             <strong>{{ it.title }}</strong>
+            <small class="muted">{{ it.created_at|date:"M d, Y" }}</small>
           </div>
           <div class="session-actions">
             {% if it.snapshot_url %}
               <a class="btn btn-primary" href="{{ it.snapshot_url }}" target="_blank" rel="noopener">Open Snapshot</a>
-              <a class="btn btn-secondary" href="{{ it.snapshot_url }}" download>Download</a>
+              <a class="btn btn-secondary" href="{{ it.snapshot_url }}" download>Download PNG</a>
+              <a class="btn btn-secondary" href="{% url 'export_session_pdf' it.id %}">Download PDF</a>
+              <a class="btn btn-secondary" href="{% url 'whiteboard' it.id %}">Open Board</a>
             {% else %}
               <span class="empty">No snapshot</span>
             {% endif %}

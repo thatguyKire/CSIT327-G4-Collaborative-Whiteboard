@@ -204,7 +204,10 @@
       showToast("Undo failed.", "error");
     }
   }
-  function undo(broadcast = true) {
+  // Undo/redo only touch this user's own layer; other clients are updated by
+  // broadcastLayerSync() (see the wrappers further down), never by replaying
+  // the undo on their side, which would undo *their* strokes instead.
+  function undo() {
     if (history.length <= 1) {
       showToast("Nothing to undo.", "info");
       return;
@@ -213,12 +216,8 @@
     redoStack.push(current);
     const previous = history[history.length - 1];
     restoreSnapshot(previous);
-    // broadcast to other clients unless explicitly disabled
-    if (broadcast && typeof channel !== 'undefined' && channel) {
-      try { channel.send({ type: 'broadcast', event: 'history', payload: { t: 'undo', sid: String(window.CURRENT_USER_ID) } }); } catch (e) { console.warn('undo broadcast failed', e); }
-    }
   }
-  function redo(broadcast = true) {
+  function redo() {
     if (redoStack.length === 0) {
       showToast("Nothing to redo.", "info");
       return;
@@ -241,12 +240,15 @@
       });
     } catch {}
     restoreSnapshot(next);
-    // broadcast redo
-    if (broadcast && typeof channel !== 'undefined' && channel) {
-      try { channel.send({ type: 'broadcast', event: 'history', payload: { t: 'redo', sid: String(window.CURRENT_USER_ID) } }); } catch (e) { console.warn('redo broadcast failed', e); }
-    }
+  }
+  // True when the user is typing (chat, announcements...): leave keys alone.
+  function isTypingTarget(target) {
+    if (!target) return false;
+    const tag = (target.tagName || "").toLowerCase();
+    return tag === "input" || tag === "textarea" || tag === "select" || target.isContentEditable;
   }
   document.addEventListener("keydown", (e) => {
+    if (isTypingTarget(e.target)) return;
     const cmdCtrl = e.ctrlKey || e.metaKey;
     if (cmdCtrl && e.key.toLowerCase() === "z" && !e.shiftKey) {
       e.preventDefault();
@@ -445,13 +447,14 @@
     send("end", e);
     // Ensure eraser effects are reflected remotely
     if (erasing) broadcastLayerSync();
-    // Removed unused POST ping that caused 403 (Forbidden)
-    // if (window.CURRENT_SESSION_ID) {
-    //   fetch(`/session/${window.CURRENT_SESSION_ID}/stroke/`, {
-    //     method: "POST",
-    //     headers: { "X-CSRFToken": getCookie("csrftoken") }
-    //   }).catch(()=>{});
-    // }
+    // Count the stroke for participation stats (students only; teachers are not participants)
+    if (!window.IS_TEACHER && window.RECORD_STROKE_URL) {
+      fetch(window.RECORD_STROKE_URL, {
+        method: "POST",
+        headers: { "X-CSRFToken": getCookie("csrftoken") },
+        keepalive: true
+      }).catch(() => {});
+    }
   }
 
   // bind/unbind so permission can toggle live
@@ -490,17 +493,6 @@
     }
   }
   updatePermissionUI();
-
-  // Expose permission apply function
-  window.WhiteboardApp = {
-    get canDraw(){ return canDraw; },
-    set canDraw(v){ canDraw = !!v; updatePermissionUI(); },
-    addImageFromUrl,
-    showToast,
-    getCookie,
-    // allow external modules (annotations) to record a snapshot including annotations
-    recordSnapshot: (reason = "external") => { try { snapshotState(reason); } catch(e){ console.warn('recordSnapshot failed', e); } }
-  };
 
   // Lightweight global helper so other modules can request a local snapshot
   // even if `WhiteboardApp.recordSnapshot` isn't present at load time.
@@ -560,11 +552,11 @@
       // Delete button
       if (p.x >= img.x + img.width - 22 && p.x <= img.x + img.width &&
           p.y >= img.y - 22 && p.y <= img.y) {
-        const before = images.slice();
         images = images.filter(i => i !== img);
         activeImage = null;
         scheduleRedraw();
         snapshotState("delete-image");
+        broadcastDelete(img.id);
         return;
       }
 
@@ -637,7 +629,7 @@
 
   // Delete with keyboard
   document.addEventListener("keydown", (e) => {
-    if (!activeImage || !canDraw) return;
+    if (!activeImage || !canDraw || isTypingTarget(e.target)) return;
     if (e.key === "Delete" || e.key === "Backspace") {
       e.preventDefault();
       const deletedId = activeImage.id;                 // fix: keep id before nulling
@@ -862,7 +854,7 @@
 
         const item = {
           id: opts.id != null ? String(opts.id) : String(nextImageId++),
-          img, x, y, width, height, rotation: 0
+          url, img, x, y, width, height, rotation: 0
         };
         images.push(item);
         activeImage = item;
@@ -917,15 +909,15 @@
     updateUndoRedoButtons();
   };
   const _undo = undo;
-  undo = function(broadcast = true) {
-    _undo(broadcast);
+  undo = function() {
+    _undo();
     updateUndoRedoButtons();
     // Sync this user's layer to others after undo
     broadcastLayerSync();
   };
   const _redo = redo;
-  redo = function(broadcast = true) {
-    _redo(broadcast);
+  redo = function() {
+    _redo();
     updateUndoRedoButtons();
     // Sync this user's layer to others after redo
     broadcastLayerSync();
@@ -938,29 +930,56 @@
   // After initial setup
   updateUndoRedoButtons();
 
-  // Supabase Realtime
-  const supa = (window.SUPABASE_URL && window.SUPABASE_ANON_KEY)
-    ? window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY)
-    : null;
-
-  const channelName = `wb:${window.CURRENT_SESSION_ID}`;
-  const channel = supa?.channel(channelName, {
-    config: { broadcast: { ack: false }, presence: { key: String(window.CURRENT_USER_ID || "anon") } }
-  });
+  // Realtime over the app's own WebSocket (core/js/realtime.js → session/consumers.py)
+  const channel = window.CollabRealtime ? window.CollabRealtime.channel(window.CURRENT_SESSION_ID) : null;
   window.WhiteboardChannel = channel;
 
   // subscribe so events flow (delayed to allow other scripts to attach listeners)
   window.addEventListener("load", () => {
     channel?.subscribe((status) => {
-      console.log("Realtime status:", status, channelName);
+      if (window.DEBUG) console.log("Realtime status:", status, window.CURRENT_SESSION_ID);
       if (status === "SUBSCRIBED") {
         try {
           channel.track({ uid: String(window.CURRENT_USER_ID), role: window.IS_TEACHER ? "teacher" : "student" });
         } catch (e) {
           console.warn("Presence track failed", e);
         }
+        // Push my own strokes (covers reconnects) and ask everyone else for theirs.
+        if (layerHasInk(getSelfLayer())) broadcastLayerSync();
+        channel.send({ type: "broadcast", event: "sync", payload: { t: "request", sid: String(window.CURRENT_USER_ID) } });
       }
     });
+  });
+
+  // Answer a late joiner's sync request with this client's own strokes, and
+  // (teacher only, to avoid N duplicate copies) the images on the board.
+  function layerHasInk(layerCtx) {
+    try {
+      const { width, height } = layerCtx.canvas;
+      const data = layerCtx.getImageData(0, 0, width, height).data;
+      for (let i = 3; i < data.length; i += 4) if (data[i] !== 0) return true;
+    } catch {}
+    return false;
+  }
+  channel?.on("broadcast", { event: "sync" }, ({ payload }) => {
+    if (!payload || payload.t !== "request") return;
+    if (String(payload.sid) === String(window.CURRENT_USER_ID)) return;
+    if (layerHasInk(getSelfLayer())) broadcastLayerSync();
+    if (window.IS_TEACHER) {
+      images.forEach(img => {
+        if (!img.url) return;
+        channel.send({
+          type: "broadcast",
+          event: "image",
+          payload: {
+            t: "add", id: img.id, url: img.url,
+            x: img.x / canvas.width, y: img.y / canvas.height,
+            w: img.width / canvas.width, h: img.height / canvas.height,
+            r: img.rotation || 0
+          }
+        });
+      });
+    }
   });
 
   // Realtime meta events (chat toggle)
@@ -1139,22 +1158,6 @@
         break;
     }
     redrawWithRemotes();
-  });
-
-  // History sync: respond to undo/redo broadcasts from other clients.
-  channel?.on("broadcast", { event: "history" }, ({ payload }) => {
-    if (!payload || !payload.t) return;
-    // ignore our own broadcasts
-    if (String(payload.sid) === String(window.CURRENT_USER_ID)) return;
-    if (window.DEBUG) console.log('Received history broadcast', payload);
-    switch (payload.t) {
-      case "undo":
-        try { undo(false); } catch (e) { console.warn('Remote undo failed', e); }
-        break;
-      case "redo":
-        try { redo(false); } catch (e) { console.warn('Remote redo failed', e); }
-        break;
-    }
   });
 
   channel?.on("broadcast", { event: "image" }, ({ payload }) => {

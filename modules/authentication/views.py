@@ -17,9 +17,9 @@ def signup_view(request):
         if form.is_valid():
             try:
                 user = form.save()
-                login(request, user)
+                login(request, user, backend="modules.authentication.backends.EmailOrUsernameModelBackend")
                 messages.success(request, f"✅ Welcome, {user.username}!")
-                return redirect("landing")
+                return redirect("redirect_dashboard")
             except IntegrityError:
                 messages.error(request, "⚠️ That Student ID or email is already in use.")
         else:
@@ -43,7 +43,6 @@ class CustomLoginView(LoginView):
         # Ignore any `next` parameter and always redirect to the
         # dashboard redirector which will send students/teachers/admins
         # to their appropriate dashboard.
-        from django.urls import reverse_lazy
         return reverse_lazy("redirect_dashboard")
 
     def form_invalid(self, form):

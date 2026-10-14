@@ -14,7 +14,8 @@
 
     <form method="post">
       {% csrf_token %}
-      <input type="text" name="code" placeholder="Enter Session Code" required>
+      <input type="text" name="code" value="{{ code|default:'' }}" placeholder="Enter Session Code"
+             maxlength="8" autocomplete="off" autocapitalize="characters" required>
       <button type="submit" class="btn">Join</button>
     </form>
 

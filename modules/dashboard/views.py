@@ -1,23 +1,14 @@
 import logging
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
-from modules.authentication.decorators import role_required  # ✅ adjust path if needed
+from modules.authentication.decorators import role_required
 from django.utils import timezone
 from django.db.models import Count, Max
-from django.db import ProgrammingError
-from modules.session.models import Participant, UploadedFile, ChatMessage, Session
+from modules.authentication.models import CustomUser
+from modules.chat.models import Message
+from modules.session.models import Participant, UploadedFile, Session
 
 logger = logging.getLogger(__name__)
-
-# Attempt to import Session model from session app
-from modules.session.models import Participant
-try:
-    from modules.session.models import Session
-except Exception:
-    Session = None
-
-
-
 
 
 # ---------- STUDENT DASHBOARD ----------
@@ -26,17 +17,15 @@ def student_dashboard(request):
     """
     Displays sessions joined by the student.
     """
-    joined = Participant.objects.filter(user=request.user).select_related("session")
-    sessions = [p.session for p in joined]
-    uploads_map = {
-        r["session_id"]: r["cnt"]
-        for r in UploadedFile.objects.filter(session__in=sessions)
-              .values("session_id").annotate(cnt=Count("id"))
-    }
+    joined = list(
+        Participant.objects.filter(user=request.user)
+        .select_related("session")
+        .order_by("-joined_at")
+    )
     performance_chart = {
         "labels": [p.session.title or "Session" for p in joined],
         "strokes": [p.strokes_count for p in joined],
-        "uploads": [uploads_map.get(p.session_id, 0) for p in joined],
+        "uploads": [p.uploads_count for p in joined],
     }
     return render(request, "dashboard/student_dashboard.html", {
         "joined_sessions": joined,
@@ -55,74 +44,58 @@ def teacher_dashboard(request):
 
     # Sessions owned by teacher
     sessions_qs = Session.objects.filter(created_by=user)
-
-    # Open sessions subset (recent)
-    order_by = "-created_at"
-    open_sessions = sessions_qs.order_by(order_by)[:10]
-
+    open_sessions = sessions_qs.order_by("-created_at")[:10]
     active_classes_count = sessions_qs.count()
 
     # Participants across teacher sessions
     participants_qs = Participant.objects.filter(session__in=sessions_qs).select_related("user")
 
     # Per-user uploads
-    try:
-        uploads_agg = UploadedFile.objects.filter(session__in=sessions_qs) \
-            .values("uploaded_by_id").annotate(upload_count=Count("id"), last_upload=Max("uploaded_at"))
-    except ProgrammingError:
-        uploads_agg = []
+    uploads_agg = UploadedFile.objects.filter(session__in=sessions_qs) \
+        .values("uploaded_by_id").annotate(upload_count=Count("id"), last_upload=Max("uploaded_at"))
     uploads_map = {u["uploaded_by_id"]: u for u in uploads_agg}
 
-    # Per-user messages
-    msgs_agg = ChatMessage.objects.filter(session__in=sessions_qs) \
+    # Per-user chat messages (live chat lives in modules.chat)
+    msgs_agg = Message.objects.filter(room__session__in=sessions_qs) \
         .values("sender_id").annotate(msg_count=Count("id"), last_msg=Max("timestamp"))
-
     msgs_map = {m["sender_id"]: m for m in msgs_agg}
 
-    today = timezone.now().date()
+    today = timezone.localdate()
 
-    performance_rows = []
+    # One row per student, summed across all of this teacher's sessions.
+    rows_by_user = {}
     for p in participants_qs:
-        uid = p.user_id
-        up = uploads_map.get(uid)
-        ms = msgs_map.get(uid)
+        row = rows_by_user.get(p.user_id)
+        if row is None:
+            up = uploads_map.get(p.user_id)
+            ms = msgs_map.get(p.user_id)
+            row = rows_by_user[p.user_id] = {
+                "username": p.user.username,
+                "strokes": 0,
+                "uploads": up["upload_count"] if up else 0,
+                "messages": ms["msg_count"] if ms else 0,
+                "last_active": max(
+                    [d for d in (up["last_upload"] if up else None, ms["last_msg"] if ms else None) if d],
+                    default=None,
+                ),
+            }
+        row["strokes"] += p.strokes_count
+        seen = [d for d in (row["last_active"], p.last_active, p.joined_at) if d]
+        row["last_active"] = max(seen) if seen else None
+    performance_rows = sorted(rows_by_user.values(), key=lambda r: r["username"].lower())
 
-        uploads_count = up["upload_count"] if up else 0
-        messages_count = ms["msg_count"] if ms else 0
-
-        # Placeholder strokes (not tracked yet)
-        strokes_count = 0
-
-        last_active_candidates = [
-            up["last_upload"] if up else None,
-            ms["last_msg"] if ms else None,
-            p.joined_at
-        ]
-        last_active = max([d for d in last_active_candidates if d is not None], default=p.joined_at)
-
-        performance_rows.append({
-            "username": p.user.username,
-            "strokes": strokes_count,
-            "uploads": uploads_count,
-            "messages": messages_count,
-            "last_active": last_active,
-        })
-
-    total_students = participants_qs.values("user_id").distinct().count()
-    total_uploads = sum(r["uploads"] for r in performance_rows)
-    total_messages = sum(r["messages"] for r in performance_rows)
-    # Active today: any upload or message today
+    # Active today: any activity (join, stroke, upload, message) today
     active_today = sum(
         1 for r in performance_rows
-        if (r["last_active"] and r["last_active"].date() == today)
+        if r["last_active"] and timezone.localtime(r["last_active"]).date() == today
     )
 
     performance_totals = {
-        "total_students": total_students,
+        "total_students": len(performance_rows),
         "active_today": active_today,
         "total_strokes": sum(r["strokes"] for r in performance_rows),
-        "total_uploads": total_uploads,
-        "total_messages": total_messages,
+        "total_uploads": sum(r["uploads"] for r in performance_rows),
+        "total_messages": sum(r["messages"] for r in performance_rows),
     }
 
     performance_chart = {
@@ -147,9 +120,20 @@ def teacher_dashboard(request):
 @role_required(['admin'])
 def admin_dashboard(request):
     """
-    Simple admin dashboard (extend later as needed).
+    Platform-wide counts for administrators.
     """
-    return render(request, "dashboard/admin_dashboard.html")
+    role_counts = dict(CustomUser.objects.values_list("role").annotate(n=Count("id")))
+    context = {
+        "student_count": role_counts.get("student", 0),
+        "teacher_count": role_counts.get("teacher", 0),
+        "admin_count": role_counts.get("admin", 0),
+        "session_count": Session.objects.count(),
+        "participant_count": Participant.objects.count(),
+        "upload_count": UploadedFile.objects.count(),
+        "message_count": Message.objects.count(),
+        "recent_sessions": Session.objects.select_related("created_by").order_by("-created_at")[:10],
+    }
+    return render(request, "dashboard/admin_dashboard.html", context)
 
 
 # ---------- REDIRECT DASHBOARD ----------
@@ -165,4 +149,4 @@ def redirect_dashboard(request):
         return redirect("teacher_dashboard")
     elif role == "admin":
         return redirect("admin_dashboard")
-    return redirect("login")
+    return redirect("auth:login")

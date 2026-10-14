@@ -15,20 +15,31 @@
   <div class="dashboard-grid">
     <div class="card">
       <h3>Total Users</h3>
-      <p>Students: <strong>120</strong> | Teachers: <strong>15</strong></p>
-      <a href="#" class="btn">Manage Users</a>
+      <p>Students: <strong>{{ student_count }}</strong> | Teachers: <strong>{{ teacher_count }}</strong> | Admins: <strong>{{ admin_count }}</strong></p>
+      <a href="{% url 'admin:authentication_customuser_changelist' %}" class="btn">Manage Users</a>
     </div>
 
     <div class="card">
-      <h3>Active Sessions</h3>
-      <p>5 active whiteboards across the platform.</p>
-      <a href="#" class="btn">View Sessions</a>
+      <h3>Sessions</h3>
+      <p><strong>{{ session_count }}</strong> whiteboard sessions, <strong>{{ participant_count }}</strong> student joins.</p>
+      <a href="{% url 'admin:session_session_changelist' %}" class="btn">View Sessions</a>
     </div>
 
     <div class="card">
-      <h3>Reports</h3>
-      <p>Generate performance, usage, or activity logs.</p>
-      <a href="#" class="btn">Generate Reports</a>
+      <h3>Activity</h3>
+      <p><strong>{{ upload_count }}</strong> uploads and <strong>{{ message_count }}</strong> chat messages.</p>
+      <a href="{% url 'admin:index' %}" class="btn">Open Admin Site</a>
+    </div>
+
+    <div class="card" style="grid-column: 1 / -1;">
+      <h3>Recent Sessions</h3>
+      <ul class="session-list">
+        {% for s in recent_sessions %}
+          <li><strong>{{ s.title }}</strong> — {{ s.code }} · by {{ s.created_by.username }} · {{ s.created_at|date:"M d, Y H:i" }}</li>
+        {% empty %}
+          <li>No sessions yet.</li>
+        {% endfor %}
+      </ul>
     </div>
   </div>
 </section>

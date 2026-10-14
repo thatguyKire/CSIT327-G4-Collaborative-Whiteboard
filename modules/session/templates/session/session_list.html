@@ -18,7 +18,7 @@
     <!-- Create session -->
     <form method="post" action="{% url 'create_session' %}" class="create-session-form">
       {% csrf_token %}
-      <input type="text" name="title" placeholder="Session Title" required>
+      <input type="text" name="title" placeholder="Session Title" maxlength="100" required>
       <button type="submit" class="btn">Create Session</button>
     </form>
 
@@ -33,6 +33,11 @@
 
     <!-- Sessions -->
     <h3>Your Sessions</h3>
+    <form method="get" class="create-session-form" role="search">
+      <input type="search" name="q" value="{{ query }}" placeholder="Search by title or code" aria-label="Search sessions">
+      <button type="submit" class="btn btn-secondary">Search</button>
+      {% if query %}<a href="{% url 'session_list' %}" class="btn btn-secondary">Clear</a>{% endif %}
+    </form>
     <div class="session-list-wrapper">
       <ul class="session-list">
         {% for s in sessions %}
@@ -56,6 +61,15 @@
                 Invite
               </button>
 
+              {% if s.snapshot_url %}
+                <a href="{% url 'export_session_pdf' s.id %}" class="btn btn-secondary">PDF</a>
+              {% endif %}
+
+              <form method="post" action="{% url 'duplicate_session' s.id %}" class="inline">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-secondary">Duplicate</button>
+              </form>
+
               <form method="post" action="{% url 'delete_session' s.id %}" class="inline delete-session-form">
                 {% csrf_token %}
                 <button type="submit" class="btn btn-danger">Delete</button>
@@ -63,7 +77,7 @@
             </div>
           </li>
         {% empty %}
-          <li class="no-session">No sessions yet.</li>
+          <li class="no-session">{% if query %}No sessions match "{{ query }}".{% else %}No sessions yet.{% endif %}</li>
         {% endfor %}
       </ul>
     </div>

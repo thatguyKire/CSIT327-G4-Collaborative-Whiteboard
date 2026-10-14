@@ -54,7 +54,7 @@
     <!-- Student Performance -->
     <div class="card" style="grid-column: span 2;">
       <h3>Student Performance</h3>
-      <p class="small muted">Realtime participation metrics (strokes, uploads, active time).</p>
+      <p class="small muted">Participation across all your sessions (strokes, uploads, chat messages, last activity).</p>
 
       <!-- Summary badges -->
       <div class="perf-summary">
@@ -86,6 +86,7 @@
             <th>Student</th>
             <th>Strokes</th>
             <th>Uploads</th>
+            <th>Messages</th>
             <th>Last Active</th>
           </tr>
         </thead>
@@ -95,10 +96,11 @@
             <td>{{ row.username }}</td>
             <td>{{ row.strokes }}</td>
             <td>{{ row.uploads }}</td>
+            <td>{{ row.messages }}</td>
             <td>{{ row.last_active|default:"—" }}</td>
           </tr>
           {% empty %}
-          <tr><td colspan="4">No data yet.</td></tr>
+          <tr><td colspan="5">No data yet.</td></tr>
           {% endfor %}
         </tbody>
       </table>

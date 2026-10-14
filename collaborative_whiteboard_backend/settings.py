@@ -18,19 +18,37 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # -------------------------------------------------------------
 # SECURITY SETTINGS
 # -------------------------------------------------------------
+# Always set SECRET_KEY in production; the fallback is for local development only.
 SECRET_KEY = os.getenv("SECRET_KEY", "django-insecure-4-b^8=^287@np#7mr$+l9*5!+2tvn_6ecx#4n+six8ep3!ln-#")
-DEBUG = os.getenv("DEBUG", "True") == "True"
+
+# Render sets RENDER=true, so production defaults to DEBUG off unless overridden.
+DEBUG = os.getenv("DEBUG", "False" if os.getenv("RENDER") else "True") == "True"
 
 ALLOWED_HOSTS = [
     'collaboard-z4sx.onrender.com',
     'localhost',
-    '127.0.0.1'
+    '127.0.0.1',
 ]
+ALLOWED_HOSTS += [h.strip() for h in os.getenv("ALLOWED_HOSTS", "").split(",") if h.strip()]
+if os.getenv("RENDER_EXTERNAL_HOSTNAME"):
+    ALLOWED_HOSTS.append(os.environ["RENDER_EXTERNAL_HOSTNAME"])
+
+CSRF_TRUSTED_ORIGINS = [f"https://{h}" for h in ALLOWED_HOSTS if h not in ("localhost", "127.0.0.1")]
+
+# Render terminates TLS at its proxy; trust its header so request.is_secure()
+# and build_absolute_uri() produce https:// URLs.
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+if not DEBUG:
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
 
 # -------------------------------------------------------------
 # APPLICATIONS
 # -------------------------------------------------------------
 INSTALLED_APPS = [
+    # ASGI server: must come first so `runserver` serves WebSockets too
+    'daphne',
+
     # Django default apps
     'django.contrib.admin',
     'django.contrib.auth',
@@ -41,6 +59,7 @@ INSTALLED_APPS = [
 
     # Third-party apps
     'rest_framework',
+    'channels',
 
     # Your modular apps
     'modules.authentication',
@@ -74,6 +93,13 @@ MIDDLEWARE = [
 # -------------------------------------------------------------
 ROOT_URLCONF = 'collaborative_whiteboard_backend.urls'
 WSGI_APPLICATION = 'collaborative_whiteboard_backend.wsgi.application'
+ASGI_APPLICATION = 'collaborative_whiteboard_backend.asgi.application'
+
+# Realtime whiteboard (WebSockets). The in-memory layer needs a single server
+# process, which is how the app runs (one Daphne process).
+CHANNEL_LAYERS = {
+    "default": {"BACKEND": "channels.layers.InMemoryChannelLayer"},
+}
 
 # -------------------------------------------------------------
 # TEMPLATES
@@ -99,18 +125,36 @@ TEMPLATES = [
 # -------------------------------------------------------------
 # DATABASE
 # -------------------------------------------------------------
-DATABASES = {
-    "default": dj_database_url.config(
-        default="sqlite:///db.sqlite3",
-        conn_max_age=600,
-        ssl_require=False if DEBUG else True  # Only force SSL in production
-    )
-}
+# SQLite by default. SQLITE_PATH lets production keep the file on a persistent
+# disk; DATABASE_URL (PostgreSQL) still works if you ever move to a server DB.
+SQLITE_PATH = os.getenv("SQLITE_PATH", str(BASE_DIR / "db.sqlite3"))
+
+if os.getenv("DATABASE_URL"):
+    DATABASES = {
+        "default": dj_database_url.config(conn_max_age=600, ssl_require=not DEBUG)
+    }
+else:
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.sqlite3",
+            "NAME": SQLITE_PATH,
+            "OPTIONS": {
+                # WAL + immediate transactions avoid "database is locked" when the
+                # web and WebSocket handlers write at the same time.
+                "init_command": "PRAGMA journal_mode=WAL; PRAGMA synchronous=NORMAL;",
+                "transaction_mode": "IMMEDIATE",
+                "timeout": 20,
+            },
+        }
+    }
 
 # -------------------------------------------------------------
 # AUTHENTICATION
 # -------------------------------------------------------------
 AUTH_USER_MODEL = "authentication.CustomUser"
+AUTHENTICATION_BACKENDS = [
+    "modules.authentication.backends.EmailOrUsernameModelBackend",
+]
 
 LOGIN_REDIRECT_URL = "/dashboard/redirect/"
 LOGOUT_REDIRECT_URL = "/auth/login/"
@@ -121,7 +165,6 @@ LOGIN_URL = "/auth/login/"
 # -------------------------------------------------------------
 AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
-    {'NAME': 'modules.settings_app.validators.ComplexPasswordValidator'},
     {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator'},
     {'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator'},
     {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
@@ -138,28 +181,17 @@ USE_I18N = True
 USE_TZ = True
 
 # -------------------------------------------------------------
-# SUPABASE (for whiteboard snapshots)
-# -------------------------------------------------------------
-SUPABASE_URL = os.getenv("SUPABASE_URL", "")
-SUPABASE_ANON_KEY = os.getenv("SUPABASE_ANON_KEY") or os.getenv("SUPABASE_KEY", "")
-SUPABASE_SERVICE_ROLE_KEY = os.getenv("SUPABASE_SERVICE_ROLE_KEY", "")
-SUPABASE_BUCKET = os.getenv("SUPABASE_BUCKET", "whiteboard_snapshots")
-# Backward-compat alias (old code may still read SUPABASE_KEY)
-SUPABASE_KEY = SUPABASE_ANON_KEY
-
-# -------------------------------------------------------------
 # STATIC & MEDIA FILES
 # -------------------------------------------------------------
 STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / "staticfiles"
 
-# ✅ Let Django collect from all apps
-STATICFILES_DIRS = [
-    BASE_DIR / 'modules' / 'core' / 'static',
-]
+# App static folders (modules/<app>/static/) are found automatically.
 
+# Snapshots and uploads are stored on local disk (MEDIA_ROOT) and served by
+# the app at /media/. Point MEDIA_ROOT at a persistent disk in production.
 MEDIA_URL = '/media/'
-MEDIA_ROOT = BASE_DIR / 'media'
+MEDIA_ROOT = Path(os.getenv("MEDIA_ROOT", str(BASE_DIR / 'media')))
 
 # ✅ WhiteNoise for Render (static caching)
 STORAGES = {
@@ -182,3 +214,16 @@ STORAGES = {
 # DEFAULT PRIMARY KEY
 # -------------------------------------------------------------
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# -------------------------------------------------------------
+# UPLOADS & LOGGING
+# -------------------------------------------------------------
+# Whiteboard snapshots are posted as PNG form data; allow up to 15 MB in memory.
+DATA_UPLOAD_MAX_MEMORY_SIZE = 15 * 1024 * 1024
+
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "handlers": {"console": {"class": "logging.StreamHandler"}},
+    "root": {"handlers": ["console"], "level": os.getenv("LOG_LEVEL", "INFO")},
+}
